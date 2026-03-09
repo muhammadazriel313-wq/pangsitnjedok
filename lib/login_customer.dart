@@ -200,6 +200,26 @@ class ALogIn extends StatelessWidget {
                   ),
                 ),
               ),
+
+                  // --- KOLOM PASSWORD DENGAN IKON MATA ---
+Positioned(
+  left: 36,
+  top: 500,
+  child: Container(
+    // ... properti width, height, decoration tetap sama
+    child: Align(
+      alignment: Alignment.centerRight, // Menyelaraskan ke kanan tengah
+      child: Padding(
+        padding: const EdgeInsets.only(right: 12.0), // Memberi jarak agar tidak menempel
+        child: Icon(
+          Icons.visibility_off, // Ikon mata tertutup
+          color: Color.fromARGB(255, 57, 19, 19),
+          size: 20,
+        ),
+      ),
+    ),
+  ),
+),
               // Link "Lupa Kata Sandi?"
               const Positioned(
                 left: 242,
