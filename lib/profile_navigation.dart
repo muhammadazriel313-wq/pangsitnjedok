@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'profile_navigation.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const FigmaToCodeApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class FigmaToCodeApp extends StatelessWidget {
+  const FigmaToCodeApp({super.key});
 
   @override
   Widget build(BuildContext context) {
