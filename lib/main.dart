@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'daftarakun.dart';
-
+import 'daftar_akun.dart';
 void main() {
   runApp(const FigmaToCodeApp());
 }
@@ -8,380 +7,63 @@ void main() {
 class FigmaToCodeApp extends StatelessWidget {
   const FigmaToCodeApp({super.key});
 
+  // Root aplikasi
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
+      title: 'Flutter Demo',
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFFF5CB58),
-        fontFamily: 'League Spartan',
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const RegisterScreen(),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class RegisterScreen extends StatelessWidget {
-  const RegisterScreen({super.key});
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
+
+  final String title;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  int _counter = 0;
+
+  void _incrementCounter() {
+    setState(() {
+      _counter++;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Container(
-            width: double.infinity,
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height,
+      appBar: AppBar(
+        title: Text(widget.title),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text(
+              'You have pushed the button this many times:',
             ),
-            color: const Color(0xFFF5CB58),
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
-                // Header dengan back button
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.transparent,
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: Color(0xFF391713),
-                          size: 28,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                  ],
-                ),
-                
-                const SizedBox(height: 16),
-                
-                // Title
-                const Text(
-                  'Daftar Akun Baru',
-                  style: TextStyle(
-                    color: Color(0xFFF8F8F8),
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                
-                const SizedBox(height: 32),
-                
-                // Switch Customer/Admin
-                Center(
-                  child: Container(
-                    width: 300,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD9D9D9),
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE93C22),
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            child: const Center(
-                              child: Text(
-                                'Customer',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              'Admin',
-                              style: TextStyle(
-                                color: const Color(0xFF979797),
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 40),
-                
-                // Nama Lengkap Field
-                const _FormField(
-                  label: 'Nama Lengkap',
-                  hint: 'username',
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // Email Field
-                const Text(
-                  'Email',
-                  style: TextStyle(
-                    color: Color(0xFF391713),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3E9B5),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(
-                      color: const Color(0xFFE9F6FE),
-                      width: 1,
-                    ),
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'username123@gmail.com',
-                        style: TextStyle(
-                          color: Color(0xFF391713),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // Password Field
-                const Text(
-                  'Password',
-                  style: TextStyle(
-                    color: Color(0xFF391713),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3E9B5),
-                    borderRadius: BorderRadius.circular(13),
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '*********',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        Icon(
-                          Icons.visibility,
-                          color: Color(0xFF391713),
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // No Handphone Field
-                const Text(
-                  'No. handphone',
-                  style: TextStyle(
-                    color: Color(0xFF391713),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3E9B5),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(
-                      color: const Color(0xFFE9F6FE),
-                      width: 1,
-                    ),
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        '+62 89654957080',
-                        style: TextStyle(
-                          color: Color(0xFF391713),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 40),
-                
-                // Terms and conditions
-                const Center(
-                  child: Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'Dengan melanjutkan, Anda menyetujui \n',
-                          style: TextStyle(
-                            color: Color(0xFF391713),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w300,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'Ketentuan Penggunaan',
-                          style: TextStyle(
-                            color: Color(0xFFE93C22),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        TextSpan(
-                          text: ' dan ',
-                          style: TextStyle(
-                            color: Color(0xFF391713),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w300,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'Kebijakan Privasi',
-                          style: TextStyle(
-                            color: Color(0xFFE93C22),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // Register Button
-                Center(
-                  child: Container(
-                    width: 207,
-                    height: 45,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE93C22),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Daftar',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 40),
-              ],
+            Text(
+              '$_counter',
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
-          ),
+          ],
         ),
       ),
-    );
-  }
-}
-
-// Custom Form Field Widget (private)
-class _FormField extends StatelessWidget {
-  final String label;
-  final String hint;
-
-  const _FormField({
-    required this.label,
-    required this.hint,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xFF391713),
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          height: 45,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3E9B5),
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(
-              color: const Color(0xFFE9F6FE),
-              width: 1,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                hint,
-                style: const TextStyle(
-                  color: Color(0xFF391713),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        tooltip: 'Increment',
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }
