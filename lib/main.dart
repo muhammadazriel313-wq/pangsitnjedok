@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'daftar_akun.dart';
+import 'profile_navigation.dart';
 
 void main() {
   runApp(const FigmaToCodeApp());
