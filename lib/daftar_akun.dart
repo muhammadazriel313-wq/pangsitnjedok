@@ -4,18 +4,18 @@ void main() {
   runApp(const FigmaToCodeApp());
 }
 
-class FigmaToCodeApp extends StatelessWidget {
+class FigmaToCodeApp extends StatelessWidget { // data tidak berubah
   const FigmaToCodeApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) { // mengembalikan struktur UI pada widget
     return MaterialApp(
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color.fromARGB(255, 18, 32, 47),
       ),
-      home: Scaffold(
+      home: Scaffold( // Struktur dasar halaman dengan app bar, body, dll
         body: ListView(children: [
-          Frame1000003604(),
+          Frame1000003604(),// untuk Memanggil widget utama
         ]),
       ),
     );
@@ -26,6 +26,7 @@ class Frame1000003604 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      // backgrund utama
       children: [
         Container(
           width: 393,
@@ -48,7 +49,7 @@ class Frame1000003604 extends StatelessWidget {
                   child: Stack(
                     children: [
 
-                      // === WHITE CARD (rotasi dari Figma) ===
+                      // === WHITE CARD (elemen dekoratif) ===
                       Positioned(
                         left: 393,
                         top: 850,
@@ -213,7 +214,7 @@ class Frame1000003604 extends StatelessWidget {
                         ),
                       ),
 
-                      // === FIELD NAMA LENGKAP ===
+                      // === FIELD(area inputan) NAMA LENGKAP ===
                       Positioned(
                         left: 35,
                         top: 331,
