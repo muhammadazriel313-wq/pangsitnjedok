@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'profile_navigation.dart';
+import 'login_customer.dart';
 
 void main() {
-  runApp(const FigmaToCodeApp());
+  runApp(const PangsitNjedokApp());
 }
 
 class MyApp extends StatelessWidget {

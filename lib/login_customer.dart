@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const FigmaToCodeApp());
+  runApp(const PangsitNjedokApp());  // Fungsi utama, menjalankan aplikasi dengan root widget PangsitNjedokApp
 }
 
-class FigmaToCodeApp extends StatelessWidget {
-  const FigmaToCodeApp({super.key});
+class PangsitNjedokApp extends StatelessWidget {  // Widget utama aplikasi (tidak bisa berubah)
+  const PangsitNjedokApp ({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData.dark().copyWith(
+  Widget build(BuildContext context) { // Method untuk membangun UI
+    return MaterialApp(  // MaterialApp = kerangka dasar aplikasi (routing, theme, dll)
+      theme: ThemeData.dark().copyWith( // Menggunakan tema gelap lalu dimodifikasi
         scaffoldBackgroundColor: const Color.fromARGB(255, 18, 32, 47),
+        // Mengubah warna background utama aplikasi
       ),
-      home: Scaffold(
-        body: ListView(
+      home: Scaffold( // Scaffold = struktur dasar halaman
+        body: ListView(  // ListView = widget scroll (bisa digeser ke bawah)
           children: const [
             ALogIn(),
           ],
@@ -24,28 +25,29 @@ class FigmaToCodeApp extends StatelessWidget {
   }
 }
 
-class ALogIn extends StatelessWidget {
+class ALogIn extends StatelessWidget {  // Widget halaman login
   const ALogIn({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) { // Method untuk membangun UI
     return Column(
       children: [
         Container(
           width: 393,
-          height: 852,
+          height: 852, // Ukuran layar 
           clipBehavior: Clip.antiAlias,
-          decoration: ShapeDecoration(
-            color: const Color(0xFFF5CB58),
+
+          decoration: ShapeDecoration( 
+            color: const Color(0xFFF5CB58), // Background kuning
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
           ),
           child: Stack(
             children: [
-              // --- ELEMEN DI BAWAH INI AKAN DITIMPA OLEH ELEMEN YANG DITULIS BELAKANGAN ---
+            
 
-              // Status Bar
+              // ================= STATUS BAR =================
               const Positioned(
                 left: 25,
                 top: 10,
@@ -63,7 +65,8 @@ class ALogIn extends StatelessWidget {
                   ),
                 ),
               ),
-              // Judul "Selamat Datang"
+
+              // ================= JUDUL =================
               const Positioned(
                 left: 105,
                 top: 70,
@@ -78,36 +81,37 @@ class ALogIn extends StatelessWidget {
                 ),
               ),
 
-              // --- TAMBAHAN: IKON SINYAL ---
+
+              // ================= ICON SINYAL ================
               const Positioned(
-                right: 65, // Posisi dari kanan
-                top: 9,    // Sejajar dengan teks waktu
+                right: 65, 
+                top: 9,    
                 child: Icon(
                   Icons.signal_cellular_alt, // Ikon sinyal
-                  color: Color(0xFF391713), // Warna yang sama
+                  color: Color(0xFF391713), 
                   size: 14,
                 ),
               ),
 
-           //ikon wifi//
+            // ================= ICON WIFI =================
               const Positioned(
-                right: 50, // Jarak 75px dari tepi kanan layar
-                top: 9,   // Posisi vertikal yang sama dengan teks waktu
+                right: 50, 
+                top: 9,   
                 child: Icon(
                   Icons.wifi, // Ikon Wi-Fi
-                  color: Color(0xFF391713), // Warna senada
-                  size: 14, // Ukuran ikon
+                  color: Color(0xFF391713), 
+                  size: 14, 
                  ),
                 ),
 
 
               // --- TAMBAHAN: IKON BATERAI ---
           const Positioned(
-            right: 35, // Posisi dari kanan
-            top: 9,   // Sejajar dengan teks waktu
+            right: 35, 
+            top: 9,   
             child: Icon(
               Icons.battery_full,
-              color: Color(0xFF391713), // Warna yang sama dengan teks waktu
+              color: Color(0xFF391713), 
               size: 14,
             ),
           ),
@@ -124,9 +128,9 @@ class ALogIn extends StatelessWidget {
             ),
           ),
 
-              // --- PERUBAHAN 1: LATAR BELAKANG PUTIH DINAIKAN ---
+              // --- PERUBAHAN 1: LATAR BELAKANG PUTIH ---
               Positioned(
-                top: 190, // <--- DINAIKAN MENJADI 190
+                top: 190, // 
                 left: 0,
                 right: 0,
                 bottom: 0,
@@ -141,11 +145,11 @@ class ALogIn extends StatelessWidget {
                 ),
               ),
 
-              // --- AREA FORM (DITURUNKAN KARENA LATAR PUTIH NAIK) ---
-              // Label "Email atau Nomor HP"
+      
+              //  ================= LABEL EMAIL =================
               const Positioned(
                 left: 36,
-                top: 365, // <--- DITURUNKAN
+                top: 365, // 
                 child: Text(
                   'Email atau Nomor HP',
                   style: TextStyle(
@@ -156,25 +160,27 @@ class ALogIn extends StatelessWidget {
                   ),
                 ),
               ),
+
               // Input Field Email
               Positioned(
                 left: 36,
-                top: 400, // <--- DITURUNKAN
+                top: 400, 
                 child: Container(
                   width: 322,
                   height: 45,
-                  decoration: ShapeDecoration(
+                  decoration: ShapeDecoration( // untuk mengatur tampilan visual dari container, khususnya warna dan bentuknya
                     color: const Color(0xFFF3E9B5),
-                    shape: RoundedRectangleBorder(
+                    shape: RoundedRectangleBorder( //menentukan bentuk → persegi panjang
                       borderRadius: BorderRadius.circular(13),
                     ),
                   ),
                 ),
               ),
+
               // Label "Password"
               const Positioned(
                 left: 36,
-                top: 460, // <--- DITURUNKAN
+                top: 460, // 
                 child: Text(
                   'Password ',
                   style: TextStyle(
@@ -185,10 +191,11 @@ class ALogIn extends StatelessWidget {
                   ),
                 ),
               ),
+
               // Input Field Password
               Positioned(
                 left: 36,
-                top: 500, // <--- DITURUNKAN
+                top: 500, 
                 child: Container(
                   width: 322,
                   height: 45,
@@ -206,9 +213,8 @@ class ALogIn extends StatelessWidget {
                 left: 335,
                 top: 512,
                 child: Container(
-                  // ... properti width, height, decoration tetap sama
                   child: Align(
-                    alignment: Alignment.centerRight, // Menyelaraskan ke kanan tengah
+                    alignment: Alignment.centerRight, 
                     child: Padding(
                       padding: const EdgeInsets.only(right: 12.0), // Memberi jarak agar tidak menempel
                       child: Icon(
@@ -221,10 +227,10 @@ class ALogIn extends StatelessWidget {
                 ),
               ),
 
-              // Link "Lupa Kata Sandi?"
+              // Lupa Kata Sandi
               const Positioned(
                 left: 242,
-                top: 555, // <--- DITURUNKAN
+                top: 555, 
                 child: Text(
                   'Lupa Kata Sandi?',
                   textAlign: TextAlign.right,
@@ -236,10 +242,11 @@ class ALogIn extends StatelessWidget {
                   ),
                 ),
               ),
-              // Tombol "Masuk"
+
+              // Button Tombol Masuk
               Positioned(
                 left: 93,
-                top: 690, // <--- DITURUNKAN
+                top: 690,
                 child: Container(
                   width: 207,
                   height: 45,
@@ -264,7 +271,7 @@ class ALogIn extends StatelessWidget {
                 ),
               ),
 
-              // --- PERUBAHAN 2: TEKS INI DIPINDAHKAN KE BAWAH AGAR MUNCUL DI ATAS LATAR ---
+             
               // Teks "Halo, Cah Nganjuk!"
               const Positioned(
                 left: 36,
@@ -283,7 +290,8 @@ class ALogIn extends StatelessWidget {
                   ),
                 ),
               ),
-              // Teks Deskripsi
+
+               // ================= DESKRIPSI =================
               const Positioned(
                 left: 36,
                 top: 250,

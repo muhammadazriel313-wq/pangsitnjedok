@@ -1,31 +1,32 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const FigmaToCodeApp());
+  runApp(const PangsitNjedokApp());
 }
 
-class FigmaToCodeApp extends StatelessWidget {
-  const FigmaToCodeApp({super.key});
+class PangsitNjedokApp extends StatelessWidget { // data tidak berubah
+  const PangsitNjedokApp({super.key}); // konstruktor untuk inisialisasi widget
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) { // mengembalikan struktur UI pada widget
     return MaterialApp(
-      theme: ThemeData.dark().copyWith(
+      theme: ThemeData.dark().copyWith( //mengatur tema gelap dan menyesuaikan warna latar belakang
         scaffoldBackgroundColor: const Color.fromARGB(255, 18, 32, 47),
       ),
-      home: Scaffold(
-        body: ListView(children: [
-          Frame1000003604(),
+      home: Scaffold( // Struktur dasar halaman dengan app bar, body, dll
+        body: ListView(children: [ // bisa di scroll
+          Frame1000003604(),// untuk Memanggil widget utama
         ]),
       ),
     );
   }
 }
 
-class Frame1000003604 extends StatelessWidget {
+class Frame1000003604 extends StatelessWidget { // widget utama
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Column( // Mengatur tata letak vertikal untuk seluruh halaman
+      // backgrund utama
       children: [
         Container(
           width: 393,
@@ -38,7 +39,7 @@ class Frame1000003604 extends StatelessWidget {
                 child: Container(
                   width: 393,
                   height: 852,
-                  clipBehavior: Clip.antiAlias,
+                  clipBehavior: Clip.antiAlias, // untuk memastikan bahwa isi yang melebihi batas container tidak ditampilkan
                   decoration: ShapeDecoration(
                     color: const Color(0xFFF5CB58),
                     shape: RoundedRectangleBorder(
@@ -48,7 +49,7 @@ class Frame1000003604 extends StatelessWidget {
                   child: Stack(
                     children: [
 
-                      // === WHITE CARD (rotasi dari Figma) ===
+                      // WHITE CARD (elemen dekoratif) background putih
                       Positioned(
                         left: 393,
                         top: 850,
@@ -58,7 +59,7 @@ class Frame1000003604 extends StatelessWidget {
                             ..rotateZ(-3.14),
                           width: 393,
                           height: 706,
-                          clipBehavior: Clip.antiAlias,
+                          clipBehavior: Clip.antiAlias, // untuk memastikan bahwa isi yang melebihi batas container tidak ditampilkan
                           decoration: ShapeDecoration(
                             color: const Color(0xFFF5F5F5),
                             shape: RoundedRectangleBorder(
@@ -88,7 +89,7 @@ class Frame1000003604 extends StatelessWidget {
                         ),
                       ),
 
-                      // === STATUS BAR ===
+                      // STATUS BAR (terletak di bagian atas layar, menampilkan informasi seperti jam, sinyal, wifi, dan baterai)
                       Positioned(
                         left: 0,
                         top: 0,
@@ -154,7 +155,7 @@ class Frame1000003604 extends StatelessWidget {
                         ),
                       ),
 
-                      // === TOMBOL BACK ===
+                      // TOMBOL KEMBALI
                       Positioned(
                         left: 20,
                         top: 40,
@@ -168,7 +169,7 @@ class Frame1000003604 extends StatelessWidget {
                         ),
                       ),
 
-                      // === JUDUL ===
+                      // JUDUL HALAMAN 
                       Positioned(
                         left: 91,
                         top: 68,
@@ -198,7 +199,7 @@ class Frame1000003604 extends StatelessWidget {
                         ),
                       ),
 
-                      // === LABEL NAMA LENGKAP ===
+                      // NAMA LENGKAP
                       Positioned(
                         left: 41,
                         top: 301,
@@ -213,7 +214,7 @@ class Frame1000003604 extends StatelessWidget {
                         ),
                       ),
 
-                      // === FIELD NAMA LENGKAP ===
+                      // FIELD(kotak inputan) NAMA LENGKAP
                       Positioned(
                         left: 35,
                         top: 331,
@@ -246,7 +247,7 @@ class Frame1000003604 extends StatelessWidget {
                         ),
                       ),
 
-                      // === LABEL EMAIL ===
+                      // LABEL EMAIL
                       Positioned(
                         left: 41,
                         top: 395,
@@ -261,7 +262,7 @@ class Frame1000003604 extends StatelessWidget {
                         ),
                       ),
 
-                      // === FIELD EMAIL ===
+                      // FIELD EMAIL
                       Positioned(
                         left: 37,
                         top: 427,
@@ -295,7 +296,7 @@ class Frame1000003604 extends StatelessWidget {
                         ),
                       ),
 
-                      // === LABEL PASSWORD ===
+                      // LABEL PASSWORD
                       Positioned(
                         left: 41,
                         top: 488,
@@ -310,7 +311,7 @@ class Frame1000003604 extends StatelessWidget {
                         ),
                       ),
 
-                      // === FIELD PASSWORD ===
+                      // FIELD PASSWORD
                       Positioned(
                         left: 37,
                         top: 520,
@@ -376,7 +377,7 @@ class Frame1000003604 extends StatelessWidget {
                         ),
                       ),
 
-                      // === LABEL NO. HANDPHONE ===
+                      // NO. HANDPHONE
                       Positioned(
                         left: 36,
                         top: 586,
@@ -391,7 +392,7 @@ class Frame1000003604 extends StatelessWidget {
                         ),
                       ),
 
-                      // === FIELD NO. HANDPHONE ===
+                      // FIELD NO. HANDPHONE
                       Positioned(
                         left: 33,
                         top: 616,
@@ -424,7 +425,7 @@ class Frame1000003604 extends StatelessWidget {
                         ),
                       ),
 
-                      // === TEKS SYARAT & KETENTUAN ===
+                      // TEKS SYARAT & KETENTUAN
                       Positioned(
                         left: 60,
                         top: 708,
@@ -473,7 +474,7 @@ class Frame1000003604 extends StatelessWidget {
                         ),
                       ),
 
-                      // === TOMBOL DAFTAR ===
+                      // TOMBOL DAFTAR
                       Positioned(
                         left: 93,
                         top: 754,
@@ -520,7 +521,7 @@ class Frame1000003604 extends StatelessWidget {
                 ),
               ),
 
-              // === TOMBOL CUSTOMER / ADMIN ===
+              // TOMBOL CUSTOMER switch ADMIN
               Positioned(
                 left: 48,
                 top: 175,
