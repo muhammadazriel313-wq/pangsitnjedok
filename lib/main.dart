@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'cart.dart';
+import 'order.dart';
 
 void main() {
   runApp(const FigmaToCodeApp());
