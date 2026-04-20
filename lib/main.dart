@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'profile_navigation.dart';
+import 'popup_terimakasih.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const FigmaToCodeApp());
 }
 
 class PangsitNjedokApp extends StatelessWidget {

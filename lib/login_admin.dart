@@ -4,6 +4,7 @@ void main() {
   runApp(const FigmaToCodeApp());
 }
 
+//Untuk menjalankan Aplikasi Utama
 class FigmaToCodeApp extends StatelessWidget {
   const FigmaToCodeApp({super.key});
 
@@ -11,11 +12,11 @@ class FigmaToCodeApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color.fromARGB(255, 18, 32, 47),
+        scaffoldBackgroundColor: const Color.fromARGB(255, 18, 32, 47), 
       ),
       home: Scaffold(
         body: ListView(children: [
-          Frame1000003605(),
+          Frame1000003605(), //frame untuk memanggil login
         ]),
       ),
     );
@@ -40,7 +41,7 @@ class Frame1000003605 extends StatelessWidget {
                   height: 852,
                   clipBehavior: Clip.antiAlias,
                   decoration: ShapeDecoration(
-                    color: const Color(0xFFF5CB58),
+                    color: const Color(0xFFF5CB58), // background warna kuning
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -56,7 +57,7 @@ class Frame1000003605 extends StatelessWidget {
                           width: 393,
                           height: 706,
                           decoration: ShapeDecoration(
-                            color: const Color(0xFFF5F5F5),
+                            color: const Color(0xFFF5F5F5), //warna putih
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(30),
@@ -73,7 +74,7 @@ class Frame1000003605 extends StatelessWidget {
                                 right: 0,
                                 top: 30,
                                 child: Text(
-                                  'LOGIN ADMIN',
+                                  'LOGIN ADMIN', //ini tulisan login admin
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: Colors.black,
@@ -84,7 +85,7 @@ class Frame1000003605 extends StatelessWidget {
                                 ),
                               ),
 
-                              // Tombol Customer / Admin
+                              // Tombol switch Customer / Admin
                               Positioned(
                                 left: 47,
                                 top: 90,
@@ -93,6 +94,7 @@ class Frame1000003605 extends StatelessWidget {
                                   height: 50,
                                   child: Stack(
                                     children: [
+                                      //background abu-abu
                                       Container(
                                         width: 300,
                                         height: 50,
@@ -103,6 +105,7 @@ class Frame1000003605 extends StatelessWidget {
                                           ),
                                         ),
                                       ),
+                                      // indikator merah (admin aktif)
                                       Positioned(
                                         left: 150,
                                         top: 0,
@@ -110,18 +113,19 @@ class Frame1000003605 extends StatelessWidget {
                                           width: 150,
                                           height: 50,
                                           decoration: ShapeDecoration(
-                                            color: const Color(0xFFE93C22),
+                                            color: const Color(0xFFE93C22), //warna merah 
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(50),
                                             ),
                                           ),
                                         ),
                                       ),
+                                      // Teks "Customer" (kiri, warna abu-abu)
                                       Positioned(
                                         left: 29,
                                         top: 13,
                                         child: Text(
-                                          'Customer',
+                                          'Customer', // tulisan customer
                                           style: TextStyle(
                                             color: const Color(0xFF979797),
                                             fontSize: 20,
@@ -130,11 +134,12 @@ class Frame1000003605 extends StatelessWidget {
                                           ),
                                         ),
                                       ),
+                                      // Teks "Admin" (kanan, warna putih karena aktif)
                                       Positioned(
                                         left: 197,
                                         top: 13,
                                         child: Text(
-                                          'Admin',
+                                          'Admin', // tulisan admin
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 20,
@@ -162,7 +167,7 @@ class Frame1000003605 extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              // Field Username
+                              // kotak input Username
                               Positioned(
                                 left: 35,
                                 top: 200,
@@ -193,7 +198,7 @@ class Frame1000003605 extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              // Field Password
+                              // kotak input password 
                               Positioned(
                                 left: 35,
                                 top: 295,
@@ -242,7 +247,7 @@ class Frame1000003605 extends StatelessWidget {
                         ),
                       ),
 
-                      // === STATUS BAR ===
+                      // === STATUS BAR (jam, sinyal, wifi, baterai)===
                       Positioned(
                         left: 0,
                         top: 0,
