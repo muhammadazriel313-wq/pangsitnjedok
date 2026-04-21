@@ -33,6 +33,6 @@ flutter:
 
   # Mendaftarkan folder assets
   assets:
-    - assets/
+    - assets/images/
 
   # (Komentar bawaan lainnya saya hapus sebagian agar filemu lebih bersih dan mudah dibaca)

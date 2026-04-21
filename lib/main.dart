@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'order.dart';
+import 'profil_customer.dart';
 
 void main() {
-  runApp(const FigmaToCodeApp());
+  runApp(const PangsitNjedogApp());
 }
 
 class MyApp extends StatelessWidget {
