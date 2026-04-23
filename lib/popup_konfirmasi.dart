@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 void main() {
-  runApp(const FigmaToCodeApp());
+  runApp(const PopupKonfirmasi());
 }
 
-class FigmaToCodeApp extends StatelessWidget {
-  const FigmaToCodeApp({super.key});
+class PopupKonfirmasi extends StatelessWidget {
+  const PopupKonfirmasi({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -89,10 +89,24 @@ class OrderConfirmationDialog extends StatelessWidget {
           ),
           const SizedBox(height: 32),
 
-          // Tombol Yes, Place Order
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
+ElevatedButton(
+  onPressed: () {
+    // 1. Tutup pop up konfirmasi terlebih dahulu
+    Navigator.of(context).pop(); 
+
+    // 2. Panggil pop up success
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return const Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: EdgeInsets.symmetric(horizontal: 24),
+          child: popup_terimakasih(), // Memanggil class gambar kedua
+        );
+      },
+    );
+  },
+      style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFF9644),
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 56),

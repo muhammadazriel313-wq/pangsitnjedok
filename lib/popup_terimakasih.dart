@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 void main() {
-  runApp(const FigmaToCodeApp());
+  runApp(const ThankYouPopUp());
 }
 
-class FigmaToCodeApp extends StatelessWidget {
-  const FigmaToCodeApp({super.key});
+class ThankYouPopUp extends StatelessWidget {
+  const ThankYouPopUp({super.key});
 
   @override
   Widget build(BuildContext context) {
