@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'profil_customer.dart';
+import 'order.dart';
 
 void main() {
-  runApp(const PangsitNjedogApp());
+  runApp(const FigmaToCodeApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class PangsitNjedogApp extends StatelessWidget {
+  const PangsitNjedogApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
