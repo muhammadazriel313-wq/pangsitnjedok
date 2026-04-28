@@ -125,7 +125,7 @@ class Frame1000003605 extends StatelessWidget {
                                         left: 29,
                                         top: 13,
                                         child: Text(
-                                          'Customer', // tulisan customer
+                                          'Customer', // tulisan customer.
                                           style: TextStyle(
                                             color: const Color(0xFF979797),
                                             fontSize: 20,
