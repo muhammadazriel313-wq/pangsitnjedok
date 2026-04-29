@@ -48,12 +48,8 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Welcome, Dimas',
+                      'Welcome, Admin',
                       style: TextStyle(color: Color(0xFF562F00), fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Inter'),
-                    ),
-                    Text(
-                      'April 26, 2026',
-                      style: TextStyle(color: Color(0xB2554337), fontSize: 12, fontWeight: FontWeight.w500, fontFamily: 'Inter'),
                     ),
                   ],
                 ),
@@ -64,11 +60,15 @@ class _DashboardAdminState extends State<DashboardAdmin> {
       );
     }
 
-    // --- WIDGET STATISTIK CHART (GRAFIK) ---
-    Widget buildChartCard() {
-      final chartData = _isHourly
-          ? {'10:00': 0.2, '12:00': 0.8, '14:00': 0.6, '16:00': 0.4, '18:00': 0.9, '20:00': 1.0}
-          : {'Mon': 0.5, 'Tue': 0.7, 'Wed': 0.4, 'Thu': 0.9, 'Fri': 0.6, 'Sat': 1.0};
+    // --- WIDGET STATISTIK CHART (SAMBUNG DATABASE) ---
+    // Sekarang menerima parameter apiData dari FutureBuilder
+    Widget buildChartCard(Map<String, dynamic> apiData) {
+      // Mengambil data asli dari database XAMPP
+      final Map<String, dynamic> weeklyStats = apiData['weekly_stats'] ?? {};
+      final Map<String, dynamic> monthlyStats = apiData['monthly_stats'] ?? {};
+
+      // Memilih data yang ditampilkan berdasarkan pilihan tombol
+      final chartData = _isHourly ? weeklyStats : monthlyStats;
 
       return Container(
         padding: const EdgeInsets.all(24),
@@ -82,20 +82,19 @@ class _DashboardAdminState extends State<DashboardAdmin> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Daily Order Statistics',
+              'Order Statistics',
               style: TextStyle(color: Color(0xFF562F00), fontSize: 18, fontWeight: FontWeight.w800, fontFamily: 'Inter'),
             ),
             const SizedBox(height: 4),
             Text(
-              _isHourly ? 'Hourly performance breakdown' : 'Weekly performance breakdown',
+              _isHourly ? 'Weekly performance' : 'Monthly performance (W1-W4)',
               style: const TextStyle(color: Color(0xFF554337), fontSize: 12, fontFamily: 'Inter'),
             ),
             const SizedBox(height: 16),
-
             Row(
               children: [
                 GestureDetector(
-                  onTap: () => setState(() { _isHourly = true; }),
+                  onTap: () => setState(() => _isHourly = true),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     decoration: BoxDecoration(
@@ -103,14 +102,14 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'Hourly',
+                      'Weekly',
                       style: TextStyle(color: _isHourly ? const Color(0xFF562F00) : const Color(0xFF554337), fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'Inter'),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 GestureDetector(
-                  onTap: () => setState(() { _isHourly = false; }),
+                  onTap: () => setState(() => _isHourly = false),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     decoration: BoxDecoration(
@@ -118,7 +117,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'Daily',
+                      'Monthly',
                       style: TextStyle(color: !_isHourly ? const Color(0xFF562F00) : const Color(0xFF554337), fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'Inter'),
                     ),
                   ),
@@ -126,12 +125,21 @@ class _DashboardAdminState extends State<DashboardAdmin> {
               ],
             ),
             const SizedBox(height: 24),
+        // Cari bagian Row di dalam buildChartCard, lalu ganti menjadi seperti ini:
             SizedBox(
               height: 150,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.end,
-                children: chartData.entries.map((entry) => _buildChartBar(entry.key, entry.value)).toList(),
+                children: chartData.entries.map((entry) {
+                  // 1. Konversi value ke double dengan aman
+                  final double barValue = double.tryParse(entry.value.toString()) ?? 0.1;
+                  
+                  // 2. Bungkus dengan Expanded agar batang memiliki lebar yang jelas
+                  return Expanded(
+                    child: _buildChartBar(entry.key, barValue),
+                  );
+                }).toList(),
               ),
             ),
           ],
@@ -145,32 +153,20 @@ class _DashboardAdminState extends State<DashboardAdmin> {
         children: [
           buildHeader(),
           Expanded(
-            // ==============================================================
-            // FUTURE BUILDER: MENGAMBIL DATA DARI XAMPP (API SERVICE)
-            // ==============================================================
             child: FutureBuilder<Map<String, dynamic>>(
-              future: ApiService.getDashboardData(),
+              future: ApiService.getDashboardData(), // Sekarang juga mengambil data statistik
               builder: (context, snapshot) {
-                // 1. Sedang Loading
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator(color: Color(0xFFFF9644)));
-                } 
-                // 2. Terjadi Error (XAMPP mati atau alamat salah)
-                else if (snapshot.hasError) {
-                  return Center(
-                    child: Text("Error Database:\n${snapshot.error}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)),
-                  );
-                } 
-                // 3. Data Berhasil Diambil
-                else if (snapshot.hasData) {
+                } else if (snapshot.hasError) {
+                  return Center(child: Text("Error Database:\n${snapshot.error}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)));
+                } else if (snapshot.hasData) {
                   final data = snapshot.data!;
-                  
-                  // Menarik data live dari database XAMPP
                   final revenue = data['revenue'] ?? 'Rp 0';
                   final newOrders = data['new_orders']?.toString() ?? '0';
                   final lowStock = data['low_stock']?.toString() ?? '0';
 
-                  // --- SUSUNAN KONTEN PORTRAIT (LIVE DATA) ---
+                  // --- SUSUNAN KONTEN PORTRAIT ---
                   final portraitContent = [
                     _buildStatCard(title: "Today's Revenue", value: revenue, badgeLabel: "LIVE UPDATE", icon: Icons.visibility_outlined),
                     const SizedBox(height: 16),
@@ -178,20 +174,14 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                     const SizedBox(height: 16),
                     _buildStatCard(title: "Low Stock Items", value: lowStock, badgeLabel: "WARNING", subtitle: "Menus with < 10 stock", icon: Icons.warning_amber_rounded),
                     const SizedBox(height: 32),
-                    buildChartCard(),
+                    buildChartCard(data), // Mengirim data snapshot ke diagram
                     const SizedBox(height: 32),
-                    _buildActionCard(
-                      title: "Active Menu Items", subtitle: "Keep your selection fresh\nand updated.", actionText: "MANAGE MENU →", color: const Color(0xFFF7E5DB), icon: Icons.restaurant_menu,
-                      onTap: () => Navigator.pushReplacementNamed(context, '/menu'),
-                    ),
+                    _buildActionCard(title: "Active Menu Items", subtitle: "Keep your selection fresh\nand updated.", actionText: "MANAGE MENU →", color: const Color(0xFFF7E5DB), icon: Icons.restaurant_menu, onTap: () => Navigator.pushReplacementNamed(context, '/menu')),
                     const SizedBox(height: 16),
-                    _buildActionCard(
-                      title: "New Customers", subtitle: "+12 new registrations today.", actionText: "VIEW DETAILS →", color: const Color(0xFFFDEAE0), icon: Icons.people_outline,
-                      onTap: () => Navigator.pushNamed(context, '/customers'),
-                    ),
+                    _buildActionCard(title: "New Customers", subtitle: "+12 new registrations today.", actionText: "VIEW DETAILS →", color: const Color(0xFFFDEAE0), icon: Icons.people_outline, onTap: () => Navigator.pushNamed(context, '/customers')),
                   ];
 
-                  // --- SUSUNAN KONTEN LANDSCAPE (LIVE DATA) ---
+                  // --- SUSUNAN KONTEN LANDSCAPE ---
                   final landscapeContent = [
                     Row(
                       children: [
@@ -206,21 +196,15 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(flex: 3, child: buildChartCard()),
+                        Expanded(flex: 3, child: buildChartCard(data)), // Mengirim data snapshot ke diagram
                         const SizedBox(width: 16),
                         Expanded(
                           flex: 2,
                           child: Column(
                             children: [
-                              _buildActionCard(
-                                title: "Active Menu Items", subtitle: "Keep your selection fresh\nand updated.", actionText: "MANAGE MENU →", color: const Color(0xFFF7E5DB), icon: Icons.restaurant_menu,
-                                onTap: () => Navigator.pushReplacementNamed(context, '/menu'),
-                              ),
+                              _buildActionCard(title: "Active Menu Items", subtitle: "Keep your selection fresh\nand updated.", actionText: "MANAGE MENU →", color: const Color(0xFFF7E5DB), icon: Icons.restaurant_menu, onTap: () => Navigator.pushReplacementNamed(context, '/menu')),
                               const SizedBox(height: 16),
-                              _buildActionCard(
-                                title: "New Customers", subtitle: "+12 new registrations today.", actionText: "VIEW DETAILS →", color: const Color(0xFFFDEAE0), icon: Icons.people_outline,
-                                onTap: () => Navigator.pushNamed(context, '/customers'),
-                              ),
+                              _buildActionCard(title: "New Customers", subtitle: "+12 new registrations today.", actionText: "VIEW DETAILS →", color: const Color(0xFFFDEAE0), icon: Icons.people_outline, onTap: () => Navigator.pushNamed(context, '/customers')),
                             ],
                           ),
                         ),
@@ -228,17 +212,11 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                     ),
                   ];
 
-                  // Return Hasil Akhir UI
                   return SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: isPortrait ? portraitContent : landscapeContent,
-                    ),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: isPortrait ? portraitContent : landscapeContent),
                   );
                 }
-
-                // Fallback jika anehnya data kosong
                 return const Center(child: Text("Tidak ada data."));
               },
             ),
@@ -267,44 +245,22 @@ class _DashboardAdminState extends State<DashboardAdmin> {
     );
   }
 
-  // --- KOMPONEN REUSABLE ---
-
+  // --- KOMPONEN REUSABLE (TETAP SAMA) ---
   Widget _buildStatCard({required String title, required String value, required String badgeLabel, String? subtitle, required IconData icon}) {
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFCE99),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [BoxShadow(color: Color(0x0C000000), blurRadius: 2, offset: Offset(0, 1))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), shape: BoxShape.circle),
-                child: Icon(icon, color: const Color(0xFF562F00), size: 20),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: const Color(0xFF562F00), borderRadius: BorderRadius.circular(20)),
-                child: Text(badgeLabel, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'Inter')),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Text(title, style: const TextStyle(color: Color(0xB2562F00), fontSize: 14, fontWeight: FontWeight.w500, fontFamily: 'Inter')),
-          const SizedBox(height: 4),
-          Text(value, style: const TextStyle(color: Color(0xFF562F00), fontSize: 24, fontWeight: FontWeight.w900, fontFamily: 'Inter')),
-          if (subtitle != null) ...[
-            const SizedBox(height: 4),
-            Text(subtitle, style: const TextStyle(color: Color(0x99562F00), fontSize: 12, fontWeight: FontWeight.w600, fontFamily: 'Inter')),
-          ]
-        ],
-      ),
+      decoration: BoxDecoration(color: const Color(0xFFFFCE99), borderRadius: BorderRadius.circular(20), boxShadow: const [BoxShadow(color: Color(0x0C000000), blurRadius: 2, offset: Offset(0, 1))]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), shape: BoxShape.circle), child: Icon(icon, color: const Color(0xFF562F00), size: 20)),
+          Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: const Color(0xFF562F00), borderRadius: BorderRadius.circular(20)), child: Text(badgeLabel, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'Inter'))),
+        ]),
+        const SizedBox(height: 20),
+        Text(title, style: const TextStyle(color: Color(0xB2562F00), fontSize: 14, fontWeight: FontWeight.w500, fontFamily: 'Inter')),
+        const SizedBox(height: 4),
+        Text(value, style: const TextStyle(color: Color(0xFF562F00), fontSize: 24, fontWeight: FontWeight.w900, fontFamily: 'Inter')),
+        if (subtitle != null) ...[const SizedBox(height: 4), Text(subtitle, style: const TextStyle(color: Color(0x99562F00), fontSize: 12, fontWeight: FontWeight.w600, fontFamily: 'Inter'))]
+      ]),
     );
   }
 
@@ -314,92 +270,71 @@ class _DashboardAdminState extends State<DashboardAdmin> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(24), border: Border.all(color: const Color(0x33FFCE99))),
-        child: Row(
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-              child: Icon(icon, color: const Color(0xFFFF9644), size: 30),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(color: Color(0xFF562F00), fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Inter')),
-                  const SizedBox(height: 4),
-                  Text(subtitle, style: const TextStyle(color: Color(0xFF554337), fontSize: 12, fontFamily: 'Inter')),
-                  const SizedBox(height: 12),
-                  Text(actionText, style: const TextStyle(color: Color(0xFFFF9644), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1, fontFamily: 'Inter')),
-                ],
-              ),
-            ),
-          ],
-        ),
+        child: Row(children: [
+          Container(width: 60, height: 60, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)), child: Icon(icon, color: const Color(0xFFFF9644), size: 30)),
+          const SizedBox(width: 16),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(title, style: const TextStyle(color: Color(0xFF562F00), fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Inter')),
+            const SizedBox(height: 4),
+            Text(subtitle, style: const TextStyle(color: Color(0xFF554337), fontSize: 12, fontFamily: 'Inter')),
+            const SizedBox(height: 12),
+            Text(actionText, style: const TextStyle(color: Color(0xFFFF9644), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1, fontFamily: 'Inter')),
+          ])),
+        ]),
       ),
     );
   }
 
   Widget _buildChartBar(String label, double percentage) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Flexible(
-          child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0, end: percentage),
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeOutCubic,
-            builder: (context, value, child) {
-              return FractionallySizedBox(
-                heightFactor: value,
-                child: Container(
-                  width: 32,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFF9644),
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.end,
+    children: [
+      // Flexible membantu batang menyesuaikan ruang yang tersedia
+      Flexible(
+        child: TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0, end: percentage),
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeOutCubic,
+          builder: (context, value, child) {
+            return FractionallySizedBox(
+              // Gunakan clamp agar minimal ada sedikit batang yang terlihat (5%)
+              heightFactor: value.clamp(0.05, 1.0), 
+              child: Container(
+                width: 25, // Tentukan lebar batang yang pasti
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFF9644), 
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(8), 
+                    topRight: Radius.circular(8),
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
-        const SizedBox(height: 8),
-        Text(label, style: const TextStyle(color: Color(0xFF554337), fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'Inter')),
-      ],
-    );
-  }
+      ),
+      const SizedBox(height: 8),
+      Text(
+        label, 
+        style: const TextStyle(
+          color: Color(0xFF554337), 
+          fontSize: 10, 
+          fontWeight: FontWeight.bold, 
+          fontFamily: 'Inter',
+        ),
+      ),
+    ],
+  );
+}
 
   Widget _buildNavItem(String label, IconData icon, {required bool isActive, required BuildContext context, required String route}) {
     return GestureDetector(
-      onTap: () {
-        if (!isActive) {
-          Navigator.pushReplacementNamed(context, route); 
-        }
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: isActive ? 16 : 8, vertical: 8),
-            decoration: BoxDecoration(
-              color: isActive ? const Color(0xFFFFCE99) : Colors.transparent, 
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(icon, color: isActive ? const Color(0xFF562F00) : const Color(0x99562F00), size: 24),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: isActive ? const Color(0xFF562F00) : const Color(0x99562F00),
-              fontSize: 10,
-              fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-              fontFamily: 'Inter'
-            ),
-          ),
-        ],
-      ),
+      onTap: () { if (!isActive) Navigator.pushReplacementNamed(context, route); },
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Container(padding: EdgeInsets.symmetric(horizontal: isActive ? 16 : 8, vertical: 8), decoration: BoxDecoration(color: isActive ? const Color(0xFFFFCE99) : Colors.transparent, borderRadius: BorderRadius.circular(20)), child: Icon(icon, color: isActive ? const Color(0xFF562F00) : const Color(0x99562F00), size: 24)),
+        const SizedBox(height: 4),
+        Text(label, style: TextStyle(color: isActive ? const Color(0xFF562F00) : const Color(0x99562F00), fontSize: 10, fontWeight: isActive ? FontWeight.w700 : FontWeight.w500, fontFamily: 'Inter')),
+      ]),
     );
   }
 }

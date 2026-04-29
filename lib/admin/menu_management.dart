@@ -104,8 +104,6 @@ class _MenuManagementState extends State<MenuManagement> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTopStats(),
-                      const SizedBox(height: 32),
                       _buildTabController(),
                       const SizedBox(height: 16),
                       Text('${activeData.length} Items', style: const TextStyle(color: Color(0xFF562F00), fontSize: 24, fontWeight: FontWeight.w900)),
@@ -219,7 +217,6 @@ class _MenuManagementState extends State<MenuManagement> {
           const SizedBox(width: 16),
           const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Welcome, Admin', style: TextStyle(fontWeight: FontWeight.w700)),
-            Text('July 24, 2026', style: TextStyle(fontSize: 12, color: Colors.grey)),
           ]),
         ],
       ),
@@ -276,13 +273,6 @@ class _MenuManagementState extends State<MenuManagement> {
     );
   }
 
-  // --- SISA WIDGET (TopStats & BottomNav) Tetap Sama ---
-  Widget _buildTopStats() { return Column(children: [ _buildRevenueCard(title: 'DAILY REVENUE', amount: 'Rp 4.2M') ]); }
-  Widget _buildRevenueCard({required String title, required String amount}) {
-    return Container(width: double.infinity, padding: const EdgeInsets.all(24), decoration: BoxDecoration(color: const Color(0xFFFFCE99), borderRadius: BorderRadius.circular(16)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)), Text(amount, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900))]),
-    );
-  }
   Widget _buildBottomNav() {
     return Container(padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24), decoration: const BoxDecoration(color: Color(0xFFFFFDF1), border: Border(top: BorderSide(color: Color(0xFFFFCE99)))),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [

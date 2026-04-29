@@ -158,8 +158,7 @@ class _OrderManagementState extends State<OrderManagement> {
                       image: const DecorationImage(image: AssetImage("assets/images/Dimas oi oi.jpeg"), fit: BoxFit.cover))),
             const SizedBox(width: 16),
             const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Welcome, Dimas', style: TextStyle(color: Color(0xFF562F00), fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Inter')),
-              Text('July 24, 2026', style: TextStyle(color: Color(0xB2554337), fontSize: 12, fontWeight: FontWeight.w500, fontFamily: 'Inter')),
+              Text('Welcome, Admin', style: TextStyle(color: Color(0xFF562F00), fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Inter')),
             ]),
           ],
         ),

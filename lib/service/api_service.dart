@@ -180,6 +180,24 @@ static Future<bool> deleteCustomer(String id) async {
     return false;
   }
 }
+
+//dashboard stastic
+static Future<Map<String, dynamic>> getDashboardStats() async {
+  try {
+    // Memanggil file PHP yang baru kita buat
+    final response = await http.get(Uri.parse("$baseUrl/dashboard_stastic.php"));
+
+    if (response.statusCode == 200) {
+      // Mengubah teks JSON dari PHP menjadi Map yang bisa dibaca Flutter
+      return json.decode(response.body);
+    } else {
+      return {};
+    }
+  } catch (e) {
+    print("Error Fetch Dashboard: $e");
+    return {};
+  }
+}
   // Tips: Nanti kalau mau buat fitur Tambah Menu atau Hapus Menu, 
   // kamu tinggal tambah fungsinya di bawah sini dengan http.post
 }
