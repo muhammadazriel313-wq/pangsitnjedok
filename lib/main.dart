@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'features/apps/customer/profil_customer.dart';
 
 void main() {
-  // Disamakan dengan nama class di bawah (PangsitNjedogApp)
   runApp(const PangsitNjedokApp());
 }
 
@@ -12,7 +11,7 @@ class PangsitNjedokApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Pangsit Njedog',
+      title: 'Pangsit Njedok',
       debugShowCheckedModeBanner: false, // Menghilangkan banner debug
       theme: ThemeData(
         // Perbaikan: Tambahkan 'ColorScheme' sebelum '.fromSeed'

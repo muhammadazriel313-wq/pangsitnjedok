@@ -36,7 +36,7 @@ class ProfilePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Profile', style: TextStyle(color: Color(0xFF954A00), fontWeight: FontWeight.w600, fontSize: 18)),
-            Text('Pangsit Njedog', style: TextStyle(color: Color(0xFF562F00), fontWeight: FontWeight.bold, fontSize: 20)),
+            Text('Pangsit Njedok', style: TextStyle(color: Color(0xFF562F00), fontWeight: FontWeight.bold, fontSize: 20)),
           ],
         ),
       ),
@@ -100,7 +100,6 @@ class ProfilePage extends StatelessWidget {
                 boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20)],
               ),
             ),
-            Positioned(bottom: 0, right: 0, child: editCircleIcon()),
           ],
         ),
         const SizedBox(height: 16),

@@ -1,5 +1,25 @@
 import 'package:flutter/material.dart';
 
+void main() {
+  runApp(const PangsitNjedokApp());
+}
+
+class PangsitNjedokApp extends StatelessWidget {
+  const PangsitNjedokApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        fontFamily: 'Plus Jakarta Sans',
+        scaffoldBackgroundColor: const Color(0xFFFCFAEE),
+      ),
+      home: const EditAccountPage(),
+    );
+  }
+} 
+
 class EditAccountPage extends StatelessWidget {
   const EditAccountPage({super.key});
 
@@ -23,19 +43,53 @@ class EditAccountPage extends StatelessWidget {
             Center(
               child: Column(
                 children: [
+                  // Di dalam Column -> Center -> Stack
                   Stack(
                     children: [
                       Container(
-                        width: 120, height: 120,
+                        width: 120, 
+                        height: 120,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: const Color(0xFFFF9644), width: 4),
-                          image: const DecorationImage(image: AssetImage('assets/images/nipis.jpeg'), fit: BoxFit.cover),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: const Color(0xFFFF9644), width: 4),
+                        image: const DecorationImage(
+                        image: AssetImage('assets/images/nipis.jpeg'), 
+                        fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
+                        Positioned(
+                          bottom: 0, 
+                          right: 0, 
+                          child: editCircleIcon(
+                          onTap: () {
+                            // Tambahkan logika ganti foto di sini
+                            print("Tombol ganti foto ditekan!");
+          
+                            // Contoh: Menampilkan Bottom Sheet untuk pilih Galeri/Kamera
+                            showModalBottomSheet(
+                          context: context,
+                          builder: (context) => Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                        ListTile(
+                          leading: const Icon(Icons.camera_alt),
+                          title: const Text('Ambil dari Kamera'),
+                          onTap: () => Navigator.pop(context),
+                            ),
+                        ListTile(
+                          leading: const Icon(Icons.photo_library),
+                          title: const Text('Pilih dari Galeri'),
+                          onTap: () => Navigator.pop(context),
+                          ),
+                        ],
                       ),
-                      Positioned(bottom: 0, right: 0, child: editCircleIcon()),
-                    ],
-                  ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
                   const SizedBox(height: 16),
                   const Text('Bocil Windut', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                   const Text('Premium Member', style: TextStyle(color: Color(0xFF554337), fontStyle: FontStyle.italic)),
@@ -134,11 +188,17 @@ class EditAccountPage extends StatelessWidget {
 
 // --- GLOBAL REUSABLE WIDGETS ---
 // Digunakan di kedua file
-Widget editCircleIcon() {
-  return Container(
-    padding: const EdgeInsets.all(8),
-    decoration: const BoxDecoration(color: Color(0xFF954A00), shape: BoxShape.circle),
-    child: const Icon(Icons.edit, color: Colors.white, size: 16),
+Widget editCircleIcon({VoidCallback? onTap}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.all(8),
+      decoration: const BoxDecoration(
+        color: Color(0xFF954A00), 
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(Icons.edit, color: Colors.white, size: 16),
+    ),
   );
 }
 
