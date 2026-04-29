@@ -1,30 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'features/auth/screens/tampilan_awal.dart'; // Pastikan file tampilan_awal.dart sudah benar kodenya
+
 
 void main() {
-  runApp(const ThankYouPopUp());
+  runApp(const PopupTerimakasih());
 }
 
-class ThankYouPopUp extends StatelessWidget {
-  const ThankYouPopUp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true),
-      home: const Scaffold(
-        backgroundColor: Color(0xFFC4C4C4), // Simulasi background di belakang modal
-        body: Center(
-          child: ThankYouPopUp(),
-        ),
-      ),
-    );
-  }
-}
-
-class ThankYouPopUp extends StatelessWidget {
-  const ThankYouPopUp({super.key});
+class PopupTerimakasih extends StatelessWidget {
+  const PopupTerimakasih({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -62,13 +46,20 @@ class ThankYouPopUp extends StatelessWidget {
               child: Column(
                 children: [
                   // Tombol Close (X)
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.close, color: Color(0xFF554337)),
-                    ),
-                  ),
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: IconButton(
+                          onPressed: () {
+                            // Mengarahkan ke HomePage dan menghapus semua halaman sebelumnya
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) => TampilanAwal()),
+                              (route) => false,
+                            );
+                          },
+                          icon: const Icon(Icons.close, color: Color(0xFF554337)),
+                        ),
+                      ),
 
                   // Ilustrasi Ikon Centang & Lingkaran
                   const OrderSuccessIllustration(),

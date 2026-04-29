@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'popup_terimakasih.dart'; // Pastikan file popup_terimakasih.dart sudah benar kodenya
 
 void main() {
   runApp(const PopupKonfirmasi());
@@ -101,7 +102,7 @@ ElevatedButton(
         return const Dialog(
           backgroundColor: Colors.transparent,
           insetPadding: EdgeInsets.symmetric(horizontal: 24),
-          child: popup_terimakasih(), // Memanggil class gambar kedua
+          child: PopupTerimakasih(), // Memanggil class gambar kedua
         );
       },
     );
@@ -134,7 +135,8 @@ ElevatedButton(
 
           // Tombol Cancel
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {Navigator.pop(context);
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFF6F4E8),
               foregroundColor: const Color(0xFF562F00),
