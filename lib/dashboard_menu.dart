@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'halaman_menu.dart'; 
 
-class DashboardPage extends StatelessWidget {
+// 1. UBAH JADI STATEFUL WIDGET BIAR BISA BERUBAH-UBAH
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  // 2. TAMBAHIN VARIABEL PENANDA TAB AKTIF
+  bool _isFoodSelected = true;
 
   @override
   Widget build(BuildContext context) {
@@ -14,18 +23,17 @@ class DashboardPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(),
-              // Jarak ke banner promo dikurangi sedikit karena search bar hilang
               const SizedBox(height: 24), 
               _buildPromoBanner(),
               const SizedBox(height: 24),
-              _buildCategories(),
+              _buildCategories(), // Kategori dipanggil di sini
               const SizedBox(height: 24),
               const Text(
                 'Popular Now',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
               ),
               const SizedBox(height: 16),
-              _buildPopularItems(),
+              _buildPopularItems(), // Item populer dipanggil di sini
             ],
           ),
         ),
@@ -43,10 +51,9 @@ class DashboardPage extends StatelessWidget {
       children: [
         Row(
           children: [
-            // GANTI JADI AssetImage buat manggil foto profil lokal
             const CircleAvatar(
               radius: 24, 
-              backgroundImage: AssetImage("assets/images/wontonmentai.jpeg") // Nanti bisa diganti foto profil beneran
+              backgroundImage: AssetImage("assets/images/wontonmentai.jpeg") 
             ),
             const SizedBox(width: 12),
             Column(
@@ -112,45 +119,76 @@ class DashboardPage extends StatelessWidget {
   Widget _buildCategories() {
     return Row(
       children: [
-        Expanded(child: _categoryButton(Icons.restaurant_menu, 'Food', true)),
+        // Tombol Food
+        Expanded(
+          child: _categoryButton(Icons.restaurant_menu, 'Food', _isFoodSelected, () {
+            setState(() {
+              _isFoodSelected = true; // Ubah ke makanan
+            });
+          }),
+        ),
         const SizedBox(width: 16),
-        Expanded(child: _categoryButton(Icons.local_drink, 'Beverages', false)),
+        // Tombol Drink
+        Expanded(
+          child: _categoryButton(Icons.local_drink, 'Beverages', !_isFoodSelected, () {
+            setState(() {
+              _isFoodSelected = false; // Ubah ke minuman
+            });
+          }),
+        ),
       ],
     );
   }
 
-  Widget _categoryButton(IconData icon, String title, bool active) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: active ? const Color(0xFFFF9442).withOpacity(0.1) : Colors.white, 
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: active ? const Color(0xFFFF9442).withOpacity(0.3) : const Color(0xFFCBD5E1)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center, 
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: active ? const Color(0xFFFF9442) : Colors.transparent, shape: BoxShape.circle),
-            child: Icon(icon, color: active ? Colors.white : Colors.grey, size: 16),
-          ),
-          const SizedBox(width: 8), 
-          Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: active ? const Color(0xFF1E293B) : const Color(0xFF64748B))),
-        ]
+  // Tambahin parameter onTap biar tombolnya bisa diklik
+  Widget _categoryButton(IconData icon, String title, bool active, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(30), // Biar efek kliknya ikutan membulat
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: active ? const Color(0xFFFF9442).withOpacity(0.1) : Colors.white, 
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: active ? const Color(0xFFFF9442).withOpacity(0.3) : const Color(0xFFCBD5E1)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center, 
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(color: active ? const Color(0xFFFF9442) : Colors.transparent, shape: BoxShape.circle),
+              child: Icon(icon, color: active ? Colors.white : Colors.grey, size: 16),
+            ),
+            const SizedBox(width: 8), 
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: active ? const Color(0xFF1E293B) : const Color(0xFF64748B))),
+          ]
+        ),
       ),
     );
   }
 
   Widget _buildPopularItems() {
-    return Row(
-      children: [
-        // FOTO LOKAL DIMASUKKAN KE SINI
-        Expanded(child: _foodCard('Dimsum Ori', 'Rp 12.000', '4.9', 'assets/images/ptulangrangu.jpeg')),
-        const SizedBox(width: 16),
-        Expanded(child: _foodCard('Dimsum Mentai', 'Rp 15.000', '5.0', 'assets/images/wontonmentai.jpeg')),
-      ],
-    );
+    // 3. LOGIKA UNTUK NAMPILIN MENU YANG BEDA
+    if (_isFoodSelected) {
+      // Tampilan kalau tombol FOOD yang diklik
+      return Row(
+        children: [
+          Expanded(child: _foodCard('Dimsum Ori', 'Rp 12.000', '4.9', 'assets/images/ptulangrangu.jpeg')),
+          const SizedBox(width: 16),
+          Expanded(child: _foodCard('Dimsum Mentai', 'Rp 15.000', '5.0', 'assets/images/wontonmentai.jpeg')),
+        ],
+      );
+    } else {
+      // Tampilan kalau tombol BEVERAGES yang diklik
+      return Row(
+        children: [
+          Expanded(child: _foodCard('Es Jeruk Njedog', 'Rp 8.000', '4.9', 'assets/images/nipis.jpeg')),
+          const SizedBox(width: 16),
+          Expanded(child: _foodCard('Es Teh Manis', 'Rp 5.000', '4.8', 'assets/images/lemontea.jpeg')),
+        ],
+      );
+    }
   }
 
   Widget _foodCard(String title, String price, String rating, String img) {
@@ -162,7 +200,6 @@ class DashboardPage extends StatelessWidget {
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // GANTI JADI Image.asset di sini
         ClipRRect(
           borderRadius: BorderRadius.circular(16), 
           child: Image.asset(img, height: 100, width: double.infinity, fit: BoxFit.cover)
