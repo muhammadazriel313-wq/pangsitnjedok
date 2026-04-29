@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'edit_profil_customer.dart';
+import 'order.dart';
 
 void main() {
-  runApp(const PangsitNjedogApp());
+  runApp(const PangsitNjedokApp());
 }
 
-class PangsitNjedogApp extends StatelessWidget {
-  const PangsitNjedogApp({super.key});
+class PangsitNjedokApp extends StatelessWidget {
+  const PangsitNjedokApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +60,18 @@ class ProfilePage extends StatelessWidget {
               }
             ),
             
-            _buildMenuItem(Icons.assignment_outlined, 'My Orders', 'Track your pangsit'),
+            _buildMenuItem(
+              Icons.assignment_outlined,
+              'My Orders',
+              'Track your pangsit',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MyOrdersPage()),
+                );
+              }
+            ),
+
             _buildMenuItem(Icons.favorite_outline, 'My Favorites', 'Your loved items'),
             _buildMenuItem(Icons.star_outline, 'Rating & Reviews', 'Rate Us'),
 
@@ -92,7 +104,7 @@ class ProfilePage extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        const Text('Alex Brandon', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+        const Text('Bocil Windut', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
         const Text('+62 812-3456-7890', style: TextStyle(color: Color(0xFF554337))),
       ],
     );

@@ -78,7 +78,16 @@ class EditAccountPage extends StatelessWidget {
 
             const SizedBox(height: 30),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                content: const Text('Profil berhasil di ganti!'),
+                backgroundColor: const Color(0xFF954A00),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF9644),
                 minimumSize: const Size(double.infinity, 60),
