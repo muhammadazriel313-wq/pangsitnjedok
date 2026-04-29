@@ -1,25 +1,5 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const PangsitNjedokApp());
-}
-
-class PangsitNjedokApp extends StatelessWidget {
-  const PangsitNjedokApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Plus Jakarta Sans',
-        scaffoldBackgroundColor: const Color(0xFFFCFAEE),
-      ),
-      home: const EditAccountPage(),
-    );
-  }
-} 
-
 class EditAccountPage extends StatelessWidget {
   const EditAccountPage({super.key});
 
