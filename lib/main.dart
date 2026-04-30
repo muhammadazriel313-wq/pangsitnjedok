@@ -1,26 +1,46 @@
 import 'package:flutter/material.dart';
-import 'features/apps/customer/profil_customer.dart';
+
+// --- IMPORT FILE DARI FOLDER ADMIN ---
+// Karena file kamu ada di dalam folder 'admin', kita tambahkan path 'admin/'
+import 'admin/dashboard_admin.dart'; 
+import 'admin/order_admin.dart';     
+import 'admin/menu_management.dart'; 
+import 'admin/profit_admin.dart';    
+import 'admin/profil_admin.dart'; 
+import 'admin/manage_customer.dart'; 
+  
 
 void main() {
-  // Disamakan dengan nama class di bawah (PangsitNjedogApp)
-  runApp(const PangsitNjedokApp());
+  runApp(const PangsitNjedogApp());
 }
 
-class PangsitNjedokApp extends StatelessWidget {
-  const PangsitNjedokApp({super.key});
+class PangsitNjedogApp extends StatelessWidget {
+  const PangsitNjedogApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Pangsit Njedog',
-      debugShowCheckedModeBanner: false, // Menghilangkan banner debug
-      theme: ThemeData(
-        // Perbaikan: Tambahkan 'ColorScheme' sebelum '.fromSeed'
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+      debugShowCheckedModeBanner: false,
+      title: 'Pangsit Njedog Admin',
+      theme: ThemeData.light().copyWith(
+        scaffoldBackgroundColor: const Color(0xFFFFFDF1),
+        // Menggunakan font Inter agar sesuai dengan desain
+        textTheme: ThemeData.light().textTheme.apply(fontFamily: 'Inter'),
       ),
-      // Di sini kita langsung arahkan ke halaman ProfilePage dari profil_customer.dart
-       home: ProfilePage(),
+      
+      // Halaman awal saat aplikasi dibuka
+      initialRoute: '/dashboard', 
+
+      // Daftar Rute Navigasi
+      routes: {
+        '/dashboard': (context) => const DashboardAdmin(),
+        '/order':     (context) => const OrderManagement(),
+        '/menu':      (context) => const MenuManagement(), 
+        '/profit':   (context) => const ProfitAdmin(),
+        '/profil':    (context) => const ProfilReportAdmin(),
+        '/customers':  (context) => const ManageCustomers(),
+        
+      },
     );
   }
 }
