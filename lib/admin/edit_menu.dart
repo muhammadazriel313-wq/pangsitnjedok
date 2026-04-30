@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '/service/api_service.dart'; // Pastikan path import ini sesuai dengan project kamu
+import '/service/api_service.dart';
 
 class EditMenu extends StatefulWidget {
-  final Map<String, dynamic> item; // Menerima data menu dari database
+  final Map<String, dynamic> item; 
 
   const EditMenu({super.key, required this.item});
 
@@ -24,19 +24,33 @@ class _EditMenuState extends State<EditMenu> {
   @override
   void initState() {
     super.initState();
-    // Inisialisasi controller dengan data asli dari database
     _nameController = TextEditingController(text: widget.item['title']);
-    // Menghapus karakter non-angka agar harga bisa diedit sebagai angka murni
+    // Hanya ambil angkanya saja saat awal diload
     _priceController = TextEditingController(
       text: widget.item['price'].toString().replaceAll(RegExp(r'[^0-9]'), '')
     );
     _stockController = TextEditingController(text: widget.item['stock'].toString());
-    _isFoodCategory = widget.item['category'] == 'Food';
+    
+    // Pastikan kategori cocok persis dengan database (Makanan/Minuman)[cite: 11]
+    _isFoodCategory = widget.item['category'] == 'Makanan';
   }
 
-  // --- FUNGSI UPDATE DATA KE DATABASE ---
+  // --- FUNGSI UPDATE DATA AMAN ---
   Future<void> _updateMenuData() async {
-    // 1. Tampilkan loading dialog agar UI terasa profesional
+    // 1. VALIDASI: Cek apakah ada kolom yang kosong
+    if (_nameController.text.trim().isEmpty || 
+        _priceController.text.trim().isEmpty || 
+        _stockController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Semua kolom harus diisi!'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return; // Berhenti eksekusi jika ada yang kosong
+    }
+
+    // Tampilkan loading[cite: 11]
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -45,32 +59,35 @@ class _EditMenuState extends State<EditMenu> {
       ),
     );
 
-    // 2. Siapkan data untuk dikirim ke PHP
-    Map<String, String> dataToUpdate = {
-      'id': widget.item['id'].toString(),
-      'title': _nameController.text,
-      'price': _priceController.text,
-      'stock': _stockController.text,
-      'category': _isFoodCategory ? 'Food' : 'Drink',
+    // 2. BERSIHKAN DATA HARGA DAN STOK: Pastikan hanya angka yang dikirim
+    String cleanPrice = _priceController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    String cleanStock = _stockController.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    // 3. SIAPKAN DATA: Tipe dynamic dan pastikan kategori valid[cite: 11]
+    Map<String, dynamic> dataToUpdate = {
+      'id': widget.item['id'], 
+      'title': _nameController.text.trim(), // Hilangkan spasi berlebih
+      'price': cleanPrice.isEmpty ? '0' : cleanPrice, // Default 0 jika tiba-tiba kosong
+      'stock': cleanStock.isEmpty ? '0' : cleanStock, // Default 0
+      'category': _isFoodCategory ? 'Makanan' : 'Minuman', // Harus Makanan/Minuman[cite: 11]
     };
 
-    // 3. Panggil ApiService
+    // Kirim ke API[cite: 11]
     bool success = await ApiService.updateMenu(dataToUpdate);
 
+    // Pastikan widget masih ada sebelum menutup dialog
     if (!mounted) return;
-    Navigator.pop(context); // Tutup loading dialog
+    Navigator.pop(context); // Tutup loading
 
     if (success) {
-      // Jika berhasil, kembali ke halaman menu management dan berikan info sukses
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Menu berhasil diperbarui!'),
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.pop(context, true); // Kirim 'true' agar halaman sebelumnya tahu ada perubahan data
+      Navigator.pop(context, true); // Refresh daftar menu[cite: 11]
     } else {
-      // Jika gagal, tampilkan pesan error
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Gagal memperbarui menu ke database.'),
@@ -207,7 +224,7 @@ class _EditMenuState extends State<EditMenu> {
                         ),
                         const SizedBox(height: 32),
                         GestureDetector(
-                          onTap: _updateMenuData, // Menggunakan fungsi update database
+                          onTap: _updateMenuData, 
                           child: Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 16),

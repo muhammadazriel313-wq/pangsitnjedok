@@ -13,12 +13,10 @@ class MenuManagement extends StatefulWidget {
 class _MenuManagementState extends State<MenuManagement> {
   bool _isFoodTab = true;
 
-  // --- FUNGSI REFRESH DATA ---
   void _refreshData() {
-    setState(() {}); // Memicu FutureBuilder untuk mengambil data ulang dari MySQL
+    setState(() {}); 
   }
 
-  // --- FUNGSI POP-UP DELETE ---
   void _showDeleteDialog(Map<String, dynamic> item) {
     showDialog(
       context: context,
@@ -57,11 +55,22 @@ class _MenuManagementState extends State<MenuManagement> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () {
-                          // TODO: Tambahkan ApiService.deleteMenu(item['id'])
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${item['title']} dihapus')));
-                          _refreshData();
+                        onTap: () async {
+                          bool success = await ApiService.deleteMenu(item['id'].toString());
+                          
+                          if (mounted) {
+                            Navigator.pop(context); 
+                            if (success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('${item['title']} berhasil dihapus'))
+                              );
+                              _refreshData(); 
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Gagal menghapus menu'))
+                              );
+                            }
+                          }
                         },
                         child: _buildDialogBtn('Hapus', const Color(0xFFEF4444), Colors.white),
                       ),
@@ -91,12 +100,16 @@ class _MenuManagementState extends State<MenuManagement> {
                   return const Center(child: CircularProgressIndicator(color: Color(0xFFFF9644)));
                 }
                 if (snapshot.hasError) return Center(child: Text("Error: ${snapshot.error}"));
-                if (!snapshot.hasData || snapshot.data!.isEmpty) return const Center(child: Text("Menu kosong"));
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                   return const Center(child: Text("Database menu masih kosong"));
+                }
 
                 final allData = snapshot.data!;
+                
                 final activeData = allData.where((item) {
-                  String category = _isFoodTab ? 'Makanan' : 'Minuman';
-                  return item['category'] == category;
+                  String targetCategory = _isFoodTab ? 'makanan' : 'minuman';
+                  String currentCategory = (item['category'] ?? '').toString().toLowerCase().trim();
+                  return currentCategory == targetCategory;
                 }).toList();
 
                 return SingleChildScrollView(
@@ -108,30 +121,42 @@ class _MenuManagementState extends State<MenuManagement> {
                       const SizedBox(height: 16),
                       Text('${activeData.length} Items', style: const TextStyle(color: Color(0xFF562F00), fontSize: 24, fontWeight: FontWeight.w900)),
                       const SizedBox(height: 16),
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: activeData.length,
-                        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 250,
-                          mainAxisSpacing: 16,
-                          crossAxisSpacing: 16,
-                          mainAxisExtent: 260, 
+                      
+                      if (activeData.isEmpty)
+                        Container(
+                          height: 200,
+                          alignment: Alignment.center,
+                          child: Text(
+                            "Belum ada menu di kategori ini", 
+                            style: TextStyle(color: Colors.grey[500], fontSize: 16)
+                          ),
+                        )
+                      else
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: activeData.length,
+                          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 250,
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                            mainAxisExtent: 270, 
+                          ),
+                          itemBuilder: (context, index) {
+                            final dbItem = activeData[index];
+                            
+                            final item = {
+                              'id': dbItem['id'] ?? 0,
+                              'title': dbItem['title'] ?? 'Tanpa Nama',
+                              'price': 'Rp ${dbItem['price'] ?? 0}',
+                              'stock': (dbItem['stock'] ?? 0).toString(),
+                              'category': dbItem['category'] ?? 'Lainnya',
+                              'color': (int.tryParse(dbItem['stock'].toString()) ?? 0) < 10 ? Colors.red : Colors.green,
+                              'img': dbItem['image_url'] ?? "assets/images/placeholder.png",
+                            };
+                            return _buildMenuItemCard(item: item);
+                          },
                         ),
-                        itemBuilder: (context, index) {
-                          final dbItem = activeData[index];
-                          final item = {
-                            'id': dbItem['id'],
-                            'title': dbItem['title'],
-                            'price': 'Rp ${dbItem['price']}',
-                            'stock': dbItem['stock'].toString(),
-                            'category': dbItem['category'],
-                            'color': (int.parse(dbItem['stock'].toString()) < 10) ? Colors.red : Colors.green,
-                            'img': dbItem['image_url'] ?? "assets/images/placeholder.png",
-                          };
-                          return _buildMenuItemCard(item: item);
-                        },
-                      ),
                     ],
                   ),
                 );
@@ -144,8 +169,6 @@ class _MenuManagementState extends State<MenuManagement> {
     );
   }
 
-  // --- UI COMPONENTS ---
-
   Widget _buildMenuItemCard({required Map<String, dynamic> item}) {
     return Container(
       decoration: BoxDecoration(
@@ -156,37 +179,36 @@ class _MenuManagementState extends State<MenuManagement> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                child: Image.asset(item['img'], height: 140, width: double.infinity, fit: BoxFit.cover,
-                  errorBuilder: (c, e, s) => Container(color: Colors.grey[200], child: const Icon(Icons.fastfood)),
+          // PERBAIKAN LOGIKA GAMBAR DI SINI
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            child: item['img'].toString().startsWith('http') 
+              ? Image.network(
+                  item['img'], // Gunakan Image.network jika dari URL XAMPP
+                  height: 130, 
+                  width: double.infinity, 
+                  fit: BoxFit.cover,
+                  errorBuilder: (c, e, s) => Container(
+                    height: 130, 
+                    color: Colors.grey[200], 
+                    child: const Icon(Icons.broken_image, color: Colors.grey)
+                  ),
+                )
+              : Image.asset(
+                  item['img'], // Gunakan Image.asset jika dari folder Assets
+                  height: 130, 
+                  width: double.infinity, 
+                  fit: BoxFit.cover,
+                  errorBuilder: (c, e, s) => Container(
+                    height: 130, 
+                    color: Colors.grey[200], 
+                    child: const Icon(Icons.fastfood, color: Colors.grey)
+                  ),
                 ),
-              ),
-              Positioned(
-                top: 12, right: 12,
-                child: Row(
-                  children: [
-                    _buildSmallBtn(Icons.edit_outlined, const Color(0xFFD97706), const Color(0xFFFEF3C7), () {
-                      Navigator.push(
-                        context, 
-                        MaterialPageRoute(
-                          builder: (context) => EditMenu(item: Map<String, dynamic>.from(item))
-                        )
-                      ).then((value) {
-                        if (value == true) _refreshData();
-                      });
-                    }),
-                    const SizedBox(width: 8),
-                    _buildSmallBtn(Icons.delete_outline, const Color(0xFFEF4444), const Color(0xFFFEE2E2), () => _showDeleteDialog(item)),
-                  ],
-                ),
-              ),
-            ],
           ),
+          
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -199,6 +221,21 @@ class _MenuManagementState extends State<MenuManagement> {
                     Text('Stk: ${item['stock']}', style: TextStyle(color: item['color'], fontSize: 10, fontWeight: FontWeight.bold)),
                   ],
                 ),
+                const SizedBox(height: 12),
+                
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    _buildSmallBtn(Icons.edit_outlined, const Color(0xFFD97706), const Color(0xFFFEF3C7), () {
+                      Navigator.push(
+                        context, 
+                        MaterialPageRoute(builder: (context) => EditMenu(item: Map<String, dynamic>.from(dbItemOriginal(item))))
+                      ).then((value) { if (value == true) _refreshData(); });
+                    }),
+                    const SizedBox(width: 8),
+                    _buildSmallBtn(Icons.delete_outline, const Color(0xFFEF4444), const Color(0xFFFEE2E2), () => _showDeleteDialog(item)),
+                  ],
+                ),
               ],
             ),
           ),
@@ -207,17 +244,27 @@ class _MenuManagementState extends State<MenuManagement> {
     );
   }
 
+  // Fungsi pembantu agar EditMenu menerima ID yang benar dari DB
+  Map<String, dynamic> dbItemOriginal(Map<String, dynamic> item) {
+    return {
+      'id': item['id'],
+      'title': item['title'],
+      'price': item['price'].toString().replaceAll(RegExp(r'[^0-9]'), ''),
+      'stock': item['stock'],
+      'category': item['category'],
+      'img': item['img'],
+    };
+  }
+
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.only(top: 40, left: 24, right: 24, bottom: 20),
       decoration: const BoxDecoration(color: Color(0xFFFFFDF1), border: Border(bottom: BorderSide(color: Color(0xFFFFCE99)))),
       child: Row(
         children: [
-          CircleAvatar(backgroundImage: const AssetImage("assets/images/Dimas oi oi.jpeg"), radius: 22),
+          const CircleAvatar(backgroundImage: AssetImage("assets/images/Dimas oi oi.jpeg"), radius: 22),
           const SizedBox(width: 16),
-          const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Welcome, Admin', style: TextStyle(fontWeight: FontWeight.w700)),
-          ]),
+          const Text('Welcome, Admin', style: TextStyle(fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -284,6 +331,7 @@ class _MenuManagementState extends State<MenuManagement> {
       ]),
     );
   }
+  
   Widget _buildNavItem(String label, IconData icon, {required bool isActive, required BuildContext context, required String route}) {
     return GestureDetector(onTap: () { if (!isActive) Navigator.pushReplacementNamed(context, route); },
       child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(icon, color: isActive ? const Color(0xFF562F00) : Colors.grey), Text(label, style: TextStyle(fontSize: 10, color: isActive ? const Color(0xFF562F00) : Colors.grey))]),
