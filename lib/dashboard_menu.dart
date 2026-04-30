@@ -49,16 +49,16 @@ class _DashboardPageState extends State<DashboardPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
+        const Row(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 24, 
               backgroundImage: AssetImage("assets/images/wontonmentai.jpeg") 
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text('Welcome back,', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
                 Text('Customer', style: TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
               ],
