@@ -93,23 +93,32 @@ class ApiService {
     }
   }
 
-  static Future<bool> updateAdminProfil(Map<String, String> data) async {
-    try {
-      final response = await http.post(
-        Uri.parse("$baseUrl/update_status.php"), // Pastikan ini benar file php-nya
-        body: data,
-      );
+ static Future<bool> updateAdminProfil(Map<String, String> data, {Uint8List? imageBytes}) async {
+  try {
+    // Gunakan MultipartRequest untuk upload file[cite: 16]
+    var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/update_profil.php"));
 
-      if (response.statusCode == 200) {
-        final result = json.decode(response.body);
-        return result['success'] == true;
-      }
-      return false;
-    } catch (e) {
-      print("Error Update Profil: $e");
-      return false;
+    // Masukkan data teks
+    data.forEach((key, value) {
+      request.fields[key] = value;
+    });
+
+    // Masukkan file foto profil jika ada[cite: 16]
+    if (imageBytes != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'image', 
+        imageBytes, 
+        filename: 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      ));
     }
+
+    var response = await request.send();
+    return response.statusCode == 200;
+  } catch (e) {
+    print("Error Update Profil: $e");
+    return false;
   }
+}
 
   // ============================================================
   // FUNGSI PROFIT ADMIN
@@ -220,15 +229,35 @@ class ApiService {
   }
 
   // 2. UPDATE MENU
-  static Future<bool> updateMenu(Map<String, dynamic> data) async {
+  // 2. UPDATE MENU (VERSI BARU DENGAN MULTIPART / GAMBAR)
+  static Future<bool> updateMenu(Map<String, String> data, {Uint8List? imageBytes}) async {
     try {
-      final response = await http.post(
-        Uri.parse("$baseUrl/update_menu.php"),
-        body: data.map((key, value) => MapEntry(key, value.toString())), 
-      );
-      return response.statusCode == 200;
+      var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/update_menu.php"));
+
+      // Masukkan data teks (id, title, price, dll)
+      data.forEach((key, value) {
+        request.fields[key] = value;
+      });
+
+      // Masukkan file foto (jika admin memilih foto baru di galeri)
+      if (imageBytes != null) {
+        var multipartFile = http.MultipartFile.fromBytes(
+          'image', 
+          imageBytes, 
+          filename: 'menu_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        );
+        request.files.add(multipartFile);
+      }
+
+      var response = await request.send();
+      
+      // Cek apakah berhasil
+      if (response.statusCode == 200) {
+        return true;
+      }
+      return false;
     } catch (e) {
-      print("Update Error: $e");
+      print("Update Menu Error: $e");
       return false;
     }
   }

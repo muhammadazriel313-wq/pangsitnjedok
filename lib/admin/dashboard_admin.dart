@@ -19,13 +19,20 @@ class _DashboardAdminState extends State<DashboardAdmin> {
 
     // --- WIDGET HEADER ---
     Widget buildHeader() {
-      return Container(
-        padding: const EdgeInsets.only(top: 40, left: 24, right: 24, bottom: 20),
-        decoration: const BoxDecoration(
-          color: Color(0xFFFFFDF1),
-          border: Border(bottom: BorderSide(width: 1, color: Color(0xFFFFCE99))),
-        ),
-        child: Row(
+  return Container(
+    padding: const EdgeInsets.only(top: 40, left: 24, right: 24, bottom: 20),
+    decoration: const BoxDecoration(
+      color: Color(0xFFFFFDF1),
+      border: Border(bottom: BorderSide(width: 1, color: Color(0xFFFFCE99))),
+    ),
+    child: FutureBuilder<Map<String, dynamic>>(
+      future: ApiService.getDashboardData(), // Mengambil data profil dari API[cite: 15]
+      builder: (context, snapshot) {
+        // Ambil data dari snapshot jika tersedia
+        final String? imageUrl = snapshot.data?['image_url']; 
+        final String adminName = snapshot.data?['name'] ?? 'Admin';
+
+        return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
@@ -36,39 +43,68 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(width: 2, color: const Color(0xFFFF9442)),
-                    image: const DecorationImage(
-                      image: AssetImage("assets/images/Dimas oi oi.jpeg"),
-                      fit: BoxFit.cover,
-                    ),
+                  ),
+                  child: ClipOval(
+                    child: (imageUrl != null && imageUrl.isNotEmpty)
+                        ? Image.network(
+                            "${ApiService.baseUrl}/uploads/$imageUrl", // Foto dari database[cite: 5, 15]
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => 
+                                Image.asset("assets/images/Dimas oi oi.jpeg", fit: BoxFit.cover),
+                          )
+                        : Image.asset("assets/images/Dimas oi oi.jpeg", fit: BoxFit.cover),
                   ),
                 ),
                 const SizedBox(width: 16),
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Welcome, Admin',
-                      style: TextStyle(color: Color(0xFF562F00), fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Inter'),
+                      'Welcome, $adminName', // Nama admin dinamis
+                      style: const TextStyle(
+                        color: Color(0xFF562F00), 
+                        fontSize: 16, 
+                        fontWeight: FontWeight.w700, 
+                        fontFamily: 'Inter'
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
           ],
-        ),
-      );
-    }
+        );
+      },
+    ),
+  );
+}
 
     // --- WIDGET STATISTIK CHART (SAMBUNG DATABASE) ---
     // Sekarang menerima parameter apiData dari FutureBuilder
+    // --- WIDGET STATISTIK CHART DENGAN DATA DUMMY AESTHETIC ---
     Widget buildChartCard(Map<String, dynamic> apiData) {
-      // Mengambil data asli dari database XAMPP
-      final Map<String, dynamic> weeklyStats = apiData['weekly_stats'] ?? {};
-      final Map<String, dynamic> monthlyStats = apiData['monthly_stats'] ?? {};
+      // 1. DATA DUMMY AESTHETIC (WEEKLY & MONTHLY)
+      // Nilai berkisar dari 0.1 hingga 1.0 untuk merepresentasikan tinggi batang
+      final Map<String, dynamic> weeklyStatsDummy = {
+        'Mon': 0.3,
+        'Tue': 0.5,
+        'Wed': 0.4,
+        'Thu': 0.8,
+        'Fri': 0.9,
+        'Sat': 1.0, // Puncak tertinggi di akhir pekan
+        'Sun': 0.7,
+      };
 
-      // Memilih data yang ditampilkan berdasarkan pilihan tombol
-      final chartData = _isHourly ? weeklyStats : monthlyStats;
+      final Map<String, dynamic> monthlyStatsDummy = {
+        'W1': 0.6,
+        'W2': 0.8,
+        'W3': 0.5,
+        'W4': 0.9, // Puncak di akhir bulan
+      };
+
+      // 2. Memilih data yang ditampilkan berdasarkan tombol switch
+      final chartData = _isHourly ? weeklyStatsDummy : monthlyStatsDummy;
 
       return Container(
         padding: const EdgeInsets.all(24),
@@ -125,17 +161,15 @@ class _DashboardAdminState extends State<DashboardAdmin> {
               ],
             ),
             const SizedBox(height: 24),
-        // Cari bagian Row di dalam buildChartCard, lalu ganti menjadi seperti ini:
             SizedBox(
               height: 150,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: chartData.entries.map((entry) {
-                  // 1. Konversi value ke double dengan aman
-                  final double barValue = double.tryParse(entry.value.toString()) ?? 0.1;
+                  // Menggunakan data dummy yang sudah berupa angka desimal yang aman
+                  final double barValue = (entry.value as num).toDouble();
                   
-                  // 2. Bungkus dengan Expanded agar batang memiliki lebar yang jelas
                   return Expanded(
                     child: _buildChartBar(entry.key, barValue),
                   );

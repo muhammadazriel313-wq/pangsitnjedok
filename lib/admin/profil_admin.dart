@@ -16,27 +16,29 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
   @override
   void initState() {
     super.initState();
-    _profilFuture = ApiService.getAdminProfil();
+    // Mengambil data profil saat inisialisasi
+    _profilFuture = ApiService.getAdminProfil(); 
   }
 
-  // Fungsi untuk merefresh data setelah edit
+  // Fungsi untuk merefresh data setelah kembali dari halaman edit
   void _refreshData() {
     setState(() {
-      _profilFuture = ApiService.getAdminProfil();
+      // Memicu FutureBuilder untuk mengambil data terbaru dari database
+      _profilFuture = ApiService.getAdminProfil(); 
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFDF1),
+      backgroundColor: const Color(0xFFFFFDF1), // Latar belakang krem muda
       appBar: AppBar(
         backgroundColor: const Color(0xFFFFF7ED),
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFFC2410C)),
-          onPressed: () => Navigator.pushReplacementNamed(context, '/dashboard'),
+          onPressed: () => Navigator.pushReplacementNamed(context, '/dashboard'), // Kembali ke dashboard
         ),
         title: const Text(
           'Admin Profile',
@@ -47,14 +49,14 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
         future: _profilFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFFFF9442)));
+            return const Center(child: CircularProgressIndicator(color: Color(0xFFFF9442))); // Indikator loading
           }
           
           if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-            return const Center(child: Text("Gagal memuat profil admin"));
+            return const Center(child: Text("Gagal memuat profil admin")); // Penanganan error data
           }
 
-          final data = snapshot.data!;
+          final data = snapshot.data!; // Mengambil data hasil response API
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -70,41 +72,46 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
                   ),
                   child: Column(
                     children: [
-                      const CircleAvatar(
+                      // PERBAIKAN: Menggunakan NetworkImage agar foto profil berubah sesuai database
+                      CircleAvatar(
                         radius: 50,
-                        backgroundColor: Color(0xFFFFEEDD),
-                        backgroundImage: AssetImage("assets/images/Dimas oi oi.jpeg"),
+                        backgroundColor: const Color(0xFFFFEEDD),
+                        backgroundImage: (data['image_url'] != null && data['image_url'].toString().isNotEmpty)
+                            ? NetworkImage("${ApiService.baseUrl}/uploads/${data['image_url']}") // Foto dari server
+                            : const AssetImage("assets/images/Dimas oi oi.jpeg") as ImageProvider, // Foto default
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        data['name'] ?? 'Admin',
+                        data['name'] ?? 'Admin', // Menampilkan nama admin
                         style: const TextStyle(color: Color(0xFF562F00), fontSize: 22, fontWeight: FontWeight.w800),
                       ),
                       Text(
-                        "@${data['username'] ?? 'admin'}",
+                        "@${data['username'] ?? 'admin'}", // Menampilkan username
                         style: const TextStyle(color: Color(0xFFFF9442), fontSize: 14, fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 24),
                       
-                      // Tombol Edit Profile (LOGIKA DIPERBAIKI DISINI)
+                      // Tombol Edit Profile dengan logika refresh otomatis
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
+                        onPressed: () async {
+                          final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => EditProfil(
-                                // Pastikan data dikonversi ke Map<String, String> agar sinkron
                                 initialData: {
                                   'name': data['name']?.toString() ?? '',
                                   'username': data['username']?.toString() ?? '',
                                   'phone': data['no_telepon']?.toString() ?? data['phone']?.toString() ?? '',
                                   'email': data['email']?.toString() ?? '',
+                                  'image_url': data['image_url']?.toString() ?? '', // Mengirim URL gambar saat ini[cite: 19]
                                 },
                               ),
                             ),
-                          ).then((value) {
-                            if (value == true) _refreshData();
-                          });
+                          );
+                          // Jika kembali membawa nilai true, lakukan refresh data[cite: 15]
+                          if (result == true) {
+                            _refreshData();
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF562F00),
@@ -137,10 +144,11 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
           );
         },
       ),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: _buildBottomNav(), // Navigasi bawah
     );
   }
 
+  // Widget baris informasi profil
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       children: [
@@ -157,6 +165,7 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
     );
   }
 
+  // Widget Navigasi Bawah
   Widget _buildBottomNav() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
@@ -177,6 +186,7 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
     );
   }
 
+  // Widget Item Navigasi
   Widget _buildNavItem(String label, IconData icon, bool isActive, String route) {
     return GestureDetector(
       onTap: () { if (!isActive) Navigator.pushReplacementNamed(context, route); },

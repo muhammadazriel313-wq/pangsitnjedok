@@ -46,7 +46,7 @@ class _ProfitAdminState extends State<ProfitAdmin> {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          'Profit Report', 
+          'Financial Income', 
           style: TextStyle(color: Color(0xFFC2410C), fontWeight: FontWeight.bold)
         ),
       ),

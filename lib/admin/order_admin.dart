@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:convert'; // Dibutuhkan untuk json.decode
+import 'dart:convert';
 import '/service/api_service.dart';
 
 class OrderManagement extends StatefulWidget {
@@ -12,38 +12,28 @@ class OrderManagement extends StatefulWidget {
 class _OrderManagementState extends State<OrderManagement> {
   int _currentTab = 0; // 0 = Incoming, 1 = Processing, 2 = Completed
 
-  // Mapping Tab Index ke Status di Database
   String _getStatusFromTab() {
     if (_currentTab == 0) return 'WAITING';
     if (_currentTab == 1) return 'PROCESSING';
     return 'COMPLETED';
   }
 
- // --- FUNGSI KLIK TOMBOL (SINKRON KE DATABASE) ---
-  
-  // 1. Fungsi untuk menerima pesanan (Pindah dari Incoming ke Processing)
   void acceptOrder(String id) async {
-    // Memanggil fungsi update di ApiService
     bool success = await ApiService.updateOrderStatus(id, 'PROCESSING');
-    
     if (success) {
-      // Jika berhasil di database, refresh UI
       setState(() {}); 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Pesanan $id diterima dan sedang diproses!'))
       );
     } else {
-      // Jika gagal (misal server mati)
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Gagal memperbarui status ke server.'))
       );
     }
   }
 
-  // 2. Fungsi untuk menyelesaikan pesanan (Pindah ke Completed)
   void completeOrder(String id) async {
     bool success = await ApiService.updateOrderStatus(id, 'COMPLETED');
-    
     if (success) {
       setState(() {}); 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -52,10 +42,8 @@ class _OrderManagementState extends State<OrderManagement> {
     }
   }
 
-  // 3. Fungsi untuk menolak pesanan
   void rejectOrder(String id) async {
     bool success = await ApiService.updateOrderStatus(id, 'REJECTED');
-    
     if (success) {
       setState(() {}); 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,7 +52,6 @@ class _OrderManagementState extends State<OrderManagement> {
     }
   }
 
-  // --- FUNGSI POP-UP REJECT ORDER (UI ASLI) ---
   void _showRejectDialog(BuildContext context, String orderId) {
     showDialog(
       context: context,
@@ -130,7 +117,6 @@ class _OrderManagementState extends State<OrderManagement> {
                           onTap: () {
                             rejectOrder(orderId);
                             Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Pesanan $orderId ditolak')));
                           },
                           child: Container(padding: const EdgeInsets.symmetric(vertical: 16), decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(9999)), alignment: Alignment.center, child: const Text('Tolak Pesanan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700))),
                         )),
@@ -148,19 +134,53 @@ class _OrderManagementState extends State<OrderManagement> {
 
   @override
   Widget build(BuildContext context) {
+    // --- PERBAIKAN: Header Dinamis Menggunakan FutureBuilder ---
     Widget buildHeader() {
       return Container(
         padding: const EdgeInsets.only(top: 40, left: 24, right: 24, bottom: 20),
-        decoration: const BoxDecoration(color: Color(0xFFFFFDF1), border: Border(bottom: BorderSide(width: 1, color: Color(0xFFFFCE99)))),
-        child: Row(
-          children: [
-            Container(width: 44, height: 44, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(width: 2, color: const Color(0xFFFF9442)), 
-                      image: const DecorationImage(image: AssetImage("assets/images/Dimas oi oi.jpeg"), fit: BoxFit.cover))),
-            const SizedBox(width: 16),
-            const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Welcome, Admin', style: TextStyle(color: Color(0xFF562F00), fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Inter')),
-            ]),
-          ],
+        decoration: const BoxDecoration(
+          color: Color(0xFFFFFDF1), 
+          border: Border(bottom: BorderSide(width: 1, color: Color(0xFFFFCE99)))
+        ),
+        child: FutureBuilder<Map<String, dynamic>?>(
+          future: ApiService.getAdminProfil(), // Memanggil data profil admin[cite: 14]
+          builder: (context, snapshot) {
+            final String? imageUrl = snapshot.data?['image_url'];
+            final String adminName = snapshot.data?['name'] ?? 'Admin';
+
+            return Row(
+              children: [
+                Container(
+                  width: 44, 
+                  height: 44, 
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle, 
+                    border: Border.all(width: 2, color: const Color(0xFFFF9442))
+                  ),
+                  child: ClipOval(
+                    child: (imageUrl != null && imageUrl.isNotEmpty)
+                        ? Image.network(
+                            "${ApiService.baseUrl}/uploads/$imageUrl", // Foto dinamis[cite: 14]
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => 
+                                Image.asset("assets/images/Dimas oi oi.jpeg", fit: BoxFit.cover),
+                          )
+                        : Image.asset("assets/images/Dimas oi oi.jpeg", fit: BoxFit.cover),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start, 
+                  children: [
+                    Text(
+                      'Welcome, $adminName', 
+                      style: const TextStyle(color: Color(0xFF562F00), fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Inter')
+                    ),
+                  ]
+                ),
+              ],
+            );
+          },
         ),
       );
     }
@@ -181,7 +201,6 @@ class _OrderManagementState extends State<OrderManagement> {
                   return Center(child: Text("Error Database:\n${snapshot.error}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)));
                 }
 
-                // Filter data berdasarkan Tab
                 final allOrders = snapshot.data ?? [];
                 final currentOrders = allOrders.where((o) => o['status'] == _getStatusFromTab()).toList();
 
@@ -201,12 +220,10 @@ class _OrderManagementState extends State<OrderManagement> {
                         ),
                       ),
                       const SizedBox(height: 32),
-
                       if (currentOrders.isEmpty)
                         _buildEmptyState()
                       else
                         ...currentOrders.map((order) {
-                          // Konversi data dari Database ke format UI
                           List<dynamic> itemsRaw = [];
                           try { itemsRaw = json.decode(order['items_raw']); } catch (e) { itemsRaw = []; }
 
@@ -237,8 +254,7 @@ class _OrderManagementState extends State<OrderManagement> {
     );
   }
 
-  // --- REUSABLE WIDGETS ---
-
+  // (Sisa widget _buildEmptyState, _buildTabButton, _buildOrderCard, _buildBottomNav, _buildNavItem tetap sama seperti desain asli kamu)
   Widget _buildEmptyState() {
     return Container(
       width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
@@ -268,7 +284,6 @@ class _OrderManagementState extends State<OrderManagement> {
   Widget _buildOrderCard(Map<String, dynamic> order) {
     String status = order['status'];
     List<dynamic> items = order['items'];
-
     Widget actionArea;
     if (status == 'WAITING') {
       actionArea = Row(
