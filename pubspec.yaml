@@ -1,40 +1,53 @@
 name: aplikasipangsitnjedok
-description: "A new Flutter project."
-
-
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to : 'none' # Remove this line if you wish to publish to pub.dev
-
+description: "A new Flutter project for Pangsit Njedok Management System."
+publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.10.8 <4.0.0'
+  sdk: '>=3.10.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-
-
-  # The following adds the Cupertino Icons font to your application.
-
-  cupertino_icons: ^1.0.8
-  device_preview: ^1.3.1
+  cupertino_icons: ^1.0.6
   google_fonts: ^8.1.0
+  # Masukkan semua library lain di sini, jangan buat "dependencies:" baru lagi
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^6.0.0
 
-
-
-# The following section is specific to Flutter packages.
+  
+  # Icon standar iOS
+  cupertino_icons: ^1.0.6
+  
+  # Untuk pop-up pesan sukses/error yang cantik
+  awesome_dialog: ^3.1.0
+  
+  # Untuk menghubungkan Flutter ke PHP/MySQL
+  http: ^1.1.0
+  
+  # Untuk mengambil foto menu dari galeri/kamera
+  image_picker: ^1.0.4
+  
+  # PENTING: Untuk fitur Kalender (DatePicker) dan Format Rupiah di Profit Admin
+  intl: ^0.18.1
+  google_fonts: ^8.1.0
 
 flutter:
   uses-material-design: true
 
-
-  # Mendaftarkan folder assets
+  # Pastikan folder assets sudah terdaftar agar gambar muncul
   assets:
     - assets/images/
+    # Jika kamu punya gambar spesifik untuk logo, daftarkan di bawah ini:
+    # - assets/images/logo.png
+
+  # Jika kamu menggunakan font khusus seperti 'Inter' yang ada di kode Dashboard:
+  # fonts:
+  #   - family: Inter
+  #     fonts:
+  #       - asset: assets/fonts/Inter-Regular.ttf
+  #       - asset: assets/fonts/Inter-Bold.ttf
+  #         weight: 700

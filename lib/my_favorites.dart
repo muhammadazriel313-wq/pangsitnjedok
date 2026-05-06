@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(const MyFavorites());
@@ -29,57 +31,76 @@ class MyFavoritesScreen extends StatefulWidget {
 class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
   String selectedCategory = 'All Items';
   int selectedNavIndex = 4; // Profile active
-  Set<int> favoritedItems = {0, 1, 2};
   Map<int, int> cartItems = {};
   int cartCount = 0;
+  bool _isLoading = true;
 
   final List<String> categories = ['All Items', 'Food', 'Drink', 'Beverages'];
+  List<Map<String, dynamic>> menuItems = [];
 
-  final List<Map<String, dynamic>> menuItems = [
-    {
-      'name': 'Mietiaw Mentai',
-      'price': 'Rp 32k',
-      'priceValue': 32000,
-      'description': 'Silky flat rice noodles topped with our\nsignature house-made spicy mentai sauce.',
-      'tag': "CHEF'S CHOICE",
-      'tagColor': Color(0xFFE0A46B),
-      'tagTextColor': Color(0xFF633909),
-      'info': '15 min',
-      'infoIcon': Icons.access_time_outlined,
-      'image': 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&h=270&fit=crop',
-    },
-    {
-      'name': 'Es Buah Lecy',
-      'price': 'Rp 18k',
-      'priceValue': 18000,
-      'description': 'Sweet lychee fruit mixed with fresh syrup and\ncooling ice cubes for a sunny day.',
-      'tag': null,
-      'info': 'Cold',
-      'infoIcon': Icons.ac_unit_outlined,
-      'image': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&h=270&fit=crop',
-    },
-    {
-      'name': 'Pangsit Special',
-      'price': 'Rp 25k',
-      'priceValue': 25000,
-      'description': 'Our signature spicy dumplings filled with\nminced chicken and secret aromatic herbs.',
-      'tag': 'SPICY LEVEL 5',
-      'tagColor': Color(0xFFFFDAD6),
-      'tagTextColor': Color(0xFF93000A),
-      'info': 'Trending',
-      'infoIcon': Icons.local_fire_department_outlined,
-      'image': 'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=400&h=270&fit=crop',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchFavorites();
+  }
 
-  void _toggleFavorite(int index) {
-    setState(() {
-      if (favoritedItems.contains(index)) {
-        favoritedItems.remove(index);
+  // Mengambil data dari XAMPP
+  Future<void> _fetchFavorites() async {
+    setState(() => _isLoading = true);
+    try {
+      // Menggunakan ID customer 1 (Budi Santoso)
+      final response = await http.get(
+        Uri.parse("http://10.0.2.2/pangsit_api/get_favorites.php?customer_id=1"),
+      );
+
+      if (response.statusCode == 200) {
+        List<dynamic> rawData = json.decode(response.body);
+        setState(() {
+          // Mapping data dari database ke format yang dibutuhkan UI
+          menuItems = rawData.map((item) => {
+                'id': int.parse(item['id'].toString()),
+                'name': item['title'],
+                'price': 'Rp ${item['price']}',
+                'priceValue': int.parse(item['price'].toString()),
+                'description': 'Pilihan favorit lezat dari dapur kami.',
+                'tag': (item['is_best_seller'] == 1 || item['is_best_seller'] == true || item['is_best_seller'] == '1') ? 'BEST SELLER' : null,
+                'tagColor': const Color(0xFFFFCF9A),
+                'tagTextColor': const Color(0xFF954A00),
+                'info': item['category'],
+                'infoIcon': item['category'] == 'Drink' ? Icons.local_cafe_outlined : Icons.restaurant_outlined,
+                'image': item['image_url'], 
+              }).toList();
+          _isLoading = false;
+        });
       } else {
-        favoritedItems.add(index);
+        setState(() => _isLoading = false);
       }
-    });
+    } catch (e) {
+      print("Error koneksi: $e");
+      setState(() => _isLoading = false);
+    }
+  }
+
+  // Mengirim perintah hapus favorit ke XAMPP
+  void _toggleFavorite(int menuId) async {
+    try {
+      final response = await http.post(
+        Uri.parse("http://10.0.2.2/pangsit_api/toggle_favorite.php"),
+        body: {
+          "customer_id": "1",
+          "menu_id": menuId.toString(),
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Refresh daftar setelah dihapus dari database
+        _fetchFavorites();
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal koneksi ke server: $e')),
+      );
+    }
   }
 
   void _addToCart(int index) {
@@ -154,9 +175,12 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
 
   List<Map<String, dynamic>> get filteredItems {
     if (selectedCategory == 'All Items') return menuItems;
-    if (selectedCategory == 'Food') return [menuItems[0], menuItems[2]];
-    if (selectedCategory == 'Drink') return [menuItems[1]];
-    if (selectedCategory == 'Beverages') return [menuItems[1]];
+    if (selectedCategory == 'Food') {
+      return menuItems.where((item) => item['info'] == 'Food').toList();
+    }
+    if (selectedCategory == 'Drink' || selectedCategory == 'Beverages') {
+      return menuItems.where((item) => item['info'] == 'Drink').toList();
+    }
     return menuItems;
   }
 
@@ -167,26 +191,25 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
       body: Column(
         children: [
           // Top Navigation Bar
+// Top Navigation Bar
+          // Top Navigation Bar
           Container(
             color: const Color(0xFFFCFAEE),
             padding: const EdgeInsets.only(top: 44, left: 16, right: 16, bottom: 12),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // --- PERUBAHAN: Ubah alignment ke start ---
+              mainAxisAlignment: MainAxisAlignment.start, 
               children: [
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pop(context); // Kembali ke halaman sebelumnya
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(9999),
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Color(0xFF1B1C15),
-                      size: 24,
-                    ),
+                    child: const Icon(Icons.arrow_back, color: Color(0xFF1B1C15), size: 24),
                   ),
                 ),
+                const SizedBox(width: 8), // Jarak kecil antara panah dan tulisan
                 const Text(
                   'Favorites',
                   style: TextStyle(
@@ -196,140 +219,115 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () {},
-                      child: const Padding(
-                        padding: EdgeInsets.all(8),
-                        child: Icon(Icons.search, color: Color(0xFF1B1C15), size: 24),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        clipBehavior: Clip.antiAlias,
-                        decoration: const ShapeDecoration(
-                          color: Color(0xFFFFCF9A),
-                          shape: CircleBorder(),
-                        ),
-                        child: ClipOval(
-                          child: Image.network(
-                            'https://i.pravatar.cc/32',
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 20, color: Color(0xFF954A00)),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                // Tidak perlu Row ikon pencarian/profil lagi di sini agar bersih
               ],
             ),
           ),
-
           // Main Content
           Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 8),
-                    // Title
-                    RichText(
-                      text: const TextSpan(
+            child: _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF9442)))
+                : SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          TextSpan(
-                            text: 'Your Curated\n',
-                            style: TextStyle(
-                              color: Color(0xFF1B1C15),
-                              fontSize: 36,
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontWeight: FontWeight.w800,
-                              height: 1.25,
-                              letterSpacing: -0.90,
+                          const SizedBox(height: 8),
+                          RichText(
+                            text: const TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'Your Curated\n',
+                                  style: TextStyle(
+                                    color: Color(0xFF1B1C15),
+                                    fontSize: 36,
+                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontWeight: FontWeight.w800,
+                                    height: 1.25,
+                                    letterSpacing: -0.90,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: 'Best Bites',
+                                  style: TextStyle(
+                                    color: Color(0xFF954A00),
+                                    fontSize: 36,
+                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontWeight: FontWeight.w800,
+                                    height: 1.25,
+                                    letterSpacing: -0.90,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          TextSpan(
-                            text: 'Best Bites',
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Handpicked flavors from your kitchen to\nyour heart. Ready to order again?',
                             style: TextStyle(
-                              color: Color(0xFF954A00),
-                              fontSize: 36,
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontWeight: FontWeight.w800,
-                              height: 1.25,
-                              letterSpacing: -0.90,
+                              color: Color(0xFF554337),
+                              fontSize: 18,
+                              fontFamily: 'Be Vietnam Pro',
+                              fontWeight: FontWeight.w400,
+                              height: 1.56,
                             ),
                           ),
+                          const SizedBox(height: 20),
+
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: categories.map((category) {
+                                final isSelected = selectedCategory == category;
+                                return GestureDetector(
+                                  onTap: () => setState(() => selectedCategory = category),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    margin: const EdgeInsets.only(right: 10),
+                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                                    decoration: ShapeDecoration(
+                                      color: isSelected ? const Color(0xFFFF9442) : const Color(0xFFF6F4E8),
+                                      shape: const StadiumBorder(),
+                                    ),
+                                    child: Text(
+                                      category,
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.white : const Color(0xFF554337),
+                                        fontSize: 14,
+                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontWeight: FontWeight.w600,
+                                        height: 1.43,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          if (filteredItems.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.only(top: 40, bottom: 40),
+                              child: Center(
+                                child: Text(
+                                  "Belum ada menu favorit di kategori ini.",
+                                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 16),
+                                ),
+                              ),
+                            )
+                          else
+                            ...filteredItems.asMap().entries.map((entry) {
+                              final idx = menuItems.indexOf(entry.value);
+                              return _buildMenuCard(entry.value, idx);
+                            }),
+
+                          const SizedBox(height: 80),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Handpicked flavors from your kitchen to\nyour heart. Ready to order again?',
-                      style: TextStyle(
-                        color: Color(0xFF554337),
-                        fontSize: 18,
-                        fontFamily: 'Be Vietnam Pro',
-                        fontWeight: FontWeight.w400,
-                        height: 1.56,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Category Filter
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: categories.map((category) {
-                          final isSelected = selectedCategory == category;
-                          return GestureDetector(
-                            onTap: () => setState(() => selectedCategory = category),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              margin: const EdgeInsets.only(right: 10),
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                              decoration: ShapeDecoration(
-                                color: isSelected ? const Color(0xFFFF9442) : const Color(0xFFF6F4E8),
-                                shape: const StadiumBorder(),
-                              ),
-                              child: Text(
-                                category,
-                                style: TextStyle(
-                                  color: isSelected ? Colors.white : const Color(0xFF554337),
-                                  fontSize: 14,
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.43,
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Menu Items
-                    ...filteredItems.asMap().entries.map((entry) {
-                      final idx = menuItems.indexOf(entry.value);
-                      return _buildMenuCard(entry.value, idx);
-                    }),
-
-                    const SizedBox(height: 16),
-
-                    // Checkout Banner
-                    _buildCheckoutBanner(),
-                    const SizedBox(height: 80),
-                  ],
-                ),
-              ),
-            ),
+                  ),
           ),
 
           // Bottom Navigation Bar
@@ -340,7 +338,6 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
   }
 
   Widget _buildMenuCard(Map<String, dynamic> item, int index) {
-    final isFavorited = favoritedItems.contains(index);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       clipBehavior: Clip.antiAlias,
@@ -360,13 +357,13 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image
           Stack(
             children: [
               SizedBox(
                 width: double.infinity,
                 height: 268,
-                child: Image.network(
+                // Menggunakan AssetImage karena data database menyimpan path lokal (misal assets/images/...)
+                child: Image.asset(
                   item['image'],
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => Container(
@@ -376,12 +373,11 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
                   ),
                 ),
               ),
-              // Favorite button
               Positioned(
                 right: 12,
                 top: 16,
                 child: GestureDetector(
-                  onTap: () => _toggleFavorite(index),
+                  onTap: () => _toggleFavorite(item['id']), // Mengirimkan ID asli dari database
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     width: 40,
@@ -397,15 +393,14 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
                         ),
                       ],
                     ),
-                    child: Icon(
-                      isFavorited ? Icons.favorite : Icons.favorite_border,
-                      color: isFavorited ? const Color(0xFFEF4444) : const Color(0xFF554337),
+                    child: const Icon(
+                      Icons.favorite, // Selalu favorite karena ini halaman My Favorites
+                      color: Color(0xFFEF4444),
                       size: 20,
                     ),
                   ),
                 ),
               ),
-              // Tag badge
               if (item['tag'] != null)
                 Positioned(
                   left: 12,
@@ -431,7 +426,6 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
                 ),
             ],
           ),
-          // Content
           Padding(
             padding: const EdgeInsets.all(24),
             child: Column(

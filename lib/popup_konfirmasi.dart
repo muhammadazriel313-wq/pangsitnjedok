@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'popup_terimakasih.dart'; // Pastikan file popup_terimakasih.dart sudah benar kodenya
-
+import 'features/apps/customer/cart.dart'; // Pastikan file cart.dart sudah benar kodenya
 void main() {
   runApp(const PopupKonfirmasi());
 }
@@ -135,7 +135,12 @@ ElevatedButton(
 
           // Tombol Cancel
           ElevatedButton(
-            onPressed: () {Navigator.pop(context);
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const FigmaToCodeApp()),
+                (route) => false,
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFF6F4E8),

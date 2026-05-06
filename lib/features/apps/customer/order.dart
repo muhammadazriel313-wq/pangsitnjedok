@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const FigmaToCodeApp());
+  runApp(const OrderPage());
 }
 
-class FigmaToCodeApp extends StatelessWidget {
-  const FigmaToCodeApp({super.key});
+class OrderPage extends StatelessWidget {
+  const OrderPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -132,9 +132,9 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           queueNumber: 'A-12',
           status: 'Processing',
           statusColor: const Color(0xFFFF9442),
-          itemName: 'Spicy Umami Pangsit (XL)',
-          itemImage: 'https://via.placeholder.com/64',
-          price: 'Rp 45.000',
+          itemName: 'Pangsit Tulang Rangu',
+          itemImage: 'assets/images/ptulangrangu.jpeg',
+          price: 'Rp 15.000',
           paymentStatus: 'PAID VIA QRIS',
           details: 'Extra Chili Oil • Toasted Garlic',
           bottomInfo: const Row(
@@ -152,9 +152,9 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           queueNumber: 'A-15',
           status: 'Waiting\nConfirmation',
           statusColor: const Color(0xFF7B572C),
-          itemName: 'Njedog Special Ramen',
-          itemImage: 'https://picsum.photos/100',
-          price: 'Rp 52.000',
+          itemName: 'Lemon Tea',
+          itemImage: 'assets/images/lemontea.jpeg',
+          price: 'Rp 6.000',
           paymentStatus: 'WAITING PAYMENT',
           details: 'Soft Boiled Egg • Seaweed',
           bottomInfo: const Row(

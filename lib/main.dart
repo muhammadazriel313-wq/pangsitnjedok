@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'popup_konfirmasi.dart';
+import 'rating_views.dart';
 
 void main() {
   // Disamakan dengan nama class di bawah (PangsitNjedogApp)
@@ -19,8 +19,8 @@ class PangsitNjedogApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      // Di sini kita langsung arahkan ke halaman RatingsReviewsPage dari rating.dart
-      home: const PopupKonfirmasi(), 
+
+      home: const RatingViewsPage(), 
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'features/auth/screens/tampilan_awal.dart'; // Pastikan file tampilan_awal.dart sudah benar kodenya
+import 'halaman_utama.dart'; 
+import 'features/apps/customer/order.dart';
 
 
 void main() {
@@ -53,7 +54,7 @@ class PopupTerimakasih extends StatelessWidget {
                             // Mengarahkan ke HomePage dan menghapus semua halaman sebelumnya
                             Navigator.pushAndRemoveUntil(
                               context,
-                              MaterialPageRoute(builder: (context) => TampilanAwal()),
+                              MaterialPageRoute(builder: (context) => const HalamanUtama()),
                               (route) => false,
                             );
                           },
@@ -96,7 +97,12 @@ class PopupTerimakasih extends StatelessWidget {
 
                   // Tombol Track Order
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const OrderPage()),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFF9644),
                       foregroundColor: Colors.white,
