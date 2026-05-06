@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // Alamat URL disesuaikan dengan folder di htdocs kamu
-  static const String baseUrl = "http://localhost/pangsit_njedog_api"; 
+  static const String baseUrl = "http://localhost/pangsit_njedok_api"; 
 
   // ============================================================
   // 1. FUNGSI DASHBOARD (Mengambil Ringkasan Data)
@@ -121,9 +121,9 @@ class ApiService {
 }
 
   // ============================================================
-  // FUNGSI PROFIT ADMIN
+  // FUNGSI profit ADMIN
   // ============================================================
-  static Future<Map<String, dynamic>> getProfitData(String date) async {
+  static Future<Map<String, dynamic>> getprofitData(String date) async {
     try {
       final response = await http.get(
         Uri.parse("$baseUrl/profit_admin.php?date=$date"),
@@ -142,9 +142,8 @@ class ApiService {
     }
   }
 
-  // ============================================================
-  // FUNGSI MANAGE CUSTOMER
-  // ============================================================
+  // MANAGE CUSTOMER
+  
   static Future<List<dynamic>> getCustomers() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/manage_customer.php'));
@@ -190,9 +189,8 @@ class ApiService {
     }
   }
 
-  // ============================================================
+  
   // FUNGSI MENU CRUD (ADD, UPDATE, DELETE)
-  // ============================================================
 
   // 1. ADD MENU (VERSI BARU YANG BISA UPLOAD FOTO)
   static Future<bool> addMenu(Map<String, dynamic> data, {Uint8List? imageBytes, String? fileName}) async {
@@ -229,7 +227,6 @@ class ApiService {
   }
 
   // 2. UPDATE MENU
-  // 2. UPDATE MENU (VERSI BARU DENGAN MULTIPART / GAMBAR)
   static Future<bool> updateMenu(Map<String, String> data, {Uint8List? imageBytes}) async {
     try {
       var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/update_menu.php"));

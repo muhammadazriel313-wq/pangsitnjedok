@@ -22,7 +22,7 @@ dependencies:
   # Untuk mengambil foto menu dari galeri/kamera
   image_picker: ^1.0.4
   
-  # PENTING: Untuk fitur Kalender (DatePicker) dan Format Rupiah di Profit Admin
+  # PENTING: Untuk fitur Kalender (DatePicker) dan Format Rupiah di profit Admin
   intl: ^0.18.1
 
 dev_dependencies:

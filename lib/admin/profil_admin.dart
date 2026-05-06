@@ -179,7 +179,7 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
           _buildNavItem("Dashboard", Icons.dashboard_outlined, false, '/dashboard'),
           _buildNavItem("Orders", Icons.receipt_long_outlined, false, '/order'),
           _buildNavItem("Menu", Icons.restaurant_menu_outlined, false, '/menu'),
-          _buildNavItem("Profit", Icons.bar_chart_outlined, false, '/profit'),
+          _buildNavItem("profit", Icons.bar_chart_outlined, false, '/profit'),
           _buildNavItem("Profile", Icons.person, true, '/profil'),
         ],
       ),

@@ -190,7 +190,7 @@ class _ManageCustomersState extends State<ManageCustomers> {
           _navItem("Dashboard", Icons.dashboard_outlined, false, '/dashboard'),
           _navItem("Orders", Icons.receipt_long_outlined, false, '/order'),
           _navItem("Menu", Icons.restaurant_menu_outlined, false, '/menu'),
-          _navItem("Profit", Icons.bar_chart_outlined, false, '/profit'),
+          _navItem("profit", Icons.bar_chart_outlined, false, '/profit'),
           _navItem("Profile", Icons.person_outline, false, '/profil'),
         ],
       ),
