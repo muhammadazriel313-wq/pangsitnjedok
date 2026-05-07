@@ -1,23 +1,15 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
 import 'rating_views.dart';
 
-void main() {
-  // Disamakan dengan nama class di bawah (PangsitNjedogApp)
-=======
-
 // --- IMPORT FILE DARI FOLDER ADMIN ---
-// Karena file kamu ada di dalam folder 'admin', kita tambahkan path 'admin/'
 import 'admin/dashboard_admin.dart'; 
 import 'admin/order_admin.dart';     
 import 'admin/menu_management.dart'; 
 import 'admin/Profit_admin.dart';    
 import 'admin/profil_admin.dart'; 
 import 'admin/manage_customer.dart'; 
-  
 
 void main() {
->>>>>>> 483ee860156f183273118e6c727806fbd24769bf
   runApp(const PangsitNjedogApp());
 }
 
@@ -27,26 +19,21 @@ class PangsitNjedogApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-<<<<<<< HEAD
+      debugShowCheckedModeBanner: false,
       title: 'Pangsit Njedog',
-      debugShowCheckedModeBanner: false, // Menghilangkan banner debug
       theme: ThemeData(
-        // Perbaikan: Tambahkan 'ColorScheme' sebelum '.fromSeed'
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
-      ),
-
-      home: const RatingViewsPage(), 
-=======
-      debugShowCheckedModeBanner: false,
-      title: 'Pangsit Njedog Admin',
-      theme: ThemeData.light().copyWith(
         scaffoldBackgroundColor: const Color(0xFFFFFDF1),
-        // Menggunakan font Inter agar sesuai dengan desain
-        textTheme: ThemeData.light().textTheme.apply(fontFamily: 'Inter'),
+        // Jika ingin menggunakan font Inter, pastikan sudah terdaftar di pubspec.yaml
+        // textTheme: ThemeData.light().textTheme.apply(fontFamily: 'Inter'),
       ),
       
-      // Halaman awal saat aplikasi dibuka
+      // Kamu bisa pilih mau halaman awal yang mana:
+      // Option A: Menggunakan Home (Langsung ke satu halaman)
+      // home: const RatingViewsPage(), 
+
+      // Option B: Menggunakan Initial Route (Navigasi Admin)
       initialRoute: '/dashboard', 
 
       // Daftar Rute Navigasi
@@ -54,12 +41,11 @@ class PangsitNjedogApp extends StatelessWidget {
         '/dashboard': (context) => const DashboardAdmin(),
         '/order':     (context) => const OrderManagement(),
         '/menu':      (context) => const MenuManagement(), 
-        '/profit':   (context) => const profitAdmin(),
+        '/profit':    (context) => const profitAdmin(),
         '/profil':    (context) => const ProfilReportAdmin(),
-        '/customers':  (context) => const ManageCustomers(),
-        
+        '/customers': (context) => const ManageCustomers(),
+        '/rating':    (context) => const RatingViewsPage(),
       },
->>>>>>> 483ee860156f183273118e6c727806fbd24769bf
     );
   }
 }
