@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:async'; // WAJIB TAMBAH INI biar Timer slider otomatisnya jalan
 import 'halaman_menu.dart'; 
 
-// 1. UBAH JADI STATEFUL WIDGET BIAR BISA BERUBAH-UBAH
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -10,8 +10,40 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  // 2. TAMBAHIN VARIABEL PENANDA TAB AKTIF
   bool _isFoodSelected = true;
+
+  // --- VARIABEL UNTUK SLIDER BANNER OTOMATIS ---
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  Timer? _carouselTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Bikin timer yang jalanin fungsi geser halaman setiap 3 detik
+    _carouselTimer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
+      if (_currentPage < 1) { // Karena gambarnya ada 2 (index 0 dan 1)
+        _currentPage++;
+      } else {
+        _currentPage = 0; // Balik ke gambar pertama
+      }
+
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _carouselTimer?.cancel(); // Wajib dimatiin biar gak bocor memori
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,16 +56,16 @@ class _DashboardPageState extends State<DashboardPage> {
             children: [
               _buildHeader(),
               const SizedBox(height: 24), 
-              _buildPromoBanner(),
+              _buildPromoBanner(), // Banner interaktif dipanggil di sini
               const SizedBox(height: 24),
-              _buildCategories(), // Kategori dipanggil di sini
+              _buildCategories(), 
               const SizedBox(height: 24),
               const Text(
-                'Popular Now',
+                'Rekomendasi', 
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
               ),
               const SizedBox(height: 16),
-              _buildPopularItems(), // Item populer dipanggil di sini
+              _buildPopularItems(), 
             ],
           ),
         ),
@@ -45,22 +77,31 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   // --- WIDGET KOMPONEN ---
+  
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Row(
+        Row(
           children: [
-            CircleAvatar(
-              radius: 24, 
-              backgroundImage: AssetImage("assets/images/wontonmentai.jpeg") 
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFFF9442), width: 2), 
+                image: const DecorationImage(
+                  image: AssetImage("assets/images/user.jpeg"), 
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Welcome back,', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
-                Text('Customer', style: TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
+              children: const [
+                Text('Selamat Datang', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                Text('Pelanggan', style: TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
           ],
@@ -70,7 +111,7 @@ class _DashboardPageState extends State<DashboardPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey.shade300),
+            border: Border.all(color: Colors.grey.shade200),
           ),
           child: const Icon(Icons.notifications_none, color: Color(0xFF0F172A)),
         )
@@ -79,39 +120,90 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildPromoBanner() {
+    // 1. SIAPIN GAMBAR BEDA UNTUK MAKANAN & MINUMAN
+    List<String> bannerImages = _isFoodSelected 
+        ? ['assets/images/ptulangrangu.jpeg', 'assets/images/wontonmentai.jpeg'] // Gambar pas Makanan diklik
+        : ['assets/images/esbuahleci.jpeg', 'assets/images/lemontea.jpeg'];      // Gambar pas Minuman diklik
+
     return Container(
+      height: 180, // Ditinggiin dikit biar fotonya lebih memanjakan mata
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24), 
-        gradient: const LinearGradient(
-          colors: [Color(0xFF2A2D34), Color(0xFF5E6065)], 
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(color: const Color(0xFFFF9442), borderRadius: BorderRadius.circular(12)),
-            child: const Text('LIMITED OFFER', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-          ),
-          const SizedBox(height: 8),
-          const Text('Spicy Hot Arrival', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-          const Text('Extra kick for extra joy', style: TextStyle(color: Colors.white70, fontSize: 14)),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: () {}, 
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            ),
-            child: const Text('Order Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-          )
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5))
         ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Stack(
+          children: [
+            // LAPISAN 1: SLIDER GAMBAR
+            PageView.builder(
+              controller: _pageController,
+              itemCount: bannerImages.length,
+              onPageChanged: (index) {
+                setState(() { _currentPage = index; });
+              },
+              itemBuilder: (context, index) {
+                return Image.asset(
+                  bannerImages[index],
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                );
+              },
+            ),
+            // LAPISAN 2: GRADASI HITAM (Biar teks putih tetap kebaca jelas di atas gambar)
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+              ),
+            ),
+            // LAPISAN 3: TEKS DAN TOMBOL
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(color: const Color(0xFFFF9442), borderRadius: BorderRadius.circular(20)),
+                    child: const Text('PENAWARAN SPESIAL', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(height: 12),
+                  // Logika teks berubah berdasarkan tab
+                  Text(
+                    _isFoodSelected ? 'Varian Rasa Terbaru' : 'Kesegaran Hakiki', 
+                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  // Logika sub-teks berubah
+                  Text(
+                    _isFoodSelected ? 'Pedesnya pas, nikmatnya puas!' : 'Segernya pas, nikmatnya puas!', 
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  const Spacer(),
+                  ElevatedButton(
+                    onPressed: () {}, 
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF0F172A),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      elevation: 0,
+                    ),
+                    child: const Text('Pesan Sekarang', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -119,20 +211,24 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildCategories() {
     return Row(
       children: [
-        // Tombol Food
         Expanded(
-          child: _categoryButton(Icons.restaurant_menu, 'Food', _isFoodSelected, () {
-            setState(() {
-              _isFoodSelected = true; // Ubah ke makanan
+          child: _categoryButton(Icons.restaurant_menu, 'Makanan', _isFoodSelected, () {
+            setState(() { 
+              _isFoodSelected = true; 
+              // Reset gambar ke slide pertama pas ganti tab
+              _currentPage = 0;
+              if (_pageController.hasClients) _pageController.jumpToPage(0);
             });
           }),
         ),
         const SizedBox(width: 16),
-        // Tombol Drink
         Expanded(
-          child: _categoryButton(Icons.local_drink, 'Beverages', !_isFoodSelected, () {
-            setState(() {
-              _isFoodSelected = false; // Ubah ke minuman
+          child: _categoryButton(Icons.local_bar_outlined, 'Minuman', !_isFoodSelected, () {
+            setState(() { 
+              _isFoodSelected = false; 
+              // Reset gambar ke slide pertama pas ganti tab
+              _currentPage = 0;
+              if (_pageController.hasClients) _pageController.jumpToPage(0);
             });
           }),
         ),
@@ -140,28 +236,30 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // Tambahin parameter onTap biar tombolnya bisa diklik
   Widget _categoryButton(IconData icon, String title, bool active, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(30), // Biar efek kliknya ikutan membulat
+      borderRadius: BorderRadius.circular(30),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: active ? const Color(0xFFFF9442).withOpacity(0.1) : Colors.white, 
+          color: active ? const Color(0xFFFFF4EC) : Colors.white, 
           borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: active ? const Color(0xFFFF9442).withOpacity(0.3) : const Color(0xFFCBD5E1)),
+          border: Border.all(color: active ? const Color(0xFFFFCE99) : const Color(0xFFE2E8F0)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center, 
           children: [
             Container(
               padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(color: active ? const Color(0xFFFF9442) : Colors.transparent, shape: BoxShape.circle),
-              child: Icon(icon, color: active ? Colors.white : Colors.grey, size: 16),
+              decoration: BoxDecoration(
+                color: active ? const Color(0xFFFF9442) : const Color(0xFFF1F5F9), 
+                shape: BoxShape.circle
+              ),
+              child: Icon(icon, color: active ? Colors.white : Colors.grey, size: 18),
             ),
             const SizedBox(width: 8), 
-            Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: active ? const Color(0xFF1E293B) : const Color(0xFF64748B))),
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: active ? const Color(0xFF0F172A) : const Color(0xFF64748B))),
           ]
         ),
       ),
@@ -169,46 +267,82 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildPopularItems() {
-    // 3. LOGIKA UNTUK NAMPILIN MENU YANG BEDA
     if (_isFoodSelected) {
-      // Tampilan kalau tombol FOOD yang diklik
       return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: _foodCard('Dimsum Ori', 'Rp 12.000', '4.9', 'assets/images/ptulangrangu.jpeg')),
+          Expanded(child: _foodCard('Pangsit tulang rangu', 'Rp 12.000', 'assets/images/ptulangrangu.jpeg')),
           const SizedBox(width: 16),
-          Expanded(child: _foodCard('Dimsum Mentai', 'Rp 15.000', '5.0', 'assets/images/wontonmentai.jpeg')),
+          Expanded(child: _foodCard('Wonton Mentai', 'Rp 12.000', 'assets/images/wontonmentai.jpeg')),
         ],
       );
     } else {
-      // Tampilan kalau tombol BEVERAGES yang diklik
       return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: _foodCard('Es Jeruk Njedog', 'Rp 8.000', '4.9', 'assets/images/nipis.jpeg')),
+          Expanded(child: _foodCard('Es Leci Tea', 'Rp 8.000', 'assets/images/nipis.jpeg')),
           const SizedBox(width: 16),
-          Expanded(child: _foodCard('Es Teh Manis', 'Rp 5.000', '4.8', 'assets/images/lemontea.jpeg')),
+          Expanded(child: _foodCard('Es Lemon Tea', 'Rp 5.000', 'assets/images/lemontea.jpeg')),
         ],
       );
     }
   }
 
-  Widget _foodCard(String title, String price, String rating, String img) {
+  Widget _foodCard(String title, String price, String img) {
     return Container(
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white, 
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)],
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03), 
+            blurRadius: 10, 
+            offset: const Offset(0, 4)
+          )
+        ],
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(16), 
-          child: Image.asset(img, height: 100, width: double.infinity, fit: BoxFit.cover)
-        ),
-        const SizedBox(height: 12),
-        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
-        const SizedBox(height: 4),
-        Text(price, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFFF9442))),
-      ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, 
+        children: [
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)), 
+                child: Image.asset(img, height: 120, width: double.infinity, fit: BoxFit.cover),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.favorite_border, size: 18, color: Color(0xFF64748B)),
+                ),
+              )
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title, 
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(price, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFFF9442))),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -223,15 +357,13 @@ class _DashboardPageState extends State<DashboardPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(Icons.home_filled, 'Home', true, () {}),
-            
+            _buildNavItem(Icons.home_outlined, 'Home', true, () {}),
             _buildNavItem(Icons.restaurant_menu, 'Menu', false, () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen()));
             }),
-            
             const SizedBox(width: 48), 
-            _buildNavItem(Icons.receipt_long_outlined, 'Orders', false, () {}),
-            _buildNavItem(Icons.person_outline, 'Profile', false, () {}),
+            _buildNavItem(Icons.receipt_long_outlined, 'Order', false, () {}),
+            _buildNavItem(Icons.person_outline, 'Profil', false, () {}),
           ],
         ),
       ),
@@ -268,22 +400,34 @@ class _DashboardPageState extends State<DashboardPage> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        FloatingActionButton(
-          onPressed: () {},
-          backgroundColor: const Color(0xFFFF9442),
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50),
-            side: const BorderSide(color: Color(0xFFF8F7F5), width: 4),
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFFF9442).withOpacity(0.4),
+                blurRadius: 12,
+                spreadRadius: 2,
+              )
+            ]
           ),
-          child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+          child: FloatingActionButton(
+            onPressed: () {},
+            backgroundColor: const Color(0xFFFF9442),
+            elevation: 0, 
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(50),
+              side: const BorderSide(color: Colors.white, width: 4), 
+            ),
+            child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+          ),
         ),
         Positioned(
           right: -2,
           top: -2,
           child: Container(
-            padding: const EdgeInsets.all(5),
-            decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+            padding: const EdgeInsets.all(6),
+            decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
             child: const Text('3', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
           ),
         ),

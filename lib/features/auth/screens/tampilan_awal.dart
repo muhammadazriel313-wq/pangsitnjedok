@@ -81,9 +81,9 @@ class TampilanAwal extends StatelessWidget {
                 
                 const Spacer(),
                 
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Icon(Icons.local_fire_department_outlined, color: Color(0x66562F00), size: 24),
                     SizedBox(width: 16),
                     Icon(Icons.breakfast_dining_outlined, color: Color(0x66562F00), size: 24),

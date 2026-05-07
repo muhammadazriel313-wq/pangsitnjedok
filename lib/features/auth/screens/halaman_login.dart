@@ -157,8 +157,8 @@ class _HalamanLoginState extends State<HalamanLogin> {
 
             // Bagian Sign Up yang hanya muncul jika memilih Customer
             if (isCustomerSelected) ...[
-              Row(
-                children: const [
+              const Row(
+                children: [
                   Expanded(child: Divider(color: Color(0xFFFFCE99))),
                   Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('OR', style: TextStyle(color: Color(0x66562F00), fontWeight: FontWeight.bold, fontSize: 12))),
                   Expanded(child: Divider(color: Color(0xFFFFCE99))),
