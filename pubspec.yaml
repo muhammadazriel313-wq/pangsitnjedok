@@ -9,6 +9,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  cupertino_icons: ^1.0.6
+  google_fonts: ^8.1.0
+  # Masukkan semua library lain di sini, jangan buat "dependencies:" baru lagi
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
   
   # Icon standar iOS
   cupertino_icons: ^1.0.6
@@ -22,13 +31,9 @@ dependencies:
   # Untuk mengambil foto menu dari galeri/kamera
   image_picker: ^1.0.4
   
-  # PENTING: Untuk fitur Kalender (DatePicker) dan Format Rupiah di profit Admin
+  # PENTING: Untuk fitur Kalender (DatePicker) dan Format Rupiah di Profit Admin
   intl: ^0.18.1
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^3.0.0
+  google_fonts: ^8.1.0
 
 flutter:
   uses-material-design: true
