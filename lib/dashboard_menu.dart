@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; // WAJIB TAMBAH INI biar Timer slider otomatisnya jalan
-import 'halaman_menu.dart'; 
+import 'halaman_menu.dart'; // Ganti ini biar kenal sama halaman tujuan
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -359,7 +359,7 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             _buildNavItem(Icons.home_outlined, 'Home', true, () {}),
             _buildNavItem(Icons.restaurant_menu, 'Menu', false, () {
-            // Navigator.push(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen()));
             }),
             const SizedBox(width: 48), 
             _buildNavItem(Icons.receipt_long_outlined, 'Order', false, () {}),
