@@ -14,27 +14,23 @@ class EditProfil extends StatefulWidget {
 class _EditProfilState extends State<EditProfil> {
   late TextEditingController _nameController;
   late TextEditingController _usernameController;
-  late TextEditingController _passwordController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
 
-  bool _isPasswordHidden = true; 
-  Uint8List? _imageBytes; // Menampung bytes gambar yang baru dipilih[cite: 14]
+  Uint8List? _imageBytes; // Menampung bytes gambar yang baru dipilih
   final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi controller dengan data awal dari halaman profil[cite: 14]
+    // Inisialisasi controller dengan data awal dari halaman profil
     _nameController = TextEditingController(text: widget.initialData['name']);
     _usernameController = TextEditingController(text: widget.initialData['username']);
-    // Password dikosongkan secara default agar tidak terupdate jika tidak diisi
-    _passwordController = TextEditingController(text: ''); 
     _phoneController = TextEditingController(text: widget.initialData['phone']);
     _emailController = TextEditingController(text: widget.initialData['email']);
   }
 
-  // Fungsi untuk memilih gambar dari galeri[cite: 14]
+  // Fungsi untuk memilih gambar dari galeri
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -43,25 +39,24 @@ class _EditProfilState extends State<EditProfil> {
     }
   }
 
-  // Fungsi untuk menyimpan perubahan ke database[cite: 14, 16]
+  // Fungsi untuk menyimpan perubahan ke database
   Future<void> _saveProfile() async {
-    // Tampilkan loading dialog agar user tidak melakukan interaksi ganda[cite: 14]
+    // Tampilkan loading dialog agar user tidak melakukan interaksi ganda
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator(color: Color(0xFFFF9442))),
     );
 
-    // Siapkan data teks untuk dikirim ke PHP[cite: 14]
+    // Siapkan data teks untuk dikirim ke PHP (Tanpa Password)
     Map<String, String> updatedData = {
       'name': _nameController.text,
       'username': _usernameController.text,
-      'password': _passwordController.text,
       'phone': _phoneController.text,
       'email': _emailController.text,
     };
     
-    // Panggil API update dengan menyertakan bytes gambar[cite: 14, 16]
+    // Panggil API update dengan menyertakan bytes gambar
     bool isSuccess = await ApiService.updateAdminProfil(
       updatedData, 
       imageBytes: _imageBytes
@@ -71,7 +66,7 @@ class _EditProfilState extends State<EditProfil> {
     Navigator.pop(context); // Tutup Loading dialog
 
     if (isSuccess) {
-      // Kembali ke halaman profil dengan sinyal sukses agar data di-refresh[cite: 14]
+      // Kembali ke halaman profil dengan sinyal sukses agar data di-refresh
       Navigator.pop(context, true); 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profil Berhasil Diperbarui!'), backgroundColor: Colors.green),
@@ -110,7 +105,7 @@ class _EditProfilState extends State<EditProfil> {
     );
   }
 
-  // UI Bagian Foto Profil (Sesuai saran: mendukung NetworkImage untuk sinkronisasi)[cite: 14]
+  // UI Bagian Foto Profil
   Widget _buildAvatarSection() {
     String? currentImageUrl = widget.initialData['image_url'];
 
@@ -125,12 +120,13 @@ class _EditProfilState extends State<EditProfil> {
               shape: BoxShape.circle,
               border: Border.all(color: const Color(0xFFFF9644), width: 4),
             ),
+            // memotong gambar menjadi bulat
             child: ClipOval(
               child: _imageBytes != null
                   ? Image.memory(_imageBytes!, fit: BoxFit.cover) // Gambar baru dipilih
                   : (currentImageUrl != null && currentImageUrl.isNotEmpty)
                       ? Image.network(
-                          "${ApiService.baseUrl}/uploads/$currentImageUrl", // Gambar dari database[cite: 5]
+                          "${ApiService.baseUrl}/uploads/$currentImageUrl", // Gambar dari database
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) => Image.asset(
                             "assets/images/Dimas oi oi.jpeg", 
@@ -150,7 +146,7 @@ class _EditProfilState extends State<EditProfil> {
     );
   }
 
-  // Form Input Admin[cite: 14]
+  // Form Input Admin
   Widget _buildFormSection() {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -167,15 +163,6 @@ class _EditProfilState extends State<EditProfil> {
           const SizedBox(height: 16),
           _buildLabel('Username'),
           _buildTextField(controller: _usernameController, hint: 'Username'),
-          const SizedBox(height: 16),
-          _buildLabel('Password'),
-          _buildTextField(
-            controller: _passwordController, 
-            hint: 'Kosongkan jika tidak ingin ganti', 
-            isPassword: true, 
-            isObscure: _isPasswordHidden, 
-            onToggle: () => setState(() => _isPasswordHidden = !_isPasswordHidden)
-          ),
           const SizedBox(height: 16),
           _buildLabel('Phone Number'),
           _buildTextField(controller: _phoneController, hint: 'Phone Number', isNumber: true),
@@ -202,30 +189,21 @@ class _EditProfilState extends State<EditProfil> {
     child: Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600))
   );
   
+  // Method _buildTextField sudah dibersihkan dari opsi-opsi password yang tidak dipakai lagi
   Widget _buildTextField({
     required TextEditingController controller, 
     required String hint, 
-    bool isPassword = false, 
-    bool isObscure = false, 
-    VoidCallback? onToggle, 
     bool isNumber = false
   }) {
     return Container(
       decoration: BoxDecoration(color: const Color(0xFFFFF1EA), borderRadius: BorderRadius.circular(32)),
       child: TextField(
         controller: controller, 
-        obscureText: isObscure, 
         keyboardType: isNumber ? TextInputType.phone : TextInputType.text,
         decoration: InputDecoration(
           hintText: hint, 
           border: InputBorder.none, 
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          suffixIcon: isPassword 
-              ? IconButton(
-                  icon: Icon(isObscure ? Icons.visibility_off : Icons.visibility, color: const Color(0xFFFF9442)), 
-                  onPressed: onToggle
-                ) 
-              : null,
         ),
       ),
     );

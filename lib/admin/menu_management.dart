@@ -227,6 +227,17 @@ class _MenuManagementState extends State<MenuManagement> {
   Widget _buildTabBtn(String label, bool active, VoidCallback onTap) => GestureDetector(onTap: onTap, child: Container(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8), decoration: BoxDecoration(color: active ? const Color(0xFFFF9644) : Colors.transparent, borderRadius: BorderRadius.circular(30)), child: Text(label, style: TextStyle(color: active ? Colors.white : Colors.brown, fontSize: 10, fontWeight: FontWeight.bold))));
   Widget _buildSmallBtn(IconData icon, Color color, Color bg, VoidCallback onTap) => GestureDetector(onTap: onTap, child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: bg, shape: BoxShape.circle), child: Icon(icon, color: color, size: 16)));
   Widget _buildDialogBtn(String label, Color bg, Color text, {bool isBorder = false}) => Container(padding: const EdgeInsets.symmetric(vertical: 12), decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(30), border: isBorder ? Border.all(color: Colors.grey) : null), alignment: Alignment.center, child: Text(label, style: TextStyle(color: text, fontWeight: FontWeight.bold)));
-  Widget _buildBottomNav() => Container(padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24), decoration: const BoxDecoration(color: Color(0xFFFFFDF1), border: Border(top: BorderSide(color: Color(0xFFFFCE99)))), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [ _buildNavItem("Dashboard", Icons.dashboard_outlined, isActive: false, route: '/dashboard'), _buildNavItem("Orders", Icons.receipt_long_outlined, isActive: false, route: '/order'), _buildNavItem("Menu", Icons.restaurant_menu, isActive: true, route: '/menu'), _buildNavItem("profit", Icons.bar_chart, isActive: false, route: '/profit'), _buildNavItem("Profile", Icons.person_outline, isActive: false, route: '/profil')]));
-  Widget _buildNavItem(String label, IconData icon, {required bool isActive, required String route}) => GestureDetector(onTap: () { if (!isActive) Navigator.pushReplacementNamed(context, route); }, child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(icon, color: isActive ? const Color(0xFF562F00) : Colors.grey), Text(label, style: TextStyle(fontSize: 10, color: isActive ? const Color(0xFF562F00) : Colors.grey))]));
+  Widget _buildBottomNav() => Container(padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                              decoration: const BoxDecoration(color: Color(0xFFFFFDF1), 
+                              border: Border(top: BorderSide(color: Color(0xFFFFCE99)))), 
+                              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+                              children: [ _buildNavItem("Dashboard", Icons.dashboard_outlined, isActive: false, route: '/dashboard'),
+                                          _buildNavItem("Orders", Icons.receipt_long_outlined, isActive: false, route: '/order'), 
+                                          _buildNavItem("Menu", Icons.restaurant_menu, isActive: true, route: '/menu'), 
+                                          _buildNavItem("Income", Icons.bar_chart, isActive: false, route: '/profit'), 
+                                          _buildNavItem("Profile", Icons.person_outline, isActive: false, route: '/profil')]));
+  Widget _buildNavItem(String label, IconData icon, 
+  {required bool isActive, required String route}) => GestureDetector(onTap: () { if (!isActive) Navigator.pushReplacementNamed(context, route); }, 
+            child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(icon, color: isActive ? const Color(0xFF562F00) : Colors.grey), 
+            Text(label, style: TextStyle(fontSize: 10, color: isActive ? const Color(0xFF562F00) : Colors.grey))]));
 }

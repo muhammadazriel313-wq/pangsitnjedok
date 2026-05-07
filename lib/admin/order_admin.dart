@@ -346,7 +346,7 @@ class _OrderManagementState extends State<OrderManagement> {
           _buildNavItem("Dashboard", Icons.dashboard_outlined, isActive: false, route: '/dashboard'),
           _buildNavItem("Orders", Icons.receipt_long, isActive: true, route: '/order'),
           _buildNavItem("Menu", Icons.restaurant_menu_outlined, isActive: false, route: '/menu'),
-          _buildNavItem("profit", Icons.bar_chart_outlined, isActive: false, route: '/profit'),
+          _buildNavItem("Income", Icons.bar_chart_outlined, isActive: false, route: '/profit'),
           _buildNavItem("Profile", Icons.person_outline, isActive: false, route: '/profil'),
         ],
       ),
