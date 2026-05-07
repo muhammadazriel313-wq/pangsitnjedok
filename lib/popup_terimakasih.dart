@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'halaman_utama.dart'; 
-import 'features/apps/customer/order.dart';
+import 'order.dart';
 
 
 void main() {
@@ -100,7 +100,7 @@ class PopupTerimakasih extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const OrderPage()),
+                        MaterialPageRoute(builder: (context) => const MyOrdersPage()),
                       );
                     },
                     style: ElevatedButton.styleFrom(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'edit_profil_customer.dart';
+import 'profil_customer.dart';
 import 'order.dart';
 
 void main() {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'popup_terimakasih.dart'; // Pastikan file popup_terimakasih.dart sudah benar kodenya
-import 'features/apps/customer/cart.dart'; // Pastikan file cart.dart sudah benar kodenya
+import 'cart.dart'; // Pastikan file cart.dart sudah benar kodenya
 void main() {
   runApp(const PopupKonfirmasi());
 }

@@ -95,7 +95,7 @@ class ApiService {
 
  static Future<bool> updateAdminProfil(Map<String, String> data, {Uint8List? imageBytes}) async {
   try {
-    // Gunakan MultipartRequest untuk upload file[cite: 16]
+    // Gunakan MultipartRequest untuk upload file
     var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/update_profil.php"));
 
     // Masukkan data teks
@@ -103,7 +103,7 @@ class ApiService {
       request.fields[key] = value;
     });
 
-    // Masukkan file foto profil jika ada[cite: 16]
+    // Masukkan file foto profil jika ada
     if (imageBytes != null) {
       request.files.add(http.MultipartFile.fromBytes(
         'image', 
@@ -269,6 +269,25 @@ class ApiService {
       return response.statusCode == 200;
     } catch (e) {
       return false;
+    }
+  }
+
+  // ============================================================
+  // FUNGSI GET FAVORIT (Tambahan dari teman kelompok)
+  // ============================================================
+  static Future<List<dynamic>> getFavorites(int customerId) async {
+    try {
+      final response = await http.get(
+        Uri.parse("$baseUrl/get_favorites.php?customer_id=$customerId"),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print("Error Get Favorites: $e");
+      return [];
     }
   }
 }
