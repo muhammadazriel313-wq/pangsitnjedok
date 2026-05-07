@@ -282,7 +282,7 @@ class _profitAdminState extends State<profitAdmin> {
           _buildNavItem("Dashboard", Icons.dashboard_outlined, false, '/dashboard'),
           _buildNavItem("Orders", Icons.receipt_long_outlined, false, '/order'),
           _buildNavItem("Menu", Icons.restaurant_menu_outlined, false, '/menu'),
-          _buildNavItem("profit", Icons.bar_chart, true, '/profit'),
+          _buildNavItem("Income", Icons.bar_chart, true, '/profit'),
           _buildNavItem("Profile", Icons.person_outline, false, '/profil'),
         ],
       ),
