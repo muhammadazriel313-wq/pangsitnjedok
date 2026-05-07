@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 
 void main() {
+<<<<<<< HEAD:lib/features/apps/customer/order.dart
+  runApp(const OrderPage());
+}
+
+class OrderPage extends StatelessWidget {
+  const OrderPage({super.key});
+=======
   runApp(const FigmaToCodeApp());
 }
 
 class FigmaToCodeApp extends StatelessWidget {
   const FigmaToCodeApp({super.key});
+>>>>>>> 483ee860156f183273118e6c727806fbd24769bf:lib/order.dart
 
   @override
   Widget build(BuildContext context) {

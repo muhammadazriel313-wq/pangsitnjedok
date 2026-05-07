@@ -9,6 +9,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+<<<<<<< HEAD
+  cupertino_icons: ^1.0.6
+  google_fonts: ^8.1.0
+  # Masukkan semua library lain di sini, jangan buat "dependencies:" baru lagi
+=======
   
   # Icon standar iOS
   cupertino_icons: ^1.0.6
@@ -24,11 +29,33 @@ dependencies:
   
   # PENTING: Untuk fitur Kalender (DatePicker) dan Format Rupiah di profit Admin
   intl: ^0.18.1
+>>>>>>> 483ee860156f183273118e6c727806fbd24769bf
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+<<<<<<< HEAD
+  flutter_lints: ^6.0.0
+
+  
+  # Icon standar iOS
+  cupertino_icons: ^1.0.6
+  
+  # Untuk pop-up pesan sukses/error yang cantik
+  awesome_dialog: ^3.1.0
+  
+  # Untuk menghubungkan Flutter ke PHP/MySQL
+  http: ^1.1.0
+  
+  # Untuk mengambil foto menu dari galeri/kamera
+  image_picker: ^1.0.4
+  
+  # PENTING: Untuk fitur Kalender (DatePicker) dan Format Rupiah di Profit Admin
+  intl: ^0.18.1
+  google_fonts: ^8.1.0
+=======
   flutter_lints: ^3.0.0
+>>>>>>> 483ee860156f183273118e6c727806fbd24769bf
 
 flutter:
   uses-material-design: true
