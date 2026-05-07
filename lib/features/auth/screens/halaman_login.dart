@@ -37,7 +37,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
               width: 180, 
               height: 180,
               alignment: Alignment.center,
-              child: Image.asset('assets/images/Logo Polije.png'),
+              child: Image.asset('assets/images/logopangsitnjedok.png'),
             ),
             // -----------------------------------
             

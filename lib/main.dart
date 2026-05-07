@@ -1,26 +1,24 @@
 import 'package:flutter/material.dart';
-import 'features/apps/customer/profil_customer.dart';
+import 'halaman_login.dart';
 
 void main() {
-  // Disamakan dengan nama class di bawah (PangsitNjedogApp)
-  runApp(const PangsitNjedokApp());
+  runApp(const FoodApp());
 }
 
-class PangsitNjedokApp extends StatelessWidget {
-  const PangsitNjedokApp({super.key});
+class FoodApp extends StatelessWidget {
+  const FoodApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Pangsit Njedog',
-      debugShowCheckedModeBanner: false, // Menghilangkan banner debug
+      title: 'Pangsit Njedok',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // Perbaikan: Tambahkan 'ColorScheme' sebelum '.fromSeed'
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFFFFDF1),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF9442)),
+        // fontFamily: 'Public Sans', // Aktifkan jika font sudah ditambah di pubspec.yaml
       ),
-      // Di sini kita langsung arahkan ke halaman ProfilePage dari profil_customer.dart
-       home: ProfilePage(),
+      home: const HalamanLogin(),
     );
   }
 }

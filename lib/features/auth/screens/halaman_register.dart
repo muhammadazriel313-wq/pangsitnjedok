@@ -33,7 +33,7 @@ class _HalamanRegisterState extends State<HalamanRegister> {
               width: double.infinity, height: 220,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
-                image: const DecorationImage(image: NetworkImage("https://placehold.co/400x250/orange/white?text=Dumplings"), fit: BoxFit.cover),
+                image: const DecorationImage(image: AssetImage("assets/images/pangsitregister.png"), fit: BoxFit.cover),
               ),
               child: Stack(
                 children: [
