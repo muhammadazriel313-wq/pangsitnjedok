@@ -1,44 +1,44 @@
 import 'package:flutter/material.dart';
-import 'features/auth/screens/tampilan_awal.dart';
+import 'admin/dashboard_admin.dart'; 
+import 'admin/order_admin.dart';     
+import 'admin/menu_management.dart'; 
+import 'admin/profit_admin.dart';    
+import 'admin/profil_admin.dart'; 
+import 'admin/manage_customer.dart'; 
 
-// --- IMPORT HALAMAN ADMIN ---
-import 'features/apps/admin/dashboard_admin.dart';
-import 'features/apps/admin/menu_management.dart';
-import 'features/apps/admin/manage_customer.dart';
-import 'features/apps/admin/order_admin.dart';
-import 'features/apps/admin/profit_admin.dart';
-import 'features/apps/admin/profil_admin.dart';
-
+// --- FUNGSI MAIN CUMA BOLEH SATU ---
 void main() {
-  runApp(const FoodApp());
+  runApp(const PangsitNjedokApp());
 }
 
-class FoodApp extends StatelessWidget {
-  const FoodApp({super.key});
+// --- CLASS UTAMA (Semua rute admin & dashboard digabung di sini) ---
+class PangsitNjedokApp extends StatelessWidget {
+  const PangsitNjedokApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Pangsit Njedog',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
+      title: 'Pangsit Njedog Admin',
+      theme: ThemeData.light().copyWith(
         scaffoldBackgroundColor: const Color(0xFFFFFDF1),
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF9442)),
+        // Menggunakan font Inter agar sesuai dengan desain
+        textTheme: ThemeData.light().textTheme.apply(fontFamily: 'Inter'),
       ),
-      // Halaman pertama kali aplikasi dibuka
-      home: const TampilanAwal(),
+      
+      // Halaman awal saat aplikasi dibuka
+      initialRoute: '/dashboard', 
 
-      // --- MATERI PRAKTIKUM: PENDAFTARAN RUTE (ROUTES) ---
-      // Di sinilah kita mendaftarkan "peta" navigasinya
-// --- PENDAFTARAN RUTE YANG SUDAH DIREVISI ---
+      // SEMUA RUTE ADMIN (Tetap ada, nggak aku hapus)
       routes: {
         '/dashboard': (context) => const DashboardAdmin(),
-        '/menu': (context) => const MenuManagement(), 
-        '/customers': (context) => const ManageCustomers(),   // Tambah 's'
-        '/order': (context) => const OrderManagement(),       // Sesuai nama class temanmu
-        '/profit': (context) => const profitAdmin(), 
-        '/profil': (context) => const ProfilReportAdmin(),    // Sesuai nama class temanmu
+        '/order':     (context) => const OrderManagement(),
+        '/menu':      (context) => const MenuManagement(), 
+        '/profit':    (context) => const profitAdmin(),
+        '/profil':    (context) => const ProfilReportAdmin(),
+        '/customers': (context) => const ManageCustomers(),
       },
     );
   }
 }
+
