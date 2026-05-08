@@ -1,28 +1,39 @@
 import 'package:flutter/material.dart';
 import 'edit_profil_customer.dart';
+import 'order.dart';
+import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
+import 'package:aplikasipangsitnjedok/core/network/api_services.dart';
 
-void main() {
-  runApp(const PangsitNjedogApp());
-}
-
-class PangsitNjedogApp extends StatelessWidget {
-  const PangsitNjedogApp({super.key});
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Plus Jakarta Sans',
-        scaffoldBackgroundColor: const Color(0xFFFCFAEE),
-      ),
-      home: const ProfilePage(),
-    );
-  }
+  State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
+class _ProfilePageState extends State<ProfilePage> {
+  String userName = "Loading..."; 
+  String userPhone = "";
+
+  @override
+  void initState() {
+    super.initState();
+    refreshData(); // Panggil fungsi saat halaman pertama kali dibuka
+  }
+
+  void refreshData() async {
+    // Pastikan fungsi getCustomerProfile sudah ada di ApiService
+    var data = await ApiService.getCustomerProfile("1"); 
+    if (data['status'] == 'success') {
+      if (mounted) { // Cek apakah widget masih ada di layar
+        setState(() {
+          // Sesuaikan dengan key di JSON PHP kamu
+          userName = data['data']['name']; 
+          userPhone = data['data']['no_telepon'];
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +46,7 @@ class ProfilePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Profile', style: TextStyle(color: Color(0xFF954A00), fontWeight: FontWeight.w600, fontSize: 18)),
-            Text('Pangsit Njedog', style: TextStyle(color: Color(0xFF562F00), fontWeight: FontWeight.bold, fontSize: 20)),
+            Text('Pangsit Njedok', style: TextStyle(color: Color(0xFF562F00), fontWeight: FontWeight.bold, fontSize: 20)),
           ],
         ),
       ),
@@ -59,7 +70,18 @@ class ProfilePage extends StatelessWidget {
               }
             ),
             
-            _buildMenuItem(Icons.assignment_outlined, 'My Orders', 'Track your pangsit'),
+            _buildMenuItem(
+              Icons.assignment_outlined,
+              'My Orders',
+              'Track your pangsit',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MyOrdersPage()),
+                );
+              }
+            ),
+
             _buildMenuItem(Icons.favorite_outline, 'My Favorites', 'Your loved items'),
             _buildMenuItem(Icons.star_outline, 'Rating & Reviews', 'Rate Us'),
 
@@ -88,12 +110,12 @@ class ProfilePage extends StatelessWidget {
                 boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20)],
               ),
             ),
-            Positioned(bottom: 0, right: 0, child: editCircleIcon()),
           ],
         ),
         const SizedBox(height: 16),
-        const Text('Alex Brandon', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
-        const Text('+62 812-3456-7890', style: TextStyle(color: Color(0xFF554337))),
+        // Ganti teks manual menjadi variabel userName
+        Text(userName, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+        Text(userPhone, style: const TextStyle(color: Color(0xFF554337))),
       ],
     );
   }

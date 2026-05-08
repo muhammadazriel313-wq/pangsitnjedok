@@ -1,25 +1,5 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const FigmaToCodeApp());
-}
-
-class FigmaToCodeApp extends StatelessWidget {
-  const FigmaToCodeApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Plus Jakarta Sans',
-        scaffoldBackgroundColor: const Color(0xFFFCFAEE),
-      ),
-      home: const MyOrdersPage(),
-    );
-  }
-}
-
 class MyOrdersPage extends StatefulWidget {
   const MyOrdersPage({super.key});
 
@@ -45,7 +25,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
       body: Column(
         children: [
           const SizedBox(height: 10),
-          // --- Tombol Switch Active & History ---
+          // Tombol Switch Active & History
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Container(
@@ -63,7 +43,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
             ),
           ),
 
-          // --- Konten Berdasarkan Tab yang Dipilih ---
+          // Konten Berdasarkan Tab yang Dipilih
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -72,7 +52,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           ),
         ],
       ),
-      // --- Bottom Navigation Bar ---
+      // Bottom Navigation Bar
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFFFF9442),
@@ -181,11 +161,11 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
   Widget _buildHistoryContent() {
     return Column(
       children: [
-        _buildHistoryCard('#A-242', 'COMPLETED', 'Rp 42.000', '1x Pangsit Njedog Original', const Color(0xFFFFCF9A)),
+        _buildHistoryCard('#A-242', 'COMPLETED', 'Rp 15.000', '1x Pangsit Tulang Rangu', const Color(0xFFFFCF9A)),
         const SizedBox(height: 16),
-        _buildHistoryCard('#B-019', 'COMPLETED', 'Rp 58.000', '2x Pangsit Special Umami', const Color(0xFFFFCF9A)),
+        _buildHistoryCard('#B-019', 'COMPLETED', 'Rp 15.000', '2x Oseng Pangsit', const Color(0xFFFFCF9A)),
         const SizedBox(height: 16),
-        _buildHistoryCard('#A-991', 'CANCELLED', 'Rp 22.000', '1x Mie Ayam Njedog', const Color(0xFFFFDAD6), isCancelled: true),
+        _buildHistoryCard('#A-991', 'CANCELLED', 'Rp 20.000', '1x Wonton Spicy Mentai', const Color(0xFFFFDAD6), isCancelled: true),
         const SizedBox(height: 30),
         const Icon(Icons.restaurant, color: Color(0xFFEAE8DD), size: 40),
         const Text("End of Records", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF554337))),

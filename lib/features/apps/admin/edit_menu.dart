@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '/service/api_service.dart';
+import '../../../core/network/api_services.dart';
 
 class EditMenu extends StatefulWidget {
   final Map<String, dynamic> item; 
