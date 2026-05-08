@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'profil_customer.dart';
-import 'orders.dart';
+import 'package:aplikasipangsitnjedok/profil_customer.dart';
+import 'package:aplikasipangsitnjedok/order.dart';
 
 void main() {
   runApp(const MaterialApp(

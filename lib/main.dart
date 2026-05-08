@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-
-// --- IMPORT FILE DARI FOLDER ADMIN ---
-// Karena file kamu ada di dalam folder 'admin', kita tambahkan path 'admin/'
 import 'admin/dashboard_admin.dart'; 
 import 'admin/order_admin.dart';     
 import 'admin/menu_management.dart'; 
 import 'admin/profit_admin.dart';    
 import 'admin/profil_admin.dart'; 
 import 'admin/manage_customer.dart'; 
-import 'dashboard_menu.dart'; 
 
 // --- FUNGSI MAIN CUMA BOLEH SATU ---
 void main() {
