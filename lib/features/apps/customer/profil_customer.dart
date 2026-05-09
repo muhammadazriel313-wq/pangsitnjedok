@@ -1,9 +1,48 @@
 import 'package:flutter/material.dart';
 import 'edit_profil_customer.dart';
 import 'order.dart';
+import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
+import 'package:aplikasipangsitnjedok/core/network/api_services.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  String userName = "Loading..."; 
+  String userPhone = "";
+
+  @override
+  void initState() {
+    super.initState();
+    refreshData(); // Panggil fungsi saat halaman pertama kali dibuka
+  }
+
+  void refreshData() async {
+  try {
+    print("Sedang mengambil data untuk ID: 1..."); // Log 1
+    var data = await ApiService.getProfil("1"); 
+    
+    print("Respon dari API: $data"); // Log 2 - CEK DI DEBUG CONSOLE
+
+    if (data['status'] == 'success') {
+      if (mounted) {
+        setState(() {
+          userName = data['data']['name']; 
+          userPhone = data['data']['no_telepon'];
+        });
+        print("State diperbarui: $userName"); // Log 3
+      }
+    } else {
+      print("Status API gagal: ${data['message']}");
+    }
+  } catch (e) {
+    print("Error Koneksi: $e"); // Log jika ada masalah jaringan
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +55,7 @@ class ProfilePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Profile', style: TextStyle(color: Color(0xFF954A00), fontWeight: FontWeight.w600, fontSize: 18)),
-            Text('Pangsit Njedok', style: TextStyle(color: Color(0xFF562F00), fontWeight: FontWeight.bold, fontSize: 20)),
+            Text('Pangsit Njedok', style: TextStyle(color: Color(0xFF562F00), fontWeight: FontWeight.bold, fontSize: 18)),
           ],
         ),
       ),
@@ -29,16 +68,22 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 40),
             
             _buildMenuItem(
-              Icons.person_outline, 
-              'Edit Account', 
-              'Update your details', 
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const EditAccountPage()),
-                );
-              }
-            ),
+            Icons.person_outline, 
+            'Edit Account', 
+            'Update your details', 
+            onTap: () async {
+            // Gunakan await untuk menunggu user selesai edit
+            bool? isUpdated = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const EditAccountPage()),
+            );
+
+            // Jika isUpdated bernilai true, panggil refreshData
+            if (isUpdated == true) {
+              refreshData();
+            }
+          }
+          ),
             
             _buildMenuItem(
               Icons.assignment_outlined,
@@ -83,8 +128,9 @@ class ProfilePage extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        const Text('Bocil Windut', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
-        const Text('+62 812-3456-7890', style: TextStyle(color: Color(0xFF554337))),
+        // Ganti teks manual menjadi variabel userName
+        Text(userName, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+        Text(userPhone, style: const TextStyle(color: Color(0xFF554337))),
       ],
     );
   }

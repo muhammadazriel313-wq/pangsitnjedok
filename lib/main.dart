@@ -1,3 +1,4 @@
+import 'package:aplikasipangsitnjedok/core/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'features/apps/customer/profil_customer.dart';
 
@@ -19,7 +20,8 @@ class PangsitNjedokApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      // Di sini kita langsung arahkan ke halaman ProfilePage dari profil_customer.dart
+      routes: AppRoutes.routes, // Menggunakan rute yang sudah didefinisikan
+      // Di sini kita langsung arahkan ke halaman ProfilCustomer dari profil_customer.dart
        home: ProfilePage(),
     );
   }

@@ -1,7 +1,103 @@
 import 'package:flutter/material.dart';
+import 'package:aplikasipangsitnjedok/core/network/api_services.dart';
+import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
-class EditAccountPage extends StatelessWidget {
+class EditAccountPage extends StatefulWidget {
   const EditAccountPage({super.key});
+
+  @override
+  State<EditAccountPage> createState() => _EditAccountPageState();
+}
+
+class _EditAccountPageState extends State<EditAccountPage> {
+  // Controller untuk input field
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  bool isLoading = true; //karena data akan diambil dari database, jadi kita buat loading dulu sebelum data muncul
+
+  // Variabel untuk menyimpan file gambar yang dipilih
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+
+  // Fungsi untuk membuka file explorer (galeri)
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery, // Langsung membuka galeri/file explorer
+      imageQuality: 80, // Opsional: kompres kualitas
+    );
+    if (pickedFile != null) {
+    print("Gambar dipilih: ${pickedFile.path}"); // Cek di console
+    setState(() {
+      _imageFile = File(pickedFile.path);
+    });
+  } else {
+    print("Tidak ada gambar yang dipilih.");
+  }
+  }
+
+// Fungsi untuk mengambil data user dari database (simulasi)
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+    // Tambahkan listener agar nama di header update otomatis saat mengetik
+    nameController.addListener(() {
+      if (mounted) {
+        setState(() {}); 
+      }
+    });
+  }
+
+  // Fungsi untuk mengambil data dari database via API
+  Future<void> _loadUserData() async {
+  try {
+    // 1. Panggil API get_profil.php, pastikan URL di ApiService sudah benar
+    var response = await ApiService.getProfil("1"); // Ganti "1" dengan ID yang sesuai
+
+    if (response['status'] == 'success') {
+      // 2. Ambil data dari key 'data' sesuai format JSON di PHP kamu
+      final userData = response['data'];
+      
+      setState(() {
+        nameController.text = userData['name'] ?? ""; // Ambil field 'name'
+        phoneController.text = userData['no_telepon'] ?? ""; // Ambil field 'no_telepon'
+        isLoading = false;
+      });
+    } else {
+      setState(() => isLoading = false);
+      print("Gagal mengambil data: ${response['message']}");
+    }
+  } catch (e) {
+    setState(() => isLoading = false);
+    print("Error loading data: $e");
+  }
+}
+
+  void _saveChanges() async {
+    setState(() => isLoading = true); // Mulai loading, tombol jadi abu-abu
+
+    try {
+      print("Mengirim data update...");
+      var response = await ApiService.updateProfile("1", nameController.text, phoneController.text);
+
+      if (response['status'] == 'success') {
+      if (mounted) Navigator.pop(context, true);
+      } else {
+        // Tampilkan error jika gagal
+        if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Gagal: ${response['message']}")),
+        );
+      }
+    }
+  } catch (e) {
+    print("Error: $e");
+    } finally {
+        if (mounted) setState(() => isLoading = false); // Matikan loading jika sudah selesai
+      }
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -9,11 +105,17 @@ class EditAccountPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF954A00)),
-          onPressed: () => Navigator.pop(context),
+        leading: GestureDetector(
+        onTap: () => Navigator.pop(context),
+        child: const Padding(
+          padding: EdgeInsets.all(12.0), // Berikan sedikit padding agar lebih mudah diklik
+          child: Icon(Icons.arrow_back, color: Color(0xFF954A00)),
         ),
-        title: const Text('Profile', style: TextStyle(color: Color(0xFF954A00), fontWeight: FontWeight.bold)),
+      ),
+        title: const Text(
+          'Profile',
+          style: TextStyle(color: Color(0xFF954A00), fontWeight: FontWeight.bold, fontSize: 18),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -23,120 +125,93 @@ class EditAccountPage extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  // Di dalam Column -> Center -> Stack
                   Stack(
                     children: [
                       Container(
-                        width: 120, 
+                        width: 120,
                         height: 120,
                         decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFFFF9644), width: 4),
-                        image: const DecorationImage(
-                        image: AssetImage('assets/images/nipis.jpeg'), 
-                        fit: BoxFit.cover,
-                            ),
-                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: const Color(0xFFFF9644), width: 4),
+                          image: _imageFile != null
+                              ? DecorationImage(
+                                  image: FileImage(_imageFile!), // Menggunakan file dari HP
+                                  fit: BoxFit.cover,
+                                )
+                              : const DecorationImage(
+                                  image: AssetImage('assets/images/nipis.jpeg'), // Gambar default
+                                  fit: BoxFit.cover,
+                                ),
                         ),
-                        Positioned(
-                          bottom: 0, 
-                          right: 0, 
-                          child: editCircleIcon(
-                          onTap: () {
-                            // Tambahkan logika ganti foto di sini
-                            print("Tombol ganti foto ditekan!");
-          
-                            // Contoh: Menampilkan Bottom Sheet untuk pilih Galeri/Kamera
-                            showModalBottomSheet(
-                          context: context,
-                          builder: (context) => Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                        ListTile(
-                          leading: const Icon(Icons.camera_alt),
-                          title: const Text('Ambil dari Kamera'),
-                          onTap: () => Navigator.pop(context),
-                            ),
-                        ListTile(
-                          leading: const Icon(Icons.photo_library),
-                          title: const Text('Pilih dari Galeri'),
-                          onTap: () => Navigator.pop(context),
-                          ),
-                        ],
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: editCircleIcon(
+                          onTap: () {
+                            _pickImage();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 16),
-                  const Text('Bocil Windut', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  const Text('Premium Member', style: TextStyle(color: Color(0xFF554337), fontStyle: FontStyle.italic)),
+                  Text(
+                    nameController.text.isEmpty ? "Nama Customer" : nameController.text,
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 30),
-
+            // Form Container
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(32),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20)],
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20),
+                ],
               ),
               child: Column(
                 children: [
-                  _buildTextField("Full Name", "Bocil Windut"),
+                  _buildTextField("Full Name", nameController),
                   const SizedBox(height: 20),
-                  _buildTextField("Email Address", "bocilreplay@email.com"),
-                  const SizedBox(height: 20),
-                  _buildTextField("Phone Number", "+62 812-3456-7890"),
+                  _buildTextField("Phone Number", phoneController),
                 ],
               ),
             ),
-            
             const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(color: const Color(0xFFF6E8D8), borderRadius: BorderRadius.circular(20)),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.verified_user_outlined, size: 16, color: Color(0xFF633909)),
-                  SizedBox(width: 8),
-                  Text('ACCOUNT VERIFIED', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF633909))),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 30),
+            // Save Button
             ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                content: const Text('Profil berhasil di ganti!'),
-                backgroundColor: const Color(0xFF954A00),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                );
-              },
+              onPressed: isLoading ? null : _saveChanges, // Nonaktifkan tombol saat loading
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF9644),
                 minimumSize: const Size(double.infinity, 60),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                elevation: 5, shadowColor: const Color(0xFFFF9644),
+                elevation: 5,
+                shadowColor: const Color(0xFFFF9644),
               ),
-              child: const Text('Save Changes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF6C3400))),
+              child: isLoading 
+    ? const SizedBox(
+        height: 24,
+        width: 24,
+        child: CircularProgressIndicator(
+          color: Color(0xFF6C3400),
+          strokeWidth: 3,
+        ),
+      )
+        : const Text(
+            'Save Changes',
+            style: TextStyle(
+              fontSize: 18, 
+              fontWeight: FontWeight.bold, 
+              color: Color(0xFF6C3400)
             ),
-            
+          ),
+            ),
             const SizedBox(height: 20),
-            const Text.rich(TextSpan(children: [
-              TextSpan(text: 'Having trouble? ', style: TextStyle(color: Colors.grey)),
-              TextSpan(text: 'Contact Support', style: TextStyle(color: Color(0xFF954A00), fontWeight: FontWeight.bold)),
-            ])),
-            const SizedBox(height: 100),
           ],
         ),
       ),
@@ -146,72 +221,42 @@ class EditAccountPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String label, String initialValue) {
+  Widget _buildTextField(String label, TextEditingController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF554337), fontSize: 14)),
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF554337), fontSize: 14),
+        ),
         const SizedBox(height: 8),
         TextFormField(
-          initialValue: initialValue,
+          controller: controller,
           decoration: InputDecoration(
             filled: true,
             fillColor: const Color(0xFFE4E3D7),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: BorderSide.none,
+            ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           ),
         ),
       ],
     );
   }
-}
 
-// --- GLOBAL REUSABLE WIDGETS ---
-// Digunakan di kedua file
-Widget editCircleIcon({VoidCallback? onTap}) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.all(8),
-      decoration: const BoxDecoration(
-        color: Color(0xFF954A00), 
-        shape: BoxShape.circle,
+  Widget editCircleIcon({VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: const BoxDecoration(
+          color: Color(0xFF954A00),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(Icons.edit, color: Colors.white, size: 16),
       ),
-      child: const Icon(Icons.edit, color: Colors.white, size: 16),
-    ),
-  );
-}
-
-Widget buildBottomNavbar(BuildContext context, bool isProfileActive) {
-  return BottomAppBar(
-    height: 70, color: Colors.white,
-    shape: const CircularNotchedRectangle(),
-    notchMargin: 8,
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        navbarItem(Icons.home_outlined, 'Home', false),
-        navbarItem(Icons.restaurant_menu, 'Menu', false),
-        const SizedBox(width: 40),
-        navbarItem(Icons.receipt_long_outlined, 'Orders', false),
-        navbarItem(Icons.person, 'Profile', isProfileActive),
-      ],
-    ),
-  );
-}
-
-Widget navbarItem(IconData icon, String label, bool isActive) {
-  return Column(mainAxisSize: MainAxisSize.min, children: [
-    Icon(icon, color: isActive ? const Color(0xFFFF9442) : Colors.grey),
-    Text(label, style: TextStyle(fontSize: 10, color: isActive ? const Color(0xFFFF9442) : Colors.grey)),
-  ]);
-}
-
-Widget buildFAB() {
-  return FloatingActionButton(
-    onPressed: () {},
-    backgroundColor: const Color(0xFFFF9442),
-    shape: const CircleBorder(),
-    child: const Badge(label: Text('3'), child: Icon(Icons.shopping_cart_outlined, color: Colors.white)),
-  );
+    );
+  }
 }
