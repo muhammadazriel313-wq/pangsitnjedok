@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
-import 'admin/dashboard_admin.dart'; 
-import 'admin/order_admin.dart';     
-import 'admin/menu_management.dart'; 
-import 'admin/profit_admin.dart';    
-import 'admin/profil_admin.dart'; 
-import 'admin/manage_customer.dart'; 
+import 'customer/profil_customer.dart';
 
 // ✅ TAMBAHIN IMPORT HALAMAN CUSTOMER DI SINI
 import 'dashboard_menu.dart'; 
@@ -12,10 +7,10 @@ import 'halaman_menu.dart';
 
 // --- FUNGSI MAIN CUMA BOLEH SATU ---
 void main() {
+  // Disamakan dengan nama class di bawah (PangsitNjedogApp)
   runApp(const PangsitNjedokApp());
 }
 
-// --- CLASS UTAMA (Semua rute admin & dashboard digabung di sini) ---
 class PangsitNjedokApp extends StatelessWidget {
   const PangsitNjedokApp({super.key});
 
