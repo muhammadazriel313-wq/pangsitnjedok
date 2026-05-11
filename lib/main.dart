@@ -6,6 +6,10 @@ import 'admin/profit_admin.dart';
 import 'admin/profil_admin.dart'; 
 import 'admin/manage_customer.dart'; 
 
+// ✅ TAMBAHIN IMPORT HALAMAN CUSTOMER DI SINI
+import 'dashboard_menu.dart'; 
+import 'halaman_menu.dart';
+
 // --- FUNGSI MAIN CUMA BOLEH SATU ---
 void main() {
   runApp(const PangsitNjedokApp());
@@ -19,26 +23,30 @@ class PangsitNjedokApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Pangsit Njedog Admin',
+      title: 'Pangsit Njedog App',
       theme: ThemeData.light().copyWith(
         scaffoldBackgroundColor: const Color(0xFFFFFDF1),
         // Menggunakan font Inter agar sesuai dengan desain
         textTheme: ThemeData.light().textTheme.apply(fontFamily: 'Inter'),
       ),
       
-      // Halaman awal saat aplikasi dibuka
-      initialRoute: '/dashboard', 
+      // ✅ PINTU MASUK DIGESER KE HALAMAN CUSTOMER
+      initialRoute: '/customer_dashboard', 
 
-      // SEMUA RUTE ADMIN (Tetap ada, nggak aku hapus)
+      // SEMUA RUTE ADMIN & CUSTOMER
       routes: {
+        // --- RUTE ADMIN (Tetap aman, nggak aku hapus) ---
         '/dashboard': (context) => const DashboardAdmin(),
         '/order':     (context) => const OrderManagement(),
         '/menu':      (context) => const MenuManagement(), 
         '/profit':    (context) => const profitAdmin(),
         '/profil':    (context) => const ProfilReportAdmin(),
         '/customers': (context) => const ManageCustomers(),
+
+        // --- ✅ RUTE CUSTOMER BARU ---
+        '/customer_dashboard': (context) => const DashboardPage(),
+        '/customer_menu':      (context) => const MenuFoodScreen(),
       },
     );
   }
 }
-
