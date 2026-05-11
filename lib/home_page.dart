@@ -23,6 +23,8 @@ class HomePage extends StatelessWidget {
 }
 
 class AHomePage extends StatelessWidget {
+  const AHomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -104,7 +106,7 @@ class AHomePage extends StatelessWidget {
               Positioned(
                 left: -4,
                 top: 770,
-                child: Container(
+                child: SizedBox(
                   width: 397,
                   height: 91,
                   child: Stack(
@@ -167,7 +169,7 @@ class AHomePage extends StatelessWidget {
               Positioned(
                 left: 34,
                 top: 618,
-                child: Container(
+                child: SizedBox(
                   width: 159,
                   height: 140,
                   child: Stack(

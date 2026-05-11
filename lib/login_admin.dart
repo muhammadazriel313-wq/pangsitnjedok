@@ -24,11 +24,13 @@ class FigmaToCodeApp extends StatelessWidget {
 }
 
 class Frame1000003605 extends StatelessWidget {
+  const Frame1000003605({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
+        SizedBox(
           width: 393,
           height: 852,
           child: Stack(
@@ -89,7 +91,7 @@ class Frame1000003605 extends StatelessWidget {
                               Positioned(
                                 left: 47,
                                 top: 90,
-                                child: Container(
+                                child: SizedBox(
                                   width: 300,
                                   height: 50,
                                   child: Stack(

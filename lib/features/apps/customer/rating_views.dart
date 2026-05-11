@@ -251,7 +251,7 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
                         const SizedBox(height: 16),
                       ],
                     );
-                  }).toList(),
+                  }),
 
                 const SizedBox(height: 100),
               ],

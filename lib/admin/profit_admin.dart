@@ -165,7 +165,7 @@ class _profitAdminState extends State<profitAdmin> {
                             int.parse(item['sold'].toString()), 
                             item['amount'].toString()
                           );
-                        }).toList(),
+                        }),
                     ],
                   ),
                 );

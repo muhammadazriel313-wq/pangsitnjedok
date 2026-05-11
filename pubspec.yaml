@@ -22,7 +22,7 @@ dependencies:
   http: ^1.1.0
   
   # Untuk mengambil foto menu dari galeri/kamera
-  image_picker: ^1.0.4
+  image_picker: ^1.2.2
   
   # PENTING: Untuk fitur Kalender (DatePicker) dan Format Rupiah di profit Admin
   intl: ^0.18.1

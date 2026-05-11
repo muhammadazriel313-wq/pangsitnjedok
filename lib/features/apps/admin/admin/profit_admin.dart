@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; 
-import '../../../core/network/api_services.dart';
+import '/service/api_service.dart';
 
 class profitAdmin extends StatefulWidget {
   const profitAdmin({super.key});
