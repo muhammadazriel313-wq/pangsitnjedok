@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'halaman_register.dart';
-import '../../apps/customer/home_page.dart';
-import '../../apps/admin/dashboard_admin.dart';
+import 'customer/halaman_utama.dart';
+import 'admin/dashboard_admin.dart';
 import '../../../core/network/api_services.dart'; // Import ApiService di sini
 
 class HalamanLogin extends StatefulWidget {
@@ -50,7 +50,7 @@ final response = await ApiService.login(
       if (isCustomerSelected) {
         Navigator.pushReplacement(
           context, 
-          MaterialPageRoute(builder: (context) => const HomePage()),
+          MaterialPageRoute(builder: (context) => const HalamanUtama()),
         );
       } else {
         Navigator.pushReplacement(
