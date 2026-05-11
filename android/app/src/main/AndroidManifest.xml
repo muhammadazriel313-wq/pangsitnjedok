@@ -1,8 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- 1. TAMBAHKAN INI: Izin untuk mengakses Internet -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:label="aplikasipangsitnjedok"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true"> <!-- 2. TAMBAHKAN INI: Izin untuk menembak API HTTP (XAMPP) -->
+        
         <activity
             android:name=".MainActivity"
             android:exported="true"

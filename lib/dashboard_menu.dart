@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; // WAJIB TAMBAH INI biar Timer slider otomatisnya jalan
-import 'halaman_menu.dart'; 
+import 'halaman_menu.dart'; // Ganti ini biar kenal sama halaman tujuan
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -266,29 +266,29 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildPopularItems() {
+ Widget _buildPopularItems() {
     if (_isFoodSelected) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: _foodCard('Pangsit tulang rangu', 'Rp 12.000', 'assets/images/ptulangrangu.jpeg')),
+          Expanded(child: _foodCard(title: 'Pangsit tulang rangu', price: 'Rp 12.000', img: 'assets/images/ptulangrangu.jpeg')),
           const SizedBox(width: 16),
-          Expanded(child: _foodCard('Wonton Mentai', 'Rp 12.000', 'assets/images/wontonmentai.jpeg')),
+          Expanded(child: _foodCard(title: 'Wonton Mentai', price: 'Rp 12.000', img: 'assets/images/wontonmentai.jpeg')),
         ],
       );
     } else {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: _foodCard('Es Leci Tea', 'Rp 8.000', 'assets/images/nipis.jpeg')),
+          Expanded(child: _foodCard(title: 'Es Leci Tea', price: 'Rp 8.000', img: 'assets/images/nipis.jpeg')),
           const SizedBox(width: 16),
-          Expanded(child: _foodCard('Es Lemon Tea', 'Rp 5.000', 'assets/images/lemontea.jpeg')),
+          Expanded(child: _foodCard(title: 'Es Lemon Tea', price: 'Rp 5.000', img: 'assets/images/lemontea.jpeg')),
         ],
       );
     }
   }
 
-  Widget _foodCard(String title, String price, String img) {
+  Widget _foodCard({required String title, required String price, required String img}) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white, 
@@ -359,7 +359,7 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             _buildNavItem(Icons.home_outlined, 'Home', true, () {}),
             _buildNavItem(Icons.restaurant_menu, 'Menu', false, () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen()));
             }),
             const SizedBox(width: 48), 
             _buildNavItem(Icons.receipt_long_outlined, 'Order', false, () {}),

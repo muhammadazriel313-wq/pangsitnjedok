@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class FigmaToCodeApp extends StatelessWidget {
-  const FigmaToCodeApp({super.key});
+class HalamanUtama extends StatelessWidget {
+  const HalamanUtama({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -89,16 +89,16 @@ class Homepage extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Row(
+        Row(
           children: [
-            CircleAvatar(
+            const CircleAvatar(
               radius: 24,
               backgroundImage: NetworkImage("https://placehold.co/48x48/png"), // Nanti ganti gambar profile asli
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: const [
                 Text('Welcome back,', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
                 Text('Customer', style: TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
               ],
@@ -128,8 +128,8 @@ class Homepage extends StatelessWidget {
           BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2)),
         ],
       ),
-      child: const Row(
-        children: [
+      child: Row(
+        children: const [
           Icon(Icons.search, color: Colors.grey),
           SizedBox(width: 12),
           Text('Search for dumplings or drinks...', style: TextStyle(color: Color(0xFF6B7280))),

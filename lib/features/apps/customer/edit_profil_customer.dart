@@ -38,10 +38,12 @@ class _EditAccountPageState extends State<EditAccountPage> {
   }
 
 // Fungsi untuk mengambil data user dari database (simulasi)
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
+
     // Tambahkan listener agar nama di header update otomatis saat mengetik
     nameController.addListener(() {
       if (mounted) {
@@ -139,7 +141,7 @@ class _EditAccountPageState extends State<EditAccountPage> {
                                   fit: BoxFit.cover,
                                 )
                               : const DecorationImage(
-                                  image: AssetImage('assets/images/nipis.jpeg'), // Gambar default
+                                  image: AssetImage('assets/images/esyakultleci.jpeg'), // Gambar default
                                   fit: BoxFit.cover,
                                 ),
                         ),
@@ -215,7 +217,7 @@ class _EditAccountPageState extends State<EditAccountPage> {
           ],
         ),
       ),
-      bottomNavigationBar: buildBottomNavbar(context, true),
+      bottomNavigationBar: buildBottomNavbar(context, false),
       floatingActionButton: buildFAB(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );

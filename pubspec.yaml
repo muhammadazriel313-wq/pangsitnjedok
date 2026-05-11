@@ -6,7 +6,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.10.8 <4.0.0'
+  sdk: '>=3.10.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -28,6 +28,8 @@ flutter:
   # Mendaftarkan folder assets
   assets:
     - assets/images/
+    # Jika kamu punya gambar spesifik untuk logo, daftarkan di bawah ini:
+    # - assets/images/logo.png
 
   # (Komentar bawaan lainnya saya hapus sebagian agar filemu lebih bersih dan mudah dibaca)
   # Bagian assets harus masuk 2 spasi dari kata 'flutter'

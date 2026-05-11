@@ -47,13 +47,18 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFCFAEE),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: const Icon(Icons.arrow_back, color: Color(0xFF954A00)),
-        title: const Row(
+        // Tombol Back sekarang berfungsi kembali
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF954A00)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+          children: const [
             Text('Profile', style: TextStyle(color: Color(0xFF954A00), fontWeight: FontWeight.w600, fontSize: 18)),
             Text('Pangsit Njedok', style: TextStyle(color: Color(0xFF562F00), fontWeight: FontWeight.bold, fontSize: 18)),
           ],
@@ -106,9 +111,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
-      bottomNavigationBar: buildBottomNavbar(context, true),
-      floatingActionButton: buildFAB(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
@@ -121,7 +123,10 @@ class _ProfilePageState extends State<ProfilePage> {
               width: 130, height: 130,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
-                image: const DecorationImage(image: AssetImage('assets/images/nipis.jpeg'), fit: BoxFit.cover),
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/esyakultleci.jpeg'), 
+                  fit: BoxFit.cover
+                ),
                 boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20)],
               ),
             ),
@@ -172,12 +177,13 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildLogoutButton() {
     return Container(
-      width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 16),
+      width: double.infinity, 
+      padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(color: const Color(0xFFFF9644), borderRadius: BorderRadius.circular(24)),
-      child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(Icons.logout, color: Color(0xFFFF9644)),
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
+        Icon(Icons.logout, color: Colors.white),
         SizedBox(width: 12),
-        Text('Log Out', style: TextStyle(color: Color(0xFF6C3400), fontWeight: FontWeight.bold, fontSize: 16)),
+        Text('Log Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
       ]),
     );
   }
