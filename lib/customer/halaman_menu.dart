@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dart:async'; // WAJIB TAMBAH INI biar Timer slider otomatisnya jalan
-// IMPORT INI PENTING biar tombol Home bisa kenal dan balik ke file dashboard
+import 'dart:async'; 
+
+// IMPORT INI PENTING (Sesuaikan path-nya jika perlu)
 import 'dashboard_menu.dart'; 
+import 'service/api_service.dart'; // Manggil jembatan API
 
 void main() {
   runApp(const PangsitApp());
@@ -24,23 +26,6 @@ class PangsitApp extends StatelessWidget {
   }
 }
 
-// --- DATA MODEL ---
-class MenuItem {
-  final String title;
-  final String price;
-  final String rating;
-  final String imageUrl;
-  final bool isBestSeller;
-
-  MenuItem({
-    required this.title,
-    required this.price,
-    required this.rating,
-    required this.imageUrl,
-    this.isBestSeller = false,
-  });
-}
-
 class MenuFoodScreen extends StatefulWidget {
   const MenuFoodScreen({super.key});
 
@@ -49,47 +34,32 @@ class MenuFoodScreen extends StatefulWidget {
 }
 
 class _MenuFoodScreenState extends State<MenuFoodScreen> {
-  // 1. VARIABEL PENANDA TAB AKTIF
   bool _isFoodSelected = true;
 
-  // --- VARIABEL UNTUK SLIDER BANNER OTOMATIS ---
+  // --- VARIABEL UNTUK API ---
+  List<dynamic> _allMenus = []; // Wadah untuk nyimpen data dari XAMPP
+  bool _isLoading = true;       // Penanda buat nampilin animasi loading
+
+  // --- VARIABEL UNTUK SLIDER BANNER ---
   final PageController _pageController = PageController();
   int _currentPage = 0;
   Timer? _carouselTimer;
 
-  // 2. DATA DUMMY MAKANAN 
-  final List<MenuItem> foodItems = [
-    MenuItem(title: 'Pangsit Tulang Rangu', price: 'Rp 15.000', rating: '4.8', imageUrl: 'assets/images/pangsitrangu.jpeg'),
-    MenuItem(title: 'Wonton Mentai', price: 'Rp 19.000', rating: '4.9', imageUrl: 'assets/images/wontonmentai.jpeg', isBestSeller: true),
-    MenuItem(title: 'Wonton Chili Oil', price: 'Rp 13.000', rating: '4.7', imageUrl: 'assets/images/wontonoil.jpeg'), 
-    MenuItem(title: 'Siomay Daging', price: 'Rp 18.000', rating: '4.8', imageUrl: 'assets/images/siomay.jpeg', isBestSeller: true),
-    MenuItem(title: 'Oseng Pangsit Pedas', price: 'Rp 15.000', rating: '4.9', imageUrl: 'assets/images/osengp.jpeg'),
-    MenuItem(title: 'Extra Siomay Daging', price: 'Rp 3.000', rating: '4.7', imageUrl: 'assets/images/ptulangrangu.jpeg'),
-    MenuItem(title: 'Oseng Pangsit Pedas Manis', price: 'Rp 15.000', rating: '4.8', imageUrl: 'assets/images/osengpangsit.jpeg'), 
-    MenuItem(title: 'Pangsit Tulang Rangu Kukus', price: 'Rp 15.000', rating: '4.9', imageUrl: 'assets/images/ptulangrangu.jpeg', isBestSeller: true),
-  ];
-
-  // 3. DATA DUMMY MINUMAN 
-  final List<MenuItem> drinkItems = [
-    MenuItem(title: 'Es Jeruk Njedog', price: 'Rp 8.000', rating: '4.9', imageUrl: 'assets/images/nipis.jpeg', isBestSeller: true),
-    MenuItem(title: 'Es Teh Manis', price: 'Rp 5.000', rating: '4.8', imageUrl: 'assets/images/lemontea.jpeg'),
-    MenuItem(title: 'Es Teh Pucuk', price: 'Rp 6.000', rating: '4.7', imageUrl: 'assets/images/estehpucuk.jpeg'), 
-    MenuItem(title: 'Es Leci', price: 'Rp 10.000', rating: '5.0', imageUrl: 'assets/images/leci.jpeg'), 
-    MenuItem(title: 'Es Frambos', price: 'Rp 8.000', rating: '4.8', imageUrl: 'assets/images/frambos.jpeg'), 
-    MenuItem(title: 'Es Buah Leci', price: 'Rp 12.000', rating: '4.9', imageUrl: 'assets/images/esbuahleci.jpeg', isBestSeller: true), 
-  ];
+  // ✅ VARIABEL UNTUK JUMLAH KERANJANG
+  int _cartItemCount = 0;
 
   @override
   void initState() {
     super.initState();
-    // Bikin timer yang jalanin fungsi geser halaman setiap 3 detik
+    _fetchMenuData(); // PANGGIL API SAAT HALAMAN DIBUKA
+
+    // Timer slider tetap jalan
     _carouselTimer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
-      if (_currentPage < 2) { // Angka 2 karena kita akan pakai 3 gambar tiap kategori (index 0, 1, 2)
+      if (_currentPage < 2) { 
         _currentPage++;
       } else {
-        _currentPage = 0; // Balik ke gambar pertama
+        _currentPage = 0; 
       }
-
       if (_pageController.hasClients) {
         _pageController.animateToPage(
           _currentPage,
@@ -100,9 +70,25 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     });
   }
 
+  // === FUNGSI SAKTI UNTUK TARIK DATA API ===
+  Future<void> _fetchMenuData() async {
+    try {
+      final data = await ApiService.getMenus(); // Manggil fungsi dari api_service.dart
+      setState(() {
+        _allMenus = data; // Masukkan data ke wadah
+        _isLoading = false; // Matikan loading
+      });
+    } catch (e) {
+      print("Error ambil menu: $e");
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
-    _carouselTimer?.cancel(); // Wajib dimatiin biar gak bocor memori
+    _carouselTimer?.cancel(); 
     _pageController.dispose();
     super.dispose();
   }
@@ -124,7 +110,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
         children: [
           _buildBanner(),
           _buildCategoryTabs(),
-          _buildMenuGrid(),
+          _buildMenuGrid(), // Bagian yang dinamis
         ],
       ),
       bottomNavigationBar: _buildBottomNavigationBar(context),
@@ -136,21 +122,20 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
   // --- WIDGETS --- //
 
   Widget _buildBanner() {
-    // 1. SIAPIN GAMBAR BEDA UNTUK MAKANAN & MINUMAN (Masing-masing 3 gambar biar seru)
     List<String> bannerImages = _isFoodSelected 
         ? [
             'assets/images/ptulangrangu.jpeg', 
             'assets/images/osengpangsit.jpeg',
             'assets/images/wontonmentai.jpeg'
-          ] // Gambar pas Makanan diklik
+          ] 
         : [
             'assets/images/esbuahleci.jpeg', 
             'assets/images/lemontea.jpeg',
             'assets/images/nipis.jpeg'
-          ]; // Gambar pas Minuman diklik
+          ]; 
 
     return Container(
-      height: 180, // Ditinggiin dikit biar pas dan estetik
+      height: 180, 
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
@@ -162,7 +147,6 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
         borderRadius: BorderRadius.circular(20),
         child: Stack(
           children: [
-            // LAPISAN 1: SLIDER GAMBAR
             PageView.builder(
               controller: _pageController,
               itemCount: bannerImages.length,
@@ -170,14 +154,9 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
                 setState(() { _currentPage = index; });
               },
               itemBuilder: (context, index) {
-                return Image.asset(
-                  bannerImages[index],
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                );
+                return Image.asset(bannerImages[index], fit: BoxFit.cover, width: double.infinity);
               },
             ),
-            // LAPISAN 2: GRADASI HITAM BAWAH (Biar teks putih tetap kebaca jelas)
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -187,7 +166,6 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
                 ),
               ),
             ),
-            // LAPISAN 3: TEKS KATEGORI
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -200,7 +178,6 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    // LOGIKA TEKS BERUBAH OTOMATIS
                     _isFoodSelected ? 'Pangsit Spesial' : 'Minuman Segar',
                     style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                   ),
@@ -224,7 +201,6 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
             onTap: () {
               setState(() {
                 _isFoodSelected = true;
-                // Reset slider ke gambar pertama pas ganti tab
                 _currentPage = 0;
                 if (_pageController.hasClients) _pageController.jumpToPage(0);
               });
@@ -237,7 +213,6 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
             onTap: () {
               setState(() {
                 _isFoodSelected = false;
-                // Reset slider ke gambar pertama pas ganti tab
                 _currentPage = 0;
                 if (_pageController.hasClients) _pageController.jumpToPage(0);
               });
@@ -276,8 +251,26 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     );
   }
 
+  // === GRID DINAMIS ===
   Widget _buildMenuGrid() {
-    final currentList = _isFoodSelected ? foodItems : drinkItems;
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(40.0),
+        child: Center(child: CircularProgressIndicator(color: Color(0xFFFF9442))),
+      );
+    }
+
+    final filteredList = _allMenus.where((item) {
+      String kategori = item['category']?.toString().toLowerCase() ?? 'food';
+      return _isFoodSelected ? kategori == 'food' : kategori == 'beverages';
+    }).toList();
+
+    if (filteredList.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(40.0),
+        child: Center(child: Text('Belum ada menu di kategori ini.', style: TextStyle(color: Colors.grey))),
+      );
+    }
 
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -289,89 +282,188 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
         crossAxisSpacing: 16,
         childAspectRatio: 0.75,
       ),
-      itemCount: currentList.length,
+      itemCount: filteredList.length,
       itemBuilder: (context, index) {
-        return _buildMenuCard(currentList[index]);
+        return _buildMenuCard(filteredList[index]); 
       },
     );
   }
 
-  Widget _buildMenuCard(MenuItem item) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 4))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                  child: Image.asset(item.imageUrl, width: double.infinity, fit: BoxFit.cover),
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(color: Colors.black.withOpacity(0.4), shape: BoxShape.circle),
-                    child: const Icon(Icons.favorite_border, color: Colors.white, size: 16),
-                  ),
-                ),
-                if (item.isBestSeller)
-                  Positioned(
-                    top: 8,
-                    left: 8,
+  // === DESAIN CARD (Menerima data dinamis + Logika Stok) ===
+  Widget _buildMenuCard(dynamic item) {
+    String title = item['title'] ?? 'Nama Menu'; 
+    String price = item['price']?.toString() ?? '0'; 
+    String imageUrl = item['image_url'] ?? ''; 
+    
+    // ✅ 1. AMBIL DATA STOK DARI DATABASE (Penting!)
+    int stock = int.tryParse(item['stock']?.toString() ?? '0') ?? 0;
+
+    Widget imageWidget;
+    if (imageUrl.isNotEmpty) {
+      imageWidget = Image.network(
+        "${ApiService.baseUrl}/uploads/$imageUrl", 
+        width: double.infinity, 
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => const Icon(Icons.fastfood, size: 50, color: Colors.grey),
+      );
+    } else {
+      imageWidget = const Icon(Icons.image_not_supported, size: 50, color: Colors.grey);
+    }
+
+    return GestureDetector(
+      onTap: () {
+        if (stock <= 0) {
+          _showOutOfStockDialog(context); 
+        } else {
+          print("Buka detail menu $title"); 
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 4))],
+        ),
+        foregroundDecoration: stock <= 0 
+            ? BoxDecoration(color: Colors.white.withOpacity(0.5), borderRadius: BorderRadius.circular(20)) 
+            : null,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: const Color(0xFFFF9442), borderRadius: BorderRadius.circular(8)),
-                      child: const Text('BEST SELLER', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+                      width: double.infinity,
+                      color: Colors.grey.shade100,
+                      child: imageWidget, 
                     ),
                   ),
-              ],
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(color: Colors.black.withOpacity(0.4), shape: BoxShape.circle),
+                      child: const Icon(Icons.favorite_border, color: Colors.white, size: 16),
+                    ),
+                  ),
+                  if (stock <= 0)
+                    Positioned(
+                      bottom: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(8)),
+                        child: const Text('HABIS', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.star, color: Color(0xFFFF9442), size: 14),
-                    const SizedBox(width: 4),
-                    Text(item.rating, style: const TextStyle(color: Color(0xFFFF9442), fontSize: 12, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  item.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.bold, height: 1.2),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(item.price, style: const TextStyle(color: Color(0xFFFF9442), fontSize: 14, fontWeight: FontWeight.w800)),
-                    const Icon(Icons.add_circle, color: Color(0xFFFF9442), size: 28),
-                  ],
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: Color(0xFFFF9442), size: 14),
+                      const SizedBox(width: 4),
+                      const Text('4.8', style: TextStyle(color: Color(0xFFFF9442), fontSize: 12, fontWeight: FontWeight.bold)), 
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    title, 
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.bold, height: 1.2),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Rp $price", style: const TextStyle(color: Color(0xFFFF9442), fontSize: 14, fontWeight: FontWeight.w800)), 
+                      // ✅ LOGIKA TOMBOL (+) DENGAN SNACKBAR MELAYANG
+                      GestureDetector(
+                        onTap: () {
+                          if (stock > 0) {
+                            setState(() {
+                              _cartItemCount++; // Nambah angka keranjang
+                            });
+                            // ✅ NOTIFIKASI DIUBAH JADI MELAYANG BIAR KERANJANG NGGAK NAIK
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('$title ditambahkan!', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                duration: const Duration(seconds: 1),
+                                backgroundColor: const Color(0xFFFF9442),
+                                behavior: SnackBarBehavior.floating, 
+                                margin: const EdgeInsets.only(bottom: 80, left: 40, right: 40), 
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                elevation: 0,
+                              ),
+                            );
+                          } else {
+                            _showOutOfStockDialog(context);
+                          }
+                        },
+                        child: Icon(Icons.add_circle, color: stock <= 0 ? Colors.grey : const Color(0xFFFF9442), size: 28),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  // --- BAGIAN NAVIGATION BAR --- //
-  
+  // === FUNGSI DIALOG SINGKAT, PADAT, JELAS ===
+  void _showOutOfStockDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+          content: Column(
+            mainAxisSize: MainAxisSize.min, // Biar kotaknya nggak kebesaran
+            children: const [
+              Icon(Icons.error_outline, color: Colors.red, size: 48), // Icon peringatan
+              SizedBox(height: 16),
+              Text(
+                'Stok tidak tersedia',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Buat nutup pop-up
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF9442),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  minimumSize: const Size(120, 40), // Ukuran tombol
+                ),
+                child: const Text('OK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // --- BAGIAN NAVIGATION BAR BAWAH --- //
   Widget _buildBottomNavigationBar(BuildContext context) {
     return BottomAppBar(
       color: Colors.white,
@@ -384,14 +476,9 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildNavItem(Icons.home_outlined, 'Home', false, () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const DashboardPage()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const DashboardPage()));
             }),
-            
             _buildNavItem(Icons.restaurant_menu, 'Menu', true, () {}),
-            
             const SizedBox(width: 48), 
             _buildNavItem(Icons.receipt_long_outlined, 'Order', false, () {}),
             _buildNavItem(Icons.person_outline, 'Profil', false, () {}),
@@ -427,7 +514,6 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     );
   }
 
-  // --- ICON KERANJANG --- //
   Widget _buildFab() {
     return Stack(
       clipBehavior: Clip.none, 
@@ -435,37 +521,29 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
         Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFFF9442).withOpacity(0.4),
-                blurRadius: 12,
-                spreadRadius: 2,
-              )
-            ]
+            boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)]
           ),
           child: FloatingActionButton(
             onPressed: () {},
             backgroundColor: const Color(0xFFFF9442),
             elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50),
-              side: const BorderSide(color: Colors.white, width: 4), 
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50), side: const BorderSide(color: Colors.white, width: 4)),
             child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
           ),
         ),
-        Positioned(
-          right: -2,
-          top: -2,
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: const BoxDecoration(
-              color: Color(0xFFEF4444),
-              shape: BoxShape.circle,
+        if (_cartItemCount > 0)
+          Positioned(
+            right: -2,
+            top: -2,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
+              child: Text(
+                '$_cartItemCount', 
+                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
             ),
-            child: const Text('3', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
           ),
-        ),
       ],
     );
   }

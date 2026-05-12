@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'customer/profil_customer.dart';
 
+// ✅ TAMBAHIN IMPORT HALAMAN CUSTOMER DI SINI
+import 'dashboard_menu.dart'; 
+import 'halaman_menu.dart';
+
+// --- FUNGSI MAIN CUMA BOLEH SATU ---
 void main() {
   // Disamakan dengan nama class di bawah (PangsitNjedogApp)
   runApp(const PangsitNjedokApp());
@@ -12,15 +17,31 @@ class PangsitNjedokApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Pangsit Njedog',
-      debugShowCheckedModeBanner: false, // Menghilangkan banner debug
-      theme: ThemeData(
-        // Perbaikan: Tambahkan 'ColorScheme' sebelum '.fromSeed'
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+      debugShowCheckedModeBanner: false,
+      title: 'Pangsit Njedog App',
+      theme: ThemeData.light().copyWith(
+        scaffoldBackgroundColor: const Color(0xFFFFFDF1),
+        // Menggunakan font Inter agar sesuai dengan desain
+        textTheme: ThemeData.light().textTheme.apply(fontFamily: 'Inter'),
       ),
-      // Di sini kita langsung arahkan ke halaman ProfilCustomer dari profil_customer.dart
-       home: ProfilePage(),
+      
+      // ✅ PINTU MASUK DIGESER KE HALAMAN CUSTOMER
+      initialRoute: '/customer_dashboard', 
+
+      // SEMUA RUTE ADMIN & CUSTOMER
+      routes: {
+        // --- RUTE ADMIN (Tetap aman, nggak aku hapus) ---
+        '/dashboard': (context) => const DashboardAdmin(),
+        '/order':     (context) => const OrderManagement(),
+        '/menu':      (context) => const MenuManagement(), 
+        '/profit':    (context) => const profitAdmin(),
+        '/profil':    (context) => const ProfilReportAdmin(),
+        '/customers': (context) => const ManageCustomers(),
+
+        // --- ✅ RUTE CUSTOMER BARU ---
+        '/customer_dashboard': (context) => const DashboardPage(),
+        '/customer_menu':      (context) => const MenuFoodScreen(),
+      },
     );
   }
 }
