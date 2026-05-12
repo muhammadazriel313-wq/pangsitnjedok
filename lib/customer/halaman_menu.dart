@@ -3,7 +3,7 @@ import 'dart:async';
 
 // IMPORT INI PENTING (Sesuaikan path-nya jika perlu)
 import 'dashboard_menu.dart'; 
-import 'service/api_service.dart'; // Manggil jembatan API
+import '../service/api_service.dart';
 
 void main() {
   runApp(const PangsitApp());
@@ -124,13 +124,13 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
   Widget _buildBanner() {
     List<String> bannerImages = _isFoodSelected 
         ? [
-            'assets/images/ptulangrangu.jpeg', 
-            'assets/images/osengpangsit.jpeg',
-            'assets/images/wontonmentai.jpeg'
+            'assets/images/pangsittulangrangu.jpg', 
+            'assets/images/osengpangsit.jpg',
+            'assets/images/wontonmentai.jpg'
           ] 
         : [
-            'assets/images/esbuahleci.jpeg', 
-            'assets/images/lemontea.jpeg',
+            'assets/images/esbuahleci.jpg', 
+            'assets/images/lemontea.jpg',
             'assets/images/nipis.jpeg'
           ]; 
 

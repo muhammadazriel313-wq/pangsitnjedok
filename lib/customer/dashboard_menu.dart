@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; 
 import 'halaman_menu.dart'; 
-import 'service/api_service.dart'; // WAJIB: Biar bisa manggil API
+import '../service/api_service.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});

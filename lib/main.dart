@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
-import 'customer/profil_customer.dart';
 
-// ✅ TAMBAHIN IMPORT HALAMAN CUSTOMER DI SINI
-import 'dashboard_menu.dart'; 
-import 'halaman_menu.dart';
+// ✅ IMPORT JALUR CUSTOMER (Sesuai folder baru)
+import 'customer/profil_customer.dart';
+import 'customer/dashboard_menu.dart'; 
+import 'customer/halaman_menu.dart';
+
+// ✅ IMPORT JALUR ADMIN (Ini yang bikin merah 9+ tadi karena belum dipanggil!)
+import 'admin/dashboard_admin.dart';
+import 'admin/order_admin.dart';
+import 'admin/menu_management.dart';
+import 'admin/profit_admin.dart';
+import 'admin/profil_admin.dart';
+import 'admin/manage_customer.dart';
 
 // --- FUNGSI MAIN CUMA BOLEH SATU ---
 void main() {
-  // Disamakan dengan nama class di bawah (PangsitNjedogApp)
+  // Disamakan dengan nama class di bawah (PangsitNjedokApp)
   runApp(const PangsitNjedokApp());
 }
 
@@ -25,12 +33,12 @@ class PangsitNjedokApp extends StatelessWidget {
         textTheme: ThemeData.light().textTheme.apply(fontFamily: 'Inter'),
       ),
       
-      // ✅ PINTU MASUK DIGESER KE HALAMAN CUSTOMER
+      // ✅ PINTU MASUK CUSTOMER
       initialRoute: '/customer_dashboard', 
 
       // SEMUA RUTE ADMIN & CUSTOMER
       routes: {
-        // --- RUTE ADMIN (Tetap aman, nggak aku hapus) ---
+        // --- RUTE ADMIN ---
         '/dashboard': (context) => const DashboardAdmin(),
         '/order':     (context) => const OrderManagement(),
         '/menu':      (context) => const MenuManagement(), 
@@ -38,7 +46,7 @@ class PangsitNjedokApp extends StatelessWidget {
         '/profil':    (context) => const ProfilReportAdmin(),
         '/customers': (context) => const ManageCustomers(),
 
-        // --- ✅ RUTE CUSTOMER BARU ---
+        // --- RUTE CUSTOMER BARU ---
         '/customer_dashboard': (context) => const DashboardPage(),
         '/customer_menu':      (context) => const MenuFoodScreen(),
       },
