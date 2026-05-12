@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
+import 'package:aplikasipangsitnjedok/core/network/api_services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -54,8 +55,8 @@ class _EditAccountPageState extends State<EditAccountPage> {
   // Fungsi untuk mengambil data dari database via API
   Future<void> _loadUserData() async {
   try {
-    // 1. Panggil API get_profil.php, pastikan URL di ApiService sudah benar
-    var response = await ApiService.getProfil("1"); // Ganti "1" dengan ID yang sesuai
+    // 1. Panggil API get_profile.php, pastikan URL di ApiService sudah benar
+    var response = await ApiService.getProfile("1"); // Ganti "1" dengan ID yang sesuai
 
     if (response['status'] == 'success') {
       // 2. Ambil data dari key 'data' sesuai format JSON di PHP kamu
@@ -140,7 +141,7 @@ class _EditAccountPageState extends State<EditAccountPage> {
                                   fit: BoxFit.cover,
                                 )
                               : const DecorationImage(
-                                  image: AssetImage('assets/images/esyakultleci.jpeg'), // Gambar default
+                                  image: AssetImage('assets/images/esbuahleci.jpg'), // Gambar default
                                   fit: BoxFit.cover,
                                 ),
                         ),

@@ -24,7 +24,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void refreshData() async {
   try {
     print("Sedang mengambil data untuk ID: 1..."); // Log 1
-    var data = await ApiService.getProfil("1"); 
+    var data = await ApiService.getProfile("1"); 
     
     print("Respon dari API: $data"); // Log 2 - CEK DI DEBUG CONSOLE
 
@@ -124,7 +124,7 @@ class _ProfilePageState extends State<ProfilePage> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
                 image: const DecorationImage(
-                  image: AssetImage('assets/images/esyakultleci.jpeg'), 
+                  image: AssetImage('assets/images/esbuahleci.jpg'), 
                   fit: BoxFit.cover
                 ),
                 boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20)],
