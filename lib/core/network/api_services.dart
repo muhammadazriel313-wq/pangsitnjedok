@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // Alamat URL disesuaikan dengan folder di htdocs kamu
-  static const String baseUrl = "http://localhost/pangsit_api";
+  static const String baseUrl = "http://localhost/pangsit_njedok_api";
 
   // ============================================================
   // 1. FUNGSI DASHBOARD (Mengambil Ringkasan Data)
