@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/network/api_services.dart';
+
+// ✅ Cukup keluar satu tingkat (../) saja
+import 'api_service.dart';
 
 class HalamanRegister extends StatefulWidget {
   const HalamanRegister({super.key});
@@ -28,24 +30,33 @@ class _HalamanRegisterState extends State<HalamanRegister> {
 
     setState(() => _isLoading = true);
 
-    // Panggil API Register
-    final response = await ApiService.register(
-      _nameController.text,
-      _phoneController.text,
-      _passwordController.text,
-    );
-
-    setState(() => _isLoading = false);
-
-    if (response['status'] == 'success') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response['message']), backgroundColor: Colors.green),
+    try {
+      // ✅ Pastikan fungsi 'register' sudah ada di ApiService kamu ya!
+      final response = await ApiService.register(
+        _nameController.text,
+        _phoneController.text,
+        _passwordController.text,
       );
-      // Jika sukses, kembali ke halaman Login
-      Navigator.pop(context);
-    } else {
+
+      if (!mounted) return; // Pengaman navigasi
+      setState(() => _isLoading = false);
+
+      if (response['status'] == 'success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response['message']), backgroundColor: Colors.green),
+        );
+        // Jika sukses, kembali ke halaman Login
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response['message'] ?? 'Registrasi gagal.'), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response['message']), backgroundColor: Colors.red),
+        SnackBar(content: Text('Error koneksi: $e'), backgroundColor: Colors.red),
       );
     }
   }
@@ -83,7 +94,6 @@ class _HalamanRegisterState extends State<HalamanRegister> {
             const Text('Fill in the details to create an account.', style: TextStyle(fontSize: 14, color: Color(0x99554337))),
             const SizedBox(height: 32),
 
-            // 1. Input Full Name
             _buildTextField(
               hintText: 'Full Name', 
               icon: Icons.person_outline, 
@@ -92,7 +102,6 @@ class _HalamanRegisterState extends State<HalamanRegister> {
             ),
             const SizedBox(height: 16),
 
-            // 2. Input Phone Number
             _buildTextField(
               hintText: 'Phone Number', 
               icon: Icons.phone_android_outlined, 
@@ -101,7 +110,6 @@ class _HalamanRegisterState extends State<HalamanRegister> {
             ),
             const SizedBox(height: 16),
 
-            // 3. Input Password
             _buildTextField(
               hintText: 'Password', 
               icon: Icons.lock_outline, 
@@ -110,7 +118,6 @@ class _HalamanRegisterState extends State<HalamanRegister> {
             ),
             const SizedBox(height: 32),
 
-            // Tombol Register
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF954A00), foregroundColor: Colors.white,
@@ -130,10 +137,9 @@ class _HalamanRegisterState extends State<HalamanRegister> {
     );
   }
 
-  // Modifikasi Widget TextField agar menerima Controller
   Widget _buildTextField({required String hintText, required IconData icon, bool isPassword = false, TextInputType? keyboardType, required TextEditingController controller}) {
     return TextField(
-      controller: controller, // Pasang controller di sini
+      controller: controller,
       obscureText: isPassword ? _isPasswordHidden : false,
       keyboardType: keyboardType,
       decoration: InputDecoration(
@@ -163,4 +169,3 @@ class _HalamanRegisterState extends State<HalamanRegister> {
     super.dispose();
   }
 }
-

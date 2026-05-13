@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'halaman_register.dart';
-import 'customer/halaman_utama.dart';
-import 'admin/dashboard_admin.dart';
-import '../../../core/network/api_services.dart'; // Import ApiService di sini
+import 'halaman_register.dart'; 
+import '../customer/halaman_utama.dart'; 
+import '../admin/dashboard_admin.dart'; 
+
+// ✅ Hapus import API yang lama, pakai yang ini:
+import 'api_service.dart';
 
 class HalamanLogin extends StatefulWidget {
   const HalamanLogin({super.key});
@@ -14,15 +16,12 @@ class HalamanLogin extends StatefulWidget {
 class _HalamanLoginState extends State<HalamanLogin> {
   bool isCustomerSelected = true;
   bool _isPasswordHidden = true;
-  bool _isLoading = false; // Menambah state untuk loading
+  bool _isLoading = false; 
 
-  // Controller untuk menangkap inputan user
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // Fungsi proses login
   Future<void> _prosesLogin() async {
-    // Validasi kosong
     if (_idController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Harap isi ID dan Password!'), backgroundColor: Colors.red),
@@ -30,44 +29,52 @@ class _HalamanLoginState extends State<HalamanLogin> {
       return;
     }
 
-    setState(() => _isLoading = true); // Mulai animasi loading
+    setState(() => _isLoading = true);
 
-    // Memanggil API login
-final response = await ApiService.login(
-  _idController.text,
-  _passwordController.text,
-  isCustomerSelected ? 'customer' : 'admin', // <--- UBAH JADI SEPERTI INI
-);
-    setState(() => _isLoading = false); // Hentikan animasi loading
-
-    // Percabangan hasil login
-    if (response['status'] == 'success') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response['message']), backgroundColor: Colors.green),
+    try {
+      // ✅ Memanggil fungsi login dari ApiService
+      final response = await ApiService.login(
+        _idController.text,
+        _passwordController.text,
+        isCustomerSelected ? 'customer' : 'admin', 
       );
-      
-      // Navigasi dipisah antara Customer dan Admin
-      if (isCustomerSelected) {
-        Navigator.pushReplacement(
-          context, 
-          MaterialPageRoute(builder: (context) => const HalamanUtama()),
+
+      if (!mounted) return; 
+      setState(() => _isLoading = false);
+
+      if (response['status'] == 'success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response['message']), backgroundColor: Colors.green),
         );
+        
+        if (isCustomerSelected) {
+          Navigator.pushReplacement(
+            context, 
+            MaterialPageRoute(builder: (context) => const HalamanUtama()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context, 
+            MaterialPageRoute(builder: (context) => const DashboardAdmin()),
+          );
+        }
       } else {
-        Navigator.pushReplacement(
-          context, 
-          MaterialPageRoute(builder: (context) => const DashboardAdmin()),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response['message'] ?? 'Login gagal.'), backgroundColor: Colors.red),
         );
       }
-    } else {
-      // Menampilkan pesan error jika gagal (salah password/id)
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response['message'] ?? 'Login gagal.'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // ... Sisa kodingan build kamu sudah bener ...
     return Scaffold(
       backgroundColor: const Color(0xFFFFFDF1),
       appBar: AppBar(
@@ -85,14 +92,12 @@ final response = await ApiService.login(
             const Text('Pangsit Njedog', style: TextStyle(color: Color(0xFF562F00), fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
             
-            // --- BAGIAN LOGO ---
             Container(
               width: 180, 
               height: 180,
               alignment: Alignment.center,
               child: Image.asset('assets/images/logopangsitnjedok.png'),
             ),
-            // -------------------
             
             const SizedBox(height: 32),
             const Text('Welcome Back!', style: TextStyle(color: Color(0xFF562F00), fontSize: 28, fontWeight: FontWeight.bold)),
@@ -115,7 +120,7 @@ final response = await ApiService.login(
                       onTap: () {
                         setState(() {
                           isCustomerSelected = true;
-                          _idController.clear(); // Bersihkan input saat ganti tab
+                          _idController.clear();
                           _passwordController.clear();
                         });
                       },
@@ -134,7 +139,7 @@ final response = await ApiService.login(
                       onTap: () {
                         setState(() {
                           isCustomerSelected = false;
-                          _idController.clear(); // Bersihkan input saat ganti tab
+                          _idController.clear();
                           _passwordController.clear();
                         });
                       },
@@ -162,7 +167,7 @@ final response = await ApiService.login(
             ),
             const SizedBox(height: 16),
 
-            // INPUT PERTAMA (Phone Number / Username)
+            // INPUT Phone Number / Username
             Align(
               alignment: Alignment.centerLeft, 
               child: Text(
@@ -172,7 +177,7 @@ final response = await ApiService.login(
             ),
             const SizedBox(height: 8),
             TextField(
-              controller: _idController, // Memasang Controller
+              controller: _idController,
               keyboardType: isCustomerSelected ? TextInputType.phone : TextInputType.text,
               decoration: InputDecoration(
                 hintText: isCustomerSelected ? '+62 812 3456 789' : 'Enter Your Username',
@@ -189,11 +194,11 @@ final response = await ApiService.login(
             ),
             const SizedBox(height: 16),
 
-            // INPUT KEDUA (Password)
+            // INPUT Password
             const Align(alignment: Alignment.centerLeft, child: Text('Password', style: TextStyle(color: Color(0xCC562F00), fontWeight: FontWeight.w500))),
             const SizedBox(height: 8),
             TextField(
-              controller: _passwordController, // Memasang Controller
+              controller: _passwordController,
               obscureText: _isPasswordHidden,
               decoration: InputDecoration(
                 hintText: isCustomerSelected ? 'Enter password' : 'Create a Password',
@@ -211,21 +216,19 @@ final response = await ApiService.login(
             ),
             const SizedBox(height: 32),
 
-            // TOMBOL LOGIN
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF9644), foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 56), 
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               ),
-              onPressed: _isLoading ? null : _prosesLogin, // Mencegah double-click saat loading
+              onPressed: _isLoading ? null : _prosesLogin,
               child: _isLoading
                   ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
                   : const Text('Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(height: 24),
 
-            // Bagian Sign Up yang hanya muncul jika memilih Customer
             if (isCustomerSelected) ...[
               const Row(
                 children: [
@@ -257,7 +260,6 @@ final response = await ApiService.login(
 
   @override
   void dispose() {
-    // Bersihkan memory controller saat halaman ditutup
     _idController.dispose();
     _passwordController.dispose();
     super.dispose();
