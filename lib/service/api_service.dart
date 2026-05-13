@@ -4,10 +4,45 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // Alamat URL disesuaikan dengan folder di htdocs kamu
-  static const String baseUrl = "http://localhost/pangsit_njedok_api"; 
+  // Gunakan 10.0.2.2 untuk emulator Android atau localhost untuk iOS/Web
+  static const String baseUrl = "http://10.0.2.2/pangsit_njedok_api"; 
 
   // ============================================================
-  // 1. FUNGSI DASHBOARD (Mengambil Ringkasan Data)
+  // 1. FUNGSI PROFIL CUSTOMER (BARU GABUNGAN)
+  // ============================================================
+  
+  static Future<Map<String, dynamic>> getProfile(String id) async {
+    try {
+      final response = await http.get(Uri.parse("$baseUrl/get_profil.php?id=$id"));
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {"status": "error", "message": "Gagal terhubung ke server"};
+      }
+    } catch (e) {
+      return {"status": "error", "message": e.toString()};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateProfile(String id, String name, String phone) async {
+    try {
+      var url = Uri.parse("$baseUrl/ganti_profil.php");
+      
+      var response = await http.post(url, body: {
+        "id": id,
+        "name": name,
+        "no_telepon": phone,
+      });
+
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"status": "error", "message": e.toString()};
+    }
+  }
+
+  // ============================================================
+  // 2. FUNGSI DASHBOARD (Mengambil Ringkasan Data)
   // ============================================================
   static Future<Map<String, dynamic>> getDashboardData() async {
     try {
@@ -24,7 +59,7 @@ class ApiService {
   }
 
   // ============================================================
-  // 2. FUNGSI GET SEMUA MENU
+  // 3. FUNGSI GET SEMUA MENU
   // ============================================================
   static Future<List<dynamic>> getMenus() async {
     try {
@@ -41,7 +76,7 @@ class ApiService {
   }
 
   // ============================================================
-  // FUNGSI ORDER ADMIN
+  // 4. FUNGSI ORDER ADMIN
   // ============================================================
   static Future<List<dynamic>> getOrders() async {
     try {
@@ -78,7 +113,7 @@ class ApiService {
   }
 
   // ============================================================
-  // FUNGSI PROFIL ADMIN
+  // 5. FUNGSI PROFIL ADMIN
   // ============================================================
   static Future<Map<String, dynamic>?> getAdminProfil() async {
     try {
@@ -93,35 +128,32 @@ class ApiService {
     }
   }
 
- static Future<bool> updateAdminProfil(Map<String, String> data, {Uint8List? imageBytes}) async {
-  try {
-    // Gunakan MultipartRequest untuk upload file
-    var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/update_profil.php"));
+  static Future<bool> updateAdminProfil(Map<String, String> data, {Uint8List? imageBytes}) async {
+    try {
+      var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/update_profil.php"));
 
-    // Masukkan data teks
-    data.forEach((key, value) {
-      request.fields[key] = value;
-    });
+      data.forEach((key, value) {
+        request.fields[key] = value;
+      });
 
-    // Masukkan file foto profil jika ada
-    if (imageBytes != null) {
-      request.files.add(http.MultipartFile.fromBytes(
-        'image', 
-        imageBytes, 
-        filename: 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
-      ));
+      if (imageBytes != null) {
+        request.files.add(http.MultipartFile.fromBytes(
+          'image', 
+          imageBytes, 
+          filename: 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        ));
+      }
+
+      var response = await request.send();
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Error Update Profil: $e");
+      return false;
     }
-
-    var response = await request.send();
-    return response.statusCode == 200;
-  } catch (e) {
-    print("Error Update Profil: $e");
-    return false;
   }
-}
 
   // ============================================================
-  // FUNGSI profit ADMIN
+  // 6. FUNGSI PROFIT ADMIN
   // ============================================================
   static Future<Map<String, dynamic>> getprofitData(String date) async {
     try {
@@ -142,8 +174,9 @@ class ApiService {
     }
   }
 
-  // MANAGE CUSTOMER
-  
+  // ============================================================
+  // 7. MANAGE CUSTOMER
+  // ============================================================
   static Future<List<dynamic>> getCustomers() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/manage_customer.php'));
@@ -189,20 +222,18 @@ class ApiService {
     }
   }
 
-  
-  // FUNGSI MENU CRUD (ADD, UPDATE, DELETE)
+  // ============================================================
+  // 8. FUNGSI MENU CRUD (ADD, UPDATE, DELETE)
+  // ============================================================
 
-  // 1. ADD MENU (VERSI BARU YANG BISA UPLOAD FOTO)
   static Future<bool> addMenu(Map<String, dynamic> data, {Uint8List? imageBytes, String? fileName}) async {
     try {
       var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/add_menu.php"));
 
-      // Masukkan data teks
       data.forEach((key, value) {
         request.fields[key] = value.toString();
       });
 
-      // Masukkan file foto (jika user memilih foto)
       if (imageBytes != null && fileName != null) {
         var multipartFile = http.MultipartFile.fromBytes(
           'image', 
@@ -226,17 +257,14 @@ class ApiService {
     }
   }
 
-  // 2. UPDATE MENU
   static Future<bool> updateMenu(Map<String, String> data, {Uint8List? imageBytes}) async {
     try {
       var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/update_menu.php"));
 
-      // Masukkan data teks (id, title, price, dll)
       data.forEach((key, value) {
         request.fields[key] = value;
       });
 
-      // Masukkan file foto (jika admin memilih foto baru di galeri)
       if (imageBytes != null) {
         var multipartFile = http.MultipartFile.fromBytes(
           'image', 
@@ -247,19 +275,13 @@ class ApiService {
       }
 
       var response = await request.send();
-      
-      // Cek apakah berhasil
-      if (response.statusCode == 200) {
-        return true;
-      }
-      return false;
+      return response.statusCode == 200;
     } catch (e) {
       print("Update Menu Error: $e");
       return false;
     }
   }
 
-  // 3. DELETE MENU
   static Future<bool> deleteMenu(String id) async {
     try {
       final response = await http.post(
@@ -273,7 +295,7 @@ class ApiService {
   }
 
   // ============================================================
-  // FUNGSI GET FAVORIT (Tambahan dari teman kelompok)
+  // 9. FUNGSI GET FAVORIT
   // ============================================================
   static Future<List<dynamic>> getFavorites(int customerId) async {
     try {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/network/api_services.dart';
 
 class HalamanRegister extends StatefulWidget {
   const HalamanRegister({super.key});
@@ -9,6 +10,45 @@ class HalamanRegister extends StatefulWidget {
 
 class _HalamanRegisterState extends State<HalamanRegister> {
   bool _isPasswordHidden = true;
+  bool _isLoading = false;
+
+  // Controller untuk menangkap teks
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  // Fungsi proses daftar
+  Future<void> _prosesRegister() async {
+    if (_nameController.text.isEmpty || _phoneController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Semua kolom harus diisi!'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    // Panggil API Register
+    final response = await ApiService.register(
+      _nameController.text,
+      _phoneController.text,
+      _passwordController.text,
+    );
+
+    setState(() => _isLoading = false);
+
+    if (response['status'] == 'success') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response['message']), backgroundColor: Colors.green),
+      );
+      // Jika sukses, kembali ke halaman Login
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response['message']), backgroundColor: Colors.red),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,53 +73,55 @@ class _HalamanRegisterState extends State<HalamanRegister> {
               width: double.infinity, height: 220,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
-                image: const DecorationImage(image: NetworkImage("https://placehold.co/400x250/orange/white?text=Dumplings"), fit: BoxFit.cover),
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    bottom: 0, left: 0, right: 0,
-                    child: Container(
-                      height: 100,
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-                        gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Colors.black.withOpacity(0.8), Colors.transparent]),
-                      ),
-                    ),
-                  ),
-                  const Positioned(
-                    bottom: 20, left: 20,
-                    child: Text('Join the Culinary\nJourney Today', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800, height: 1.2)),
-                  ),
-                ],
+                image: const DecorationImage(image: AssetImage("assets/images/pangsitregister.png"), fit: BoxFit.cover),
+                boxShadow: const [BoxShadow(color: Color(0x19000000), blurRadius: 10, offset: Offset(0, 4))],
               ),
             ),
             const SizedBox(height: 32),
-
-            const Text('Full Name', style: TextStyle(color: Color(0xFF554337), fontWeight: FontWeight.w600)),
+            const Text('Sign Up', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF554337))),
             const SizedBox(height: 8),
-            _buildTextField(hintText: 'Enter your full name', icon: Icons.person_outline),
+            const Text('Fill in the details to create an account.', style: TextStyle(fontSize: 14, color: Color(0x99554337))),
+            const SizedBox(height: 32),
+
+            // 1. Input Full Name
+            _buildTextField(
+              hintText: 'Full Name', 
+              icon: Icons.person_outline, 
+              controller: _nameController,
+              keyboardType: TextInputType.name,
+            ),
             const SizedBox(height: 16),
 
-            const Text('Phone Number', style: TextStyle(color: Color(0xFF554337), fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            _buildTextField(hintText: '+62 812 3456 7890', icon: Icons.phone_outlined, keyboardType: TextInputType.phone),
+            // 2. Input Phone Number
+            _buildTextField(
+              hintText: 'Phone Number', 
+              icon: Icons.phone_android_outlined, 
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+            ),
             const SizedBox(height: 16),
 
-            const Text('Password', style: TextStyle(color: Color(0xFF554337), fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            _buildTextField(hintText: 'Create a password', icon: Icons.lock_outline, isPassword: true),
-            const SizedBox(height: 40),
+            // 3. Input Password
+            _buildTextField(
+              hintText: 'Password', 
+              icon: Icons.lock_outline, 
+              isPassword: true,
+              controller: _passwordController,
+            ),
+            const SizedBox(height: 32),
 
+            // Tombol Register
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF9644), foregroundColor: Colors.white,
+                backgroundColor: const Color(0xFF954A00), foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 56), 
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                 elevation: 4,
               ),
-              onPressed: () {},
-              child: const Text('Register', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              onPressed: _isLoading ? null : _prosesRegister,
+              child: _isLoading 
+                  ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+                  : const Text('Register', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(height: 32),
           ],
@@ -88,8 +130,10 @@ class _HalamanRegisterState extends State<HalamanRegister> {
     );
   }
 
-  Widget _buildTextField({required String hintText, required IconData icon, bool isPassword = false, TextInputType? keyboardType}) {
+  // Modifikasi Widget TextField agar menerima Controller
+  Widget _buildTextField({required String hintText, required IconData icon, bool isPassword = false, TextInputType? keyboardType, required TextEditingController controller}) {
     return TextField(
+      controller: controller, // Pasang controller di sini
       obscureText: isPassword ? _isPasswordHidden : false,
       keyboardType: keyboardType,
       decoration: InputDecoration(
@@ -105,8 +149,18 @@ class _HalamanRegisterState extends State<HalamanRegister> {
         filled: true,
         fillColor: const Color(0xFFE4E3D7),
         contentPadding: const EdgeInsets.symmetric(vertical: 16),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF954A00), width: 1.5)),
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 }
+
