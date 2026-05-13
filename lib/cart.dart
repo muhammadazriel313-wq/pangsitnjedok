@@ -1,24 +1,5 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const FigmaToCodeApp());
-}
-
-class FigmaToCodeApp extends StatelessWidget {
-  const FigmaToCodeApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFFFFFDF1),
-      ),
-      home: const CartPage(),
-    );
-  }
-}
-
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
 
@@ -33,181 +14,133 @@ class _CartPageState extends State<CartPage> {
   int priceMietiaw = 19000;
   int priceEsBuah = 9000;
 
+  // Getter untuk perhitungan otomatis
   int get totalPayment => (qtyMietiaw * priceMietiaw) + (qtyEsBuah * priceEsBuah);
   int get totalItems => qtyMietiaw + qtyEsBuah;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Kita matikan extendBody agar konten otomatis berhenti di atas BottomAppBar
       extendBody: false, 
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: const Icon(Icons.arrow_back, color: Color(0xFF562F00)),
-        title: const Text('My Cart', style: TextStyle(color: Color(0xFF562F00), fontWeight: FontWeight.bold)),
+        title: const Text(
+          'My Cart', 
+          style: TextStyle(color: Color(0xFF562F00), fontWeight: FontWeight.bold)
+        ),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  _buildCartItem(
-                    name: 'Mietiaw Mentai',
-                    desc: 'Extra Saus Mentai (+Rp 4.000)',
-                    price: priceMietiaw,
-                    qty: qtyMietiaw,
-                    onAdd: () => setState(() => qtyMietiaw++),
-                    onRemove: () => setState(() => qtyMietiaw > 0 ? qtyMietiaw-- : null),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildCartItem(
-                    name: 'Es Buah Lecy',
-                    desc: 'Regular Size',
-                    price: priceEsBuah,
-                    qty: qtyEsBuah,
-                    onAdd: () => setState(() => qtyEsBuah++),
-                    onRemove: () => setState(() => qtyEsBuah > 0 ? qtyEsBuah-- : null),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildAddMoreButton(),
-                ],
-              ),
-            ),
-          ),
-          _buildPaymentPanel(), // Panel Checkout diletakkan di atas Navigasi
-        ],
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-floatingActionButton: FloatingActionButton(
-  backgroundColor: const Color(0xFFFF9442),
-  elevation: 4,
-  // Memastikan bentuknya lingkaran sempurna
-  shape: const CircleBorder(), 
-  onPressed: () {
-    // Aksi saat keranjang diklik
-  },
-  child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
-),
-      bottomNavigationBar: BottomAppBar(
-  color: Colors.white,
-  // Memberikan efek lengkungan untuk FloatingActionButton
-  shape: const CircularNotchedRectangle(), 
-  // Jarak antara lengkungan dengan tombol FAB
-  notchMargin: 8, 
-  child: SizedBox(
-    height: 60, // Tinggi bar navigasi
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        // Item Navigasi Kiri
-        _navItem(Icons.home_outlined, 'Home'),
-        _navItem(Icons.restaurant_menu_outlined, 'Menu'),
-        
-        // Spacer (SizedBox) untuk memberi ruang bagi tombol FAB di tengah
-        const SizedBox(width: 40), 
-        
-        // Item Navigasi Kanan
-        _navItem(Icons.receipt_long_outlined, 'Orders'),
-        _navItem(Icons.person_outline, 'Profile'),
-      ],
-    ),
-  ),
-),
-    );
-  }
-
-  Widget _buildPaymentPanel() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Total Payment', style: TextStyle(color: Colors.grey)),
-                  Text('Rp ${totalPayment.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}', 
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Color(0xFF562F00))),
-                ],
+              const SizedBox(height: 10),
+              
+              // Item 1: Mietiaw
+              _buildCartItem(
+                'Mietiaw Pangsit Njedog',
+                'Extra Spicy',
+                'Rp ${priceMietiaw.toString()}',
+                qtyMietiaw,
+                (val) => setState(() => qtyMietiaw = val),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: const Color(0xFFFFE5D1), borderRadius: BorderRadius.circular(10)),
-                child: Text('$totalItems Items', style: const TextStyle(color: Color(0xFFFF9442), fontWeight: FontWeight.bold)),
-              )
+              const SizedBox(height: 16),
+              
+              // Item 2: Es Buah
+              _buildCartItem(
+                'Es Buah Segar',
+                'Less Ice',
+                'Rp ${priceEsBuah.toString()}',
+                qtyEsBuah,
+                (val) => setState(() => qtyEsBuah = val),
+              ),
+              
+              const SizedBox(height: 24),
+              _buildAddMoreButton(),
+              const SizedBox(height: 32),
+              
+              const Text(
+                'Payment Summary', 
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF562F00))
+              ),
+              const SizedBox(height: 16),
+              _buildSummaryRow('Subtotal', 'Rp $totalPayment'),
+              _buildSummaryRow('Delivery Fee', 'Free'),
+              const Divider(height: 32, color: Color(0x19562F00)),
+              _buildSummaryRow('Total Payment', 'Rp $totalPayment', isTotal: true),
+              
+              const SizedBox(height: 40),
+              
+              // TOMBOL CHECKOUT (Sudah disambungkan ke Pop-up Konfirmasi)
+              ElevatedButton(
+                onPressed: () {
+                  // Navigasi ke rute /konfirmasi yang ada di main.dart
+                  Navigator.pushNamed(context, '/konfirmasi');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF9442),
+                  minimumSize: const Size(double.infinity, 55),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Checkout Now',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
+              const SizedBox(height: 40), 
             ],
           ),
-          const SizedBox(height: 15),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF9442),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-              ),
-              child: const Text('Checkout Now', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildCartItem({required String name, required String desc, required int price, required int qty, required VoidCallback onAdd, required VoidCallback onRemove}) {
+  // Widget untuk Item Keranjang
+  Widget _buildCartItem(String title, String subtitle, String price, int qty, Function(int) onQtyChanged) {
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Row(
         children: [
           Container(
-            width: 70, height: 70,
-            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(15)),
-            child: const Icon(Icons.fastfood, color: Colors.grey),
+            width: 80, height: 80,
+            decoration: BoxDecoration(color: const Color(0xFFF6F4E8), borderRadius: BorderRadius.circular(15)),
+            child: const Icon(Icons.fastfood, color: Color(0xFFFF9442)),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF562F00))),
-                Text(desc, style: const TextStyle(fontSize: 10, color: Colors.grey)),
-                const SizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        _btnQty(Icons.remove, onRemove),
-                        Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Text('$qty')),
-                        _btnQty(Icons.add, onAdd, isAdd: true),
-                      ],
-                    ),
-                    Text('Rp ${(price * qty).toString()}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFF9442))),
-                  ],
-                )
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                const SizedBox(height: 8),
+                Text(price, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFF9442))),
               ],
             ),
+          ),
+          Row(
+            children: [
+              _qtyBtn(Icons.remove, () { if (qty > 1) onQtyChanged(qty - 1); }),
+              Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Text('$qty', style: const TextStyle(fontWeight: FontWeight.bold))),
+              _qtyBtn(Icons.add, () => onQtyChanged(qty + 1), isAdd: true),
+            ],
           )
         ],
       ),
     );
   }
 
-  Widget _btnQty(IconData icon, VoidCallback tap, {bool isAdd = false}) {
+  // Widget Tombol Tambah/Kurang Qty
+  Widget _qtyBtn(IconData icon, VoidCallback tap, {bool isAdd = false}) {
     return GestureDetector(
       onTap: tap,
       child: Container(
@@ -222,6 +155,18 @@ floatingActionButton: FloatingActionButton(
     );
   }
 
+  // Widget Baris Ringkasan Pembayaran
+  Widget _buildSummaryRow(String label, String value, {bool isTotal = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(fontSize: isTotal ? 16 : 14, fontWeight: isTotal ? FontWeight.bold : FontWeight.normal)),
+        Text(value, style: TextStyle(fontSize: isTotal ? 16 : 14, fontWeight: FontWeight.bold, color: isTotal ? const Color(0xFFFF9442) : Colors.black)),
+      ],
+    );
+  }
+
+  // Widget Tombol Add More
   Widget _buildAddMoreButton() {
     return Container(
       padding: const EdgeInsets.all(15),
@@ -230,31 +175,12 @@ floatingActionButton: FloatingActionButton(
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: Colors.orange.withOpacity(0.5)),
       ),
-      child: const Center(child: Text('Add More Items', style: TextStyle(color: Color(0xFFFF9442)))),
+      child: const Center(
+        child: Text(
+          'Add More Items', 
+          style: TextStyle(color: Color(0xFFFF9442), fontWeight: FontWeight.bold)
+        )
+      ),
     );
   }
-
- Widget _navItem(IconData icon, String label) {
-  return InkWell(
-    onTap: () {
-      // Tambahkan logika pindah halaman di sini
-    },
-    child: Column(
-      mainAxisSize: MainAxisSize.min, // Agar ukuran kolom mengikuti isi
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: Colors.grey, size: 24),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 10,
-            color: Colors.grey,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    ),
-  );
-}
 }

@@ -47,7 +47,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                   child: ClipOval(
                     child: (imageUrl != null && imageUrl.isNotEmpty)
                         ? Image.network(
-                            "${ApiService.baseUrl}/uploads/$imageUrl", // Foto dari database
+                            "${ApiService.baseUrl}/uploads/$imageUrl", // Foto dari database[cite: 5, 15]
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) => 
                                 Image.asset("assets/images/Dimas oi oi.jpeg", fit: BoxFit.cover),
@@ -80,10 +80,12 @@ class _DashboardAdminState extends State<DashboardAdmin> {
   );
 }
 
-
+    // --- WIDGET STATISTIK CHART (SAMBUNG DATABASE) ---
+    // Sekarang menerima parameter apiData dari FutureBuilder
     // --- WIDGET STATISTIK CHART DENGAN DATA DUMMY AESTHETIC ---
     Widget buildChartCard(Map<String, dynamic> apiData) {
       // 1. DATA DUMMY AESTHETIC (WEEKLY & MONTHLY)
+      // Nilai berkisar dari 0.1 hingga 1.0 untuk merepresentasikan tinggi batang
       final Map<String, dynamic> weeklyStatsDummy = {
         'Mon': 0.3,
         'Tue': 0.5,
@@ -269,7 +271,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
             _buildNavItem("Dashboard", Icons.dashboard_outlined, isActive: true, context: context, route: '/dashboard'),
             _buildNavItem("Orders", Icons.receipt_long_outlined, isActive: false, context: context, route: '/order'),
             _buildNavItem("Menu", Icons.restaurant_menu_outlined, isActive: false, context: context, route: '/menu'),
-            _buildNavItem("Income", Icons.bar_chart_outlined, isActive: false, context: context, route: '/profit'),
+            _buildNavItem("Profit", Icons.bar_chart_outlined, isActive: false, context: context, route: '/profit'),
             _buildNavItem("Profile", Icons.person_outline, isActive: false, context: context, route: '/profil'),
           ],
         ),
@@ -369,5 +371,4 @@ class _DashboardAdminState extends State<DashboardAdmin> {
       ]),
     );
   }
-  
 }
