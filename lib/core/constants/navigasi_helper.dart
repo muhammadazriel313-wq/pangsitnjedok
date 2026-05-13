@@ -1,35 +1,90 @@
 import 'package:flutter/material.dart';
 
-Widget buildBottomNavbar(BuildContext context, bool isProfileActive) {
+// --- FUNGSI UTAMA MEMBANGUN NAVBAR PUSAT ---
+Widget buildBottomNavbar(BuildContext context, String currentRoute) {
   return BottomAppBar(
-    height: 70, color: Colors.white,
     shape: const CircularNotchedRectangle(),
-    notchMargin: 8,
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        navbarItem(Icons.home_outlined, 'Home', false),
-        navbarItem(Icons.restaurant_menu, 'Menu', false),
-        const SizedBox(width: 40),
-        navbarItem(Icons.receipt_long_outlined, 'Orders', false),
-        navbarItem(Icons.person, 'Profile', isProfileActive),
-      ],
+    notchMargin: 8.0,
+    color: const Color(0xFFFFFDF1), 
+    child: SizedBox(
+      height: 60,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          // TOMBOL BERANDA
+          _buildNavbarItem(
+            context,
+            icon: Icons.home_filled,
+            label: 'Home',
+            route: '/home_customer',
+            isActive: currentRoute == '/home_customer',
+          ),
+          // TOMBOL MENU KATALOG
+          _buildNavbarItem(
+            context,
+            icon: Icons.restaurant_menu,
+            label: 'Menu',
+            route: '/dashboard_menu',
+            isActive: currentRoute == '/dashboard_menu',
+          ),
+          
+          // Ruang kosong penyeimbang tombol tengah melayang
+          const SizedBox(width: 40), 
+          
+          // TOMBOL RIWAYAT PESANAN
+          _buildNavbarItem(
+            context,
+            icon: Icons.receipt_long,
+            label: 'Orders',
+            route: '/order',
+            isActive: currentRoute == '/order',
+          ),
+          // TOMBOL AKUN / PROFIL
+          _buildNavbarItem(
+            context,
+            icon: Icons.person_outline,
+            label: 'Profile',
+            route: '/profil_customer',
+            isActive: currentRoute == '/profil_customer',
+          ),
+        ],
+      ),
     ),
   );
 }
 
-Widget navbarItem(IconData icon, String label, bool isActive) {
-  return Column(mainAxisSize: MainAxisSize.min, children: [
-    Icon(icon, color: isActive ? const Color(0xFFFF9442) : Colors.grey),
-    Text(label, style: TextStyle(fontSize: 10, color: isActive ? const Color(0xFFFF9442) : Colors.grey)),
-  ]);
-}
-
-Widget buildFAB() {
-  return FloatingActionButton(
-    onPressed: () {},
-    backgroundColor: const Color(0xFFFF9442),
-    shape: const CircleBorder(),
-    child: const Badge(label: Text('3'), child: Icon(Icons.shopping_cart_outlined, color: Colors.white)),
+// --- WIDGET INTERNAL PEMBANTU IKON NAVIGASI ---
+Widget _buildNavbarItem(
+  BuildContext context, {
+  required IconData icon,
+  required String label,
+  required String route,
+  required bool isActive,
+}) {
+  return InkWell(
+    onTap: () {
+      if (!isActive) {
+        // Berpindah rute dengan mulus tanpa menumpuk memori halaman
+        Navigator.pushReplacementNamed(context, route);
+      }
+    },
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          color: isActive ? const Color(0xFFFF9644) : const Color(0x99562F00),
+          size: 26,
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            color: isActive ? const Color(0xFFFF9644) : const Color(0x99562F00),
+          ),
+        ),
+      ],
+    ),
   );
 }

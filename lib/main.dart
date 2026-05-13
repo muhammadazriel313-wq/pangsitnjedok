@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 
-// --- IMPORT HALAMAN AUTENTIKASI ---
+// --- IMPORT AUTH (Gerbang Masuk) ---
 import 'tampilan_awal.dart';
 import 'halaman_login.dart';
 import 'halaman_register.dart';
 
-// --- IMPORT HALAMAN ADMIN ---
+// --- IMPORT SISI CUSTOMER (Jalur Folder lib/customer/) ---
+import 'customer/halaman_utama.dart';
+import 'customer/dashboard_menu.dart';
+import 'customer/cart.dart';
+import 'customer/order.dart';
+import 'customer/profil_customer.dart';
+
+// --- IMPORT SISI ADMIN (Jalur Folder lib/admin/) ---
 import 'admin/dashboard_admin.dart';
 import 'admin/menu_management.dart';
 import 'admin/order_admin.dart';
@@ -23,33 +30,36 @@ class FoodApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Pangsit Njedok',
       debugShowCheckedModeBanner: false,
+      title: 'Pangsit Njedog',
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFFFFDF1),
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF9442)),
-        // fontFamily: 'Inter', // Aktifkan jika font Inter sudah terpasang
+        fontFamily: 'Inter',
       ),
       
-      // Pintu masuk utama aplikasi saat pertama kali dibuka
+      // Aplikasi dimulai dari Tampilan Awal
       home: const TampilanAwal(),
 
-      // --- MATERI PRAKTIKUM: PETA RUTE NAVIGASI (NAMED ROUTES) ---
-      // Wajib didaftarkan agar bottomNavigationBar di sisi Admin berfungsi 100%
+      // DAFTAR JALAN (ROUTES)
       routes: {
-        // Rute Autentikasi
-        '/login': (context) => const HalamanLogin(),
-        '/register': (context) => const HalamanRegister(),
+        '/login':           (context) => const HalamanLogin(),
+        '/register':        (context) => const HalamanRegister(),
+
+        // Rute Customer
+        '/home_customer':   (context) => const HalamanUtama(),
+        '/dashboard_menu':  (context) => const DashboardPage(),
+        '/cart':            (context) => const CartPage(),
+        '/order':           (context) => const MyOrdersPage(),
+        '/profil_customer': (context) => const ProfilePage(),
 
         // Rute Admin
-        '/dashboard': (context) => const DashboardAdmin(),
-        '/menu':      (context) => const MenuManagement(),
-        
-        // Catatan: Nama class di bawah disesuaikan dengan perbaikan kita sebelumnya.
-        '/order':     (context) => const OrderManagement(),    // Sesuaikan jika class-nya OrderAdmin
-        '/profit':    (context) => const profitAdmin(),
-        '/profil':    (context) => const ProfilReportAdmin(),  // Sesuaikan jika class-nya ProfilAdmin
-        '/customers': (context) => const ManageCustomers(),    // Sesuaikan jika class-nya ManageCustomer
+        '/dashboard_admin': (context) => const DashboardAdmin(),
+        '/menu':            (context) => const MenuManagement(),
+        '/order_admin':     (context) => const OrderManagement(),
+        '/profit':          (context) => const profitAdmin(),
+        '/profil_admin':    (context) => const ProfilReportAdmin(),
+        '/customers':       (context) => const ManageCustomers(),
       },
     );
   }

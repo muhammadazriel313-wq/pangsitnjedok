@@ -1,9 +1,9 @@
+import 'package:aplikasipangsitnjedok/customer/profil_customer.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'reviews.dart';
-import 'features/apps/customer/profil_customer.dart';
 
 
 void main() {

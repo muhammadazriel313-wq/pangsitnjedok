@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'halaman_register.dart';
-import 'customer/halaman_utama.dart';
+import 'customer/dashboard_menu.dart';
 import 'admin/dashboard_admin.dart';
 import '../../../core/network/api_services.dart'; // Import ApiService di sini
 
@@ -50,7 +50,7 @@ final response = await ApiService.login(
       if (isCustomerSelected) {
         Navigator.pushReplacement(
           context, 
-          MaterialPageRoute(builder: (context) => const HalamanUtama()),
+          MaterialPageRoute(builder: (context) => const DashboardPage()),
         );
       } else {
         Navigator.pushReplacement(
@@ -82,7 +82,7 @@ final response = await ApiService.login(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Column(
           children: [
-            const Text('Pangsit Njedog', style: TextStyle(color: Color(0xFF562F00), fontSize: 24, fontWeight: FontWeight.bold)),
+            const Text('Pangsit Njedok', style: TextStyle(color: Color(0xFF562F00), fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
             
             // --- BAGIAN LOGO ---
