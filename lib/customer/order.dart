@@ -1,25 +1,5 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const FigmaToCodeApp());
-}
-
-class FigmaToCodeApp extends StatelessWidget {
-  const FigmaToCodeApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Plus Jakarta Sans',
-        scaffoldBackgroundColor: const Color(0xFFFCFAEE),
-      ),
-      home: const MyOrdersPage(),
-    );
-  }
-}
-
 class MyOrdersPage extends StatefulWidget {
   const MyOrdersPage({super.key});
 
@@ -36,10 +16,16 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        centerTitle: true,
+        leading: GestureDetector(
+        onTap: () => Navigator.pop(context),
+        child: const Padding(
+          padding: EdgeInsets.all(12.0), // Berikan sedikit padding agar lebih mudah diklik
+          child: Icon(Icons.arrow_back, color: Color(0xFF954A00)),
+        ),
+      ),
         title: const Text(
           'My Orders',
-          style: TextStyle(color: Color(0xFF1B1C15), fontWeight: FontWeight.bold, fontSize: 20),
+          style: TextStyle(color: Color(0xFF1B1C15), fontWeight: FontWeight.bold, fontSize: 18),
         ),
       ),
       body: Column(
@@ -132,10 +118,10 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           queueNumber: 'A-12',
           status: 'Processing',
           statusColor: const Color(0xFFFF9442),
-          itemName: 'Spicy Umami Pangsit (XL)',
-          itemImage: 'https://via.placeholder.com/64',
-          price: 'Rp 45.000',
-          paymentStatus: 'PAID VIA QRIS',
+          itemName: 'Pangsit Tulang Rangu',
+          itemImage: 'assets/images/ptulangrangu.jpeg',
+          price: 'Rp 15.000',
+          paymentStatus: 'PAID VIA CASHIER',
           details: 'Extra Chili Oil • Toasted Garlic',
           bottomInfo: const Row(
             children: [
@@ -183,10 +169,8 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
       children: [
         _buildHistoryCard('#A-242', 'COMPLETED', 'Rp 42.000', '1x Pangsit Njedog Original', const Color(0xFFFFCF9A)),
         const SizedBox(height: 16),
-        _buildHistoryCard('#B-019', 'COMPLETED', 'Rp 58.000', '2x Pangsit Special Umami', const Color(0xFFFFCF9A)),
+        _buildHistoryCard('#B-019', 'COMPLETED', 'Rp 30.000', '2x Oseng Pangsit', const Color(0xFFFFCF9A)),
         const SizedBox(height: 16),
-        _buildHistoryCard('#A-991', 'CANCELLED', 'Rp 22.000', '1x Mie Ayam Njedog', const Color(0xFFFFDAD6), isCancelled: true),
-        const SizedBox(height: 30),
         const Icon(Icons.restaurant, color: Color(0xFFEAE8DD), size: 40),
         const Text("End of Records", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF554337))),
         const Text("Showing history from the last 90 days", style: TextStyle(color: Colors.grey, fontSize: 12)),
@@ -337,10 +321,6 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
             decoration: BoxDecoration(color: const Color(0xFFF6F4E8), borderRadius: BorderRadius.circular(12)),
             child: Text(items, style: const TextStyle(fontSize: 14)),
           ),
-          if (isCancelled) ...[
-            const SizedBox(height: 8),
-            const Text("Reason: Customer cancelled before preparation.", style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.w500)),
-          ]
         ],
       ),
     );

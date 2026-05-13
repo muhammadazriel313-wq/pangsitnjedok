@@ -14,18 +14,20 @@ import 'customer/profil_customer.dart';
 
 // --- IMPORT SISI ADMIN (Jalur Folder lib/admin/) ---
 import 'admin/dashboard_admin.dart';
-import 'admin/menu_management.dart';
 import 'admin/order_admin.dart';
+import 'admin/menu_management.dart';
 import 'admin/profit_admin.dart';
 import 'admin/profil_admin.dart';
 import 'admin/manage_customer.dart';
 
+// --- FUNGSI MAIN CUMA BOLEH SATU ---
 void main() {
-  runApp(const FoodApp());
+  // Disamakan dengan nama class di bawah (PangsitNjedokApp)
+  runApp(const PangsitNjedokApp());
 }
 
-class FoodApp extends StatelessWidget {
-  const FoodApp({super.key});
+class PangsitNjedokApp extends StatelessWidget {
+  const PangsitNjedokApp({super.key});
 
   @override
   Widget build(BuildContext context) {

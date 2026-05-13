@@ -4,6 +4,10 @@ import 'package:aplikasipangsitnjedok/core/network/api_services_profile.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
+// ✅ TAMBAHKAN BARIS INI:
+import '../service/api_service.dart';
+
+
 class EditAccountPage extends StatefulWidget {
   const EditAccountPage({super.key});
 
@@ -39,6 +43,8 @@ class _EditAccountPageState extends State<EditAccountPage> {
     }
   }
 
+// Fungsi untuk mengambil data user dari database (simulasi)
+
   @override
   void initState() {
     super.initState();
@@ -73,9 +79,37 @@ class _EditAccountPageState extends State<EditAccountPage> {
       }
     } catch (e) {
       setState(() => isLoading = false);
-      print("Error loading data: $e");
+      print("Gagal mengambil data: ${response['message']}");
     }
+  } catch (e) {
+    setState(() => isLoading = false);
+    print("Error loading data: $e");
   }
+}
+
+  void _saveChanges() async {
+    setState(() => isLoading = true); // Mulai loading, tombol jadi abu-abu
+
+    try {
+      print("Mengirim data update...");
+      var response = await ApiService.updateProfile("1", nameController.text, phoneController.text);
+
+      if (response['status'] == 'success') {
+      if (mounted) Navigator.pop(context, true);
+      } else {
+        // Tampilkan error jika gagal
+        if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Gagal: ${response['message']}")),
+        );
+      }
+    }
+  } catch (e) {
+    print("Error: $e");
+    } finally {
+        if (mounted) setState(() => isLoading = false); // Matikan loading jika sudah selesai
+      }
+    }
 
   void _saveChanges() async {
     setState(() => isLoading = true); // Mulai loading, tombol jadi abu-abu

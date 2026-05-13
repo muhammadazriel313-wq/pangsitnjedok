@@ -163,3 +163,4 @@ class _HalamanRegisterState extends State<HalamanRegister> {
     super.dispose();
   }
 }
+
