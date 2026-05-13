@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 class ApiService {
   // Alamat URL disesuaikan dengan folder di htdocs kamu
   // Gunakan 10.0.2.2 untuk emulator Android atau localhost untuk iOS/Web
-  static const String baseUrl = "http://10.0.2.2/pangsit_njedok_api"; 
+  static const String baseUrl = "http://localhost/pangsit_njedok_api"; 
 
   // ============================================================
   // 1. FUNGSI PROFIL CUSTOMER (BARU GABUNGAN)

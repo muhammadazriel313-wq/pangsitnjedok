@@ -33,7 +33,7 @@ class PangsitNjedokApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Pangsit Njedog',
+      title: 'Pangsit Njedok',
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFFFFDF1),
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF9442)),
