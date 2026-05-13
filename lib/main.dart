@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 
-// ✅ IMPORT JALUR CUSTOMER (Sesuai folder baru)
-import 'customer/profil_customer.dart';
-import 'customer/dashboard_menu.dart'; 
-import 'customer/halaman_menu.dart';
+// --- IMPORT AUTH (Gerbang Masuk) ---
+import 'tampilan_awal.dart';
+import 'halaman_login.dart';
+import 'halaman_register.dart';
 
-// ✅ IMPORT JALUR ADMIN (Ini yang bikin merah 9+ tadi karena belum dipanggil!)
+// --- IMPORT SISI CUSTOMER (Jalur Folder lib/customer/) ---
+import 'customer/halaman_utama.dart';
+import 'customer/dashboard_menu.dart';
+import 'customer/cart.dart';
+import 'customer/order.dart';
+import 'customer/profil_customer.dart';
+
+// --- IMPORT SISI ADMIN (Jalur Folder lib/admin/) ---
 import 'admin/dashboard_admin.dart';
 import 'admin/order_admin.dart';
 import 'admin/menu_management.dart';
@@ -26,29 +33,35 @@ class PangsitNjedokApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Pangsit Njedog App',
-      theme: ThemeData.light().copyWith(
+      title: 'Pangsit Njedok',
+      theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFFFFDF1),
-        // Menggunakan font Inter agar sesuai dengan desain
-        textTheme: ThemeData.light().textTheme.apply(fontFamily: 'Inter'),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF9442)),
+        fontFamily: 'Inter',
       ),
       
-      // ✅ PINTU MASUK CUSTOMER
-      initialRoute: '/customer_dashboard', 
+      // Aplikasi dimulai dari Tampilan Awal
+      home: const TampilanAwal(),
 
-      // SEMUA RUTE ADMIN & CUSTOMER
+      // DAFTAR JALAN (ROUTES)
       routes: {
-        // --- RUTE ADMIN ---
-        '/dashboard': (context) => const DashboardAdmin(),
-        '/order':     (context) => const OrderManagement(),
-        '/menu':      (context) => const MenuManagement(), 
-        '/profit':    (context) => const profitAdmin(),
-        '/profil':    (context) => const ProfilReportAdmin(),
-        '/customers': (context) => const ManageCustomers(),
+        '/login':           (context) => const HalamanLogin(),
+        '/register':        (context) => const HalamanRegister(),
 
-        // --- RUTE CUSTOMER BARU ---
-        '/customer_dashboard': (context) => const DashboardPage(),
-        '/customer_menu':      (context) => const MenuFoodScreen(),
+        // Rute Customer
+        '/home_customer':   (context) => const HalamanUtama(),
+        '/dashboard_menu':  (context) => const DashboardPage(),
+        '/cart':            (context) => const CartPage(),
+        '/order':           (context) => const MyOrdersPage(),
+        '/profil_customer': (context) => const ProfilePage(),
+
+        // Rute Admin
+        '/dashboard_admin': (context) => const DashboardAdmin(),
+        '/menu':            (context) => const MenuManagement(),
+        '/order_admin':     (context) => const OrderManagement(),
+        '/profit':          (context) => const profitAdmin(),
+        '/profil_admin':    (context) => const ProfilReportAdmin(),
+        '/customers':       (context) => const ManageCustomers(),
       },
     );
   }

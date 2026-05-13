@@ -2,7 +2,7 @@ import 'package:aplikasipangsitnjedok/customer/halaman_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'popup_terimakasih.dart'; // Pastikan file popup_terimakasih.dart sudah benar kodenya
-import 'cart.dart'; // Pastikan file cart.dart sudah benar kodenya
+// Pastikan file cart.dart sudah benar kodenya
 void main() {
   runApp(const PopupKonfirmasi());
 }

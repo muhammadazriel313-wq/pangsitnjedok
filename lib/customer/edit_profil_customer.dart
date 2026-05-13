@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
-import 'package:aplikasipangsitnjedok/core/network/api_services.dart';
+import 'package:aplikasipangsitnjedok/core/network/api_services_profile.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4b79ca51decbb58d2451e55d45936ff620bd9154
 class EditAccountPage extends StatefulWidget {
   const EditAccountPage({super.key});
 
@@ -16,7 +19,9 @@ class _EditAccountPageState extends State<EditAccountPage> {
   // Controller untuk input field
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
-  bool isLoading = true; //karena data akan diambil dari database, jadi kita buat loading dulu sebelum data muncul
+  
+  // Karena data akan diambil dari database, jadi kita buat loading dulu sebelum data muncul
+  bool isLoading = true; 
 
   // Variabel untuk menyimpan file gambar yang dipilih
   File? _imageFile;
@@ -29,16 +34,14 @@ class _EditAccountPageState extends State<EditAccountPage> {
       imageQuality: 80, // Opsional: kompres kualitas
     );
     if (pickedFile != null) {
-    print("Gambar dipilih: ${pickedFile.path}"); // Cek di console
-    setState(() {
-      _imageFile = File(pickedFile.path);
-    });
-  } else {
-    print("Tidak ada gambar yang dipilih.");
+      print("Gambar dipilih: ${pickedFile.path}"); // Cek di console
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    } else {
+      print("Tidak ada gambar yang dipilih.");
+    }
   }
-  }
-
-// Fungsi untuk mengambil data user dari database (simulasi)
 
   @override
   void initState() {
@@ -55,28 +58,28 @@ class _EditAccountPageState extends State<EditAccountPage> {
 
   // Fungsi untuk mengambil data dari database via API
   Future<void> _loadUserData() async {
-  try {
-    // 1. Panggil API get_profile.php, pastikan URL di ApiService sudah benar
-    var response = await ApiService.getProfile("1"); // Ganti "1" dengan ID yang sesuai
+    try {
+      // 1. Panggil API get_profile.php, pastikan URL di ApiService sudah benar
+      var response = await ApiService.getProfile("1"); // Ganti "1" dengan ID yang sesuai
 
-    if (response['status'] == 'success') {
-      // 2. Ambil data dari key 'data' sesuai format JSON di PHP kamu
-      final userData = response['data'];
-      
-      setState(() {
-        nameController.text = userData['name'] ?? ""; // Ambil field 'name'
-        phoneController.text = userData['no_telepon'] ?? ""; // Ambil field 'no_telepon'
-        isLoading = false;
-      });
-    } else {
+      if (response['status'] == 'success') {
+        // 2. Ambil data dari key 'data' sesuai format JSON di PHP kamu
+        final userData = response['data'];
+        
+        setState(() {
+          nameController.text = userData['name'] ?? ""; // Ambil field 'name'
+          phoneController.text = userData['no_telepon'] ?? ""; // Ambil field 'no_telepon'
+          isLoading = false;
+        });
+      } else {
+        setState(() => isLoading = false);
+        print("Gagal mengambil data: ${response['message']}");
+      }
+    } catch (e) {
       setState(() => isLoading = false);
-      print("Gagal mengambil data: ${response['message']}");
+      print("Error loading data: $e");
     }
-  } catch (e) {
-    setState(() => isLoading = false);
-    print("Error loading data: $e");
   }
-}
 
   void _saveChanges() async {
     setState(() => isLoading = true); // Mulai loading, tombol jadi abu-abu
@@ -86,35 +89,36 @@ class _EditAccountPageState extends State<EditAccountPage> {
       var response = await ApiService.updateProfile("1", nameController.text, phoneController.text);
 
       if (response['status'] == 'success') {
-      if (mounted) Navigator.pop(context, true);
+        if (mounted) Navigator.pop(context, true);
       } else {
         // Tampilkan error jika gagal
         if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Gagal: ${response['message']}")),
-        );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Gagal: ${response['message']}")),
+          );
+        }
       }
-    }
-  } catch (e) {
-    print("Error: $e");
+    } catch (e) {
+      print("Error: $e");
     } finally {
-        if (mounted) setState(() => isLoading = false); // Matikan loading jika sudah selesai
-      }
+      if (mounted) setState(() => isLoading = false); // Matikan loading jika sudah selesai
     }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFFFDF1),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: GestureDetector(
-        onTap: () => Navigator.pop(context),
-        child: const Padding(
-          padding: EdgeInsets.all(12.0), // Berikan sedikit padding agar lebih mudah diklik
-          child: Icon(Icons.arrow_back, color: Color(0xFF954A00)),
+          onTap: () => Navigator.pop(context),
+          child: const Padding(
+            padding: EdgeInsets.all(12.0), // Berikan sedikit padding agar lebih mudah diklik
+            child: Icon(Icons.arrow_back, color: Color(0xFF954A00)),
+          ),
         ),
-      ),
         title: const Text(
           'Profile',
           style: TextStyle(color: Color(0xFF954A00), fontWeight: FontWeight.bold, fontSize: 18),
@@ -197,29 +201,33 @@ class _EditAccountPageState extends State<EditAccountPage> {
                 shadowColor: const Color(0xFFFF9644),
               ),
               child: isLoading 
-    ? const SizedBox(
-        height: 24,
-        width: 24,
-        child: CircularProgressIndicator(
-          color: Color(0xFF6C3400),
-          strokeWidth: 3,
-        ),
-      )
-        : const Text(
-            'Save Changes',
-            style: TextStyle(
-              fontSize: 18, 
-              fontWeight: FontWeight.bold, 
-              color: Color(0xFF6C3400)
-            ),
-          ),
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF6C3400),
+                        strokeWidth: 3,
+                      ),
+                    )
+                  : const Text(
+                      'Save Changes',
+                      style: TextStyle(
+                        fontSize: 18, 
+                        fontWeight: FontWeight.bold, 
+                        color: Color(0xFF6C3400)
+                      ),
+                    ),
             ),
             const SizedBox(height: 20),
           ],
         ),
       ),
-      bottomNavigationBar: buildBottomNavbar(context, false),
-      floatingActionButton: buildFAB(),
+      
+      // --- PERBAIKAN DI SINI: MENGGUNAKAN STRING RUTE YANG BENAR ---
+      bottomNavigationBar: buildBottomNavbar(context, '/profil_customer'),
+      
+      // --- PERBAIKAN DI SINI: MEMANGGIL WIDGET INTERNAL TOMBOL FAB ---
+      floatingActionButton: _buildFab(context),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
@@ -259,6 +267,32 @@ class _EditAccountPageState extends State<EditAccountPage> {
           shape: BoxShape.circle,
         ),
         child: const Icon(Icons.edit, color: Colors.white, size: 16),
+      ),
+    );
+  }
+
+  // --- FUNGSI INTERNAL PEMBUAT TOMBOL KERANJANG MELAYANG ---
+  Widget _buildFab(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF9644).withOpacity(0.4),
+            blurRadius: 12,
+            spreadRadius: 2,
+          )
+        ],
+      ),
+      child: FloatingActionButton(
+        onPressed: () => Navigator.pushNamed(context, '/cart'),
+        backgroundColor: const Color(0xFFFF9644),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(50),
+          side: const BorderSide(color: Colors.white, width: 4),
+        ),
+        child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
       ),
     );
   }

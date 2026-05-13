@@ -366,7 +366,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
                 child: Image.asset(
                   item['image'],
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, _, _) => Container(
                     height: 268,
                     color: const Color(0xFFE0D5C5),
                     child: const Icon(Icons.restaurant, size: 64, color: Color(0xFF954A00)),
