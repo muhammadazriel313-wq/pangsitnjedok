@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-<<<<<<< HEAD
-=======
-import 'halaman_utama.dart'; 
-import 'order.dart';
->>>>>>> 4b79ca51decbb58d2451e55d45936ff620bd9154
 
 // ✅ JALUR IMPORT DIBENARKAN (Karena satu folder, tinggal panggil nama filenya)
 import 'halaman_utama.dart'; 

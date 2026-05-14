@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
 import 'halaman_register.dart'; 
 import '../customer/halaman_utama.dart'; 
 import '../admin/dashboard_admin.dart'; 
 
+
 // ✅ Hapus import API yang lama, pakai yang ini:
-import 'api_service.dart';
-=======
-import 'halaman_register.dart';
-import 'customer/dashboard_menu.dart';
-import 'admin/dashboard_admin.dart';
-import '../../../core/network/api_services.dart'; // Import ApiService di sini
->>>>>>> 4b79ca51decbb58d2451e55d45936ff620bd9154
+import 'service/api_service.dart';
 
 class HalamanLogin extends StatefulWidget {
   const HalamanLogin({super.key});
@@ -45,7 +39,6 @@ class _HalamanLoginState extends State<HalamanLogin> {
         _passwordController.text,
         isCustomerSelected ? 'customer' : 'admin', 
       );
-<<<<<<< HEAD
 
       if (!mounted) return; 
       setState(() => _isLoading = false);
@@ -53,14 +46,6 @@ class _HalamanLoginState extends State<HalamanLogin> {
       if (response['status'] == 'success') {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(response['message']), backgroundColor: Colors.green),
-=======
-      
-      // Navigasi dipisah antara Customer dan Admin
-      if (isCustomerSelected) {
-        Navigator.pushReplacement(
-          context, 
-          MaterialPageRoute(builder: (context) => const DashboardPage()),
->>>>>>> 4b79ca51decbb58d2451e55d45936ff620bd9154
         );
         
         if (isCustomerSelected) {

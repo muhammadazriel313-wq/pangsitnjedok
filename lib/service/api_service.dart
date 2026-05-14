@@ -8,7 +8,6 @@ class ApiService {
   static const String baseUrl = "http://localhost/pangsit_njedok_api"; 
 
   // ============================================================
-<<<<<<< HEAD
   // ⭐ [TAMBAHAN BARU] FUNGSI AUTH & PROFIL CUSTOMER
   // ============================================================
   
@@ -36,34 +35,17 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> getProfil(String id) async {
+  static Future<Map<String, dynamic>> getProfile(String id) async {
     try {
       final response = await http.get(Uri.parse("$baseUrl/get_profil.php?id=$id"));
       return response.statusCode == 200 ? json.decode(response.body) : {"status": "error", "message": "Gagal Ambil Data"};
     } catch (e) {
       return {"status": "error", "message": "Koneksi Error: $e"};
-=======
-  // 1. FUNGSI PROFIL CUSTOMER (BARU GABUNGAN)
-  // ============================================================
-  
-  static Future<Map<String, dynamic>> getProfile(String id) async {
-    try {
-      final response = await http.get(Uri.parse("$baseUrl/get_profil.php?id=$id"));
-
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        return {"status": "error", "message": "Gagal terhubung ke server"};
-      }
-    } catch (e) {
-      return {"status": "error", "message": e.toString()};
->>>>>>> 4b79ca51decbb58d2451e55d45936ff620bd9154
     }
   }
 
   static Future<Map<String, dynamic>> updateProfile(String id, String name, String phone) async {
     try {
-<<<<<<< HEAD
       final response = await http.post(
         Uri.parse("$baseUrl/update_profil_customer.php"),
         body: {"id": id, "name": name, "no_telepon": phone},
@@ -71,28 +53,11 @@ class ApiService {
       return response.statusCode == 200 ? json.decode(response.body) : {"status": "error", "message": "Gagal Update"};
     } catch (e) {
       return {"status": "error", "message": "Koneksi Error: $e"};
-=======
-      var url = Uri.parse("$baseUrl/ganti_profil.php");
-      
-      var response = await http.post(url, body: {
-        "id": id,
-        "name": name,
-        "no_telepon": phone,
-      });
-
-      return jsonDecode(response.body);
-    } catch (e) {
-      return {"status": "error", "message": e.toString()};
->>>>>>> 4b79ca51decbb58d2451e55d45936ff620bd9154
     }
   }
 
   // ============================================================
-<<<<<<< HEAD
   // 1. FUNGSI DASHBOARD (Mengambil Ringkasan Data)
-=======
-  // 2. FUNGSI DASHBOARD (Mengambil Ringkasan Data)
->>>>>>> 4b79ca51decbb58d2451e55d45936ff620bd9154
   // ============================================================
   static Future<Map<String, dynamic>> getDashboardData() async {
     try {
@@ -175,17 +140,9 @@ class ApiService {
   static Future<bool> updateAdminProfil(Map<String, String> data, {Uint8List? imageBytes}) async {
     try {
       var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/update_profil.php"));
-<<<<<<< HEAD
       data.forEach((key, value) {
         request.fields[key] = value;
       });
-=======
-
-      data.forEach((key, value) {
-        request.fields[key] = value;
-      });
-
->>>>>>> 4b79ca51decbb58d2451e55d45936ff620bd9154
       if (imageBytes != null) {
         request.files.add(http.MultipartFile.fromBytes(
           'image', 
@@ -193,10 +150,6 @@ class ApiService {
           filename: 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
         ));
       }
-<<<<<<< HEAD
-=======
-
->>>>>>> 4b79ca51decbb58d2451e55d45936ff620bd9154
       var response = await request.send();
       return response.statusCode == 200;
     } catch (e) {
@@ -225,13 +178,7 @@ class ApiService {
     }
   }
 
-<<<<<<< HEAD
   // MANAGE CUSTOMER
-=======
-  // ============================================================
-  // 7. MANAGE CUSTOMER
-  // ============================================================
->>>>>>> 4b79ca51decbb58d2451e55d45936ff620bd9154
   static Future<List<dynamic>> getCustomers() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/manage_customer.php'));
@@ -265,26 +212,11 @@ class ApiService {
     }
   }
 
-<<<<<<< HEAD
   // FUNGSI MENU CRUD (ADD, UPDATE, DELETE)
   static Future<bool> addMenu(Map<String, dynamic> data, {Uint8List? imageBytes, String? fileName}) async {
     try {
       var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/add_menu.php"));
       data.forEach((key, value) => request.fields[key] = value.toString());
-=======
-  // ============================================================
-  // 8. FUNGSI MENU CRUD (ADD, UPDATE, DELETE)
-  // ============================================================
-
-  static Future<bool> addMenu(Map<String, dynamic> data, {Uint8List? imageBytes, String? fileName}) async {
-    try {
-      var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/add_menu.php"));
-
-      data.forEach((key, value) {
-        request.fields[key] = value.toString();
-      });
-
->>>>>>> 4b79ca51decbb58d2451e55d45936ff620bd9154
       if (imageBytes != null && fileName != null) {
         request.files.add(http.MultipartFile.fromBytes('image', imageBytes, filename: fileName));
       }
@@ -299,15 +231,7 @@ class ApiService {
   static Future<bool> updateMenu(Map<String, String> data, {Uint8List? imageBytes}) async {
     try {
       var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/update_menu.php"));
-<<<<<<< HEAD
       data.forEach((key, value) => request.fields[key] = value);
-=======
-
-      data.forEach((key, value) {
-        request.fields[key] = value;
-      });
-
->>>>>>> 4b79ca51decbb58d2451e55d45936ff620bd9154
       if (imageBytes != null) {
         request.files.add(http.MultipartFile.fromBytes('image', imageBytes, filename: 'menu_${DateTime.now().millisecondsSinceEpoch}.jpg'));
       }
@@ -329,11 +253,7 @@ class ApiService {
   }
 
   // ============================================================
-<<<<<<< HEAD
   // FUNGSI GET FAVORIT 
-=======
-  // 9. FUNGSI GET FAVORIT
->>>>>>> 4b79ca51decbb58d2451e55d45936ff620bd9154
   // ============================================================
   static Future<List<dynamic>> getFavorites(int customerId) async {
     try {

@@ -4,10 +4,6 @@ import 'package:aplikasipangsitnjedok/core/network/api_services_profile.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 4b79ca51decbb58d2451e55d45936ff620bd9154
 class EditAccountPage extends StatefulWidget {
   const EditAccountPage({super.key});
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'edit_profil_customer.dart';
 import 'package:aplikasipangsitnjedok/customer/order.dart'; 
 import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
-import '/service/api_service.dart'; 
+import '../service/api_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
