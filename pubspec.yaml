@@ -19,10 +19,10 @@ dependencies:
   awesome_dialog: ^3.1.0
   
   # Untuk menghubungkan Flutter ke PHP/MySQL
-  http: ^1.1.0
+  http: ^1.6.0
   
   # Untuk mengambil foto menu dari galeri/kamera
-  image_picker: ^1.0.4
+  image_picker: ^1.2.2
   
   # PENTING: Untuk fitur Kalender (DatePicker) dan Format Rupiah di profit Admin
   intl: ^0.18.1

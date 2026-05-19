@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'reviews.dart';
 
+// ✅ JALUR IMPORT DIBENARKAN (Langsung panggil nama file karena satu folder)
+import 'profil_customer.dart';
 
 void main() {
   runApp(const RatingViewsPage());
@@ -66,7 +68,7 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
         setState(() => _isLoading = false);
       }
     } catch (e) {
-      print("Error koneksi: $e");
+      debugPrint("Error koneksi: $e"); // ✅ Diganti jadi debugPrint
       setState(() => _isLoading = false);
     }
   }
@@ -274,7 +276,7 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
                 minimumSize: const Size(double.infinity, 60),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                 elevation: 8,
-                shadowColor: const Color(0xFFFF9442).withOpacity(0.5), // Bayangan juga disesuaikan
+                shadowColor: const Color(0xFFFF9442).withValues(alpha: 0.5), // ✅ Diganti jadi withValues
               ),
             ),
           ),

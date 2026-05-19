@@ -4,7 +4,7 @@ import 'order.dart';
 import 'my_favorites.dart';
 import 'rating_views.dart';
 import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
-import '../service/api_service.dart'; 
+import '../service/api_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

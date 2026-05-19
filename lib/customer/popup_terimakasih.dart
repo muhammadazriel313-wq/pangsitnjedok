@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+// ✅ JALUR IMPORT DIBENARKAN (Karena satu folder, tinggal panggil nama filenya)
+import 'halaman_utama.dart'; 
+import 'order.dart'; 
 
 void main() {
   runApp(const PopupTerimakasih());
@@ -175,14 +178,14 @@ class OrderSuccessIllustration extends StatelessWidget {
             width: 180,
             height: 180,
             decoration: BoxDecoration(
-              color: const Color(0xFFFF9644).withOpacity(0.1),
+              color: const Color(0xFFFF9644).withValues(alpha: 0.1), // ✅ Diganti jadi withValues
               shape: BoxShape.circle,
             ),
           ),
-          // Ornamen titik kecil
-          Positioned(top: 20, left: 30, child: _dot(10, const Color(0xFFFF9644).withOpacity(0.4))),
-          Positioned(bottom: 20, right: 30, child: _dot(14, const Color(0xFFFFCE99).withOpacity(0.6))),
-          Positioned(top: 60, right: 10, child: _dot(6, const Color(0xFF562F00).withOpacity(0.3))),
+          // Ornamen titik kecil (✅ Diganti semua jadi withValues)
+          Positioned(top: 20, left: 30, child: _dot(10, const Color(0xFFFF9644).withValues(alpha: 0.4))),
+          Positioned(bottom: 20, right: 30, child: _dot(14, const Color(0xFFFFCE99).withValues(alpha: 0.6))),
+          Positioned(top: 60, right: 10, child: _dot(6, const Color(0xFF562F00).withValues(alpha: 0.3))),
           
           // Lingkaran tengah
           Container(
@@ -199,7 +202,7 @@ class OrderSuccessIllustration extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1), // ✅ Diganti jadi withValues
                   blurRadius: 10,
                   offset: const Offset(0, 5),
                 )
