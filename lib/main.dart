@@ -56,6 +56,7 @@ class PangsitNjedokApp extends StatelessWidget {
         '/profil_customer': (context) => const ProfilePage(),
 
         // Rute Admin
+        '/dashboard_admin': (context) => const DashboardAdmin(),
         '/dashboard': (context) => const DashboardAdmin(),
         '/menu': (context) => const MenuManagement(),
         '/order': (context) => const OrderManagement(),
