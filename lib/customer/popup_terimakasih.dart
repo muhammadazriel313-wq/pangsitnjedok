@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// ✅ JALUR IMPORT DIBENARKAN (Karena satu folder, tinggal panggil nama filenya)
-import 'halaman_utama.dart'; 
-import 'order.dart'; 
+
 
 void main() {
   runApp(const PopupTerimakasih());
