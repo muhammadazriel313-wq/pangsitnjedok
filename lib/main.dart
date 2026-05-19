@@ -39,29 +39,29 @@ class PangsitNjedokApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF9442)),
         fontFamily: 'Inter',
       ),
-      
+
       // Aplikasi dimulai dari Tampilan Awal
       home: const TampilanAwal(),
 
       // DAFTAR JALAN (ROUTES)
       routes: {
-        '/login':           (context) => const HalamanLogin(),
-        '/register':        (context) => const HalamanRegister(),
+        '/login': (context) => const HalamanLogin(),
+        '/register': (context) => const HalamanRegister(),
 
         // Rute Customer
-        '/home_customer':   (context) => const HalamanUtama(),
-        '/dashboard_menu':  (context) => const DashboardPage(),
-        '/cart':            (context) => const CartPage(),
-        '/order':           (context) => const MyOrdersPage(),
+        '/home_customer': (context) => const HalamanUtama(),
+        '/dashboard_menu': (context) => const DashboardPage(),
+        '/cart': (context) => const CartPage(),
+        '/order_customer': (context) => const MyOrdersPage(),
         '/profil_customer': (context) => const ProfilePage(),
 
         // Rute Admin
-        '/dashboard_admin': (context) => const DashboardAdmin(),
-        '/menu':            (context) => const MenuManagement(),
-        '/order_admin':     (context) => const OrderManagement(),
-        '/profit':          (context) => const profitAdmin(),
-        '/profil_admin':    (context) => const ProfilReportAdmin(),
-        '/customers':       (context) => const ManageCustomers(),
+        '/dashboard': (context) => const DashboardAdmin(),
+        '/menu': (context) => const MenuManagement(),
+        '/order': (context) => const OrderManagement(),
+        '/profit': (context) => const ProfitAdmin(),
+        '/profil': (context) => const ProfilReportAdmin(),
+        '/customers': (context) => const ManageCustomers(),
       },
     );
   }

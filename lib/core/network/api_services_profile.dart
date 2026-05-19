@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
  
 class ApiService { 
   // Ubah localhost menjadi 10.0.2.2 untuk emulator Android
-  static const String _baseUrl = 'http://10.0.2.2/pangsit_njedok_API'; 
+  static const String _baseUrl = 'http://localhost/pangsit_njedok_API'; 
   
   static Future<Map<String, dynamic>> updateProfile(String id, String name, String phone) async {
     try {

@@ -144,38 +144,179 @@ class ApiService {
 
   // MANAGE CUSTOMER
   
-  static Future<Map<String, dynamic>> updateProfile(String id, String name, String phone) async {
+  static Future<List<dynamic>> getCustomers() async {
     try {
-      // Gunakan _baseUrl agar lebih rapi dan mudah diubah
-      var url = Uri.parse("$_baseUrl/ganti_profil.php");
-      
-      var response = await http.post(url, body: {
-        "id": id,
-        "name": name,
-        "no_telepon": phone,
-      });
-
-      return jsonDecode(response.body);
+      final response = await http.get(Uri.parse('$baseUrl/manage_customer.php'));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        return [];
+      }
     } catch (e) {
-      return {"status": "error", "message": e.toString()};
+      return [];
     }
   }
 
-  // ===================== 
-  // GET PROFILE
-  // ===================== 
-  static Future<Map<String, dynamic>> getProfile(String id) async {
+  static Future<bool> deleteCustomer(String id) async {
     try {
-      // Gunakan _baseUrl di sini juga
-      final response = await http.get(Uri.parse("$_baseUrl/get_profil.php?id=$id"));
+      final response = await http.post(
+        Uri.parse("$baseUrl/delete_customer.php"),
+        body: {"id": id}, 
+      );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final result = json.decode(response.body);
+        return result['success'] == true; 
+      }
+      return false;
+    } catch (e) {
+      print("Koneksi Error: $e");
+      return false;
+    }
+  }
+
+  static Future<Map<String, dynamic>> getDashboardStats() async {
+    try {
+      final response = await http.get(Uri.parse("$baseUrl/dashboard_stastic.php"));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
       } else {
-        return {"status": "error", "message": "Gagal terhubung ke server"};
+        return {};
       }
     } catch (e) {
-      return {"status": "error", "message": e.toString()};
+      print("Error Fetch Dashboard: $e");
+      return {};
+    }
+  }
+
+  
+  // FUNGSI MENU CRUD (ADD, UPDATE, DELETE)
+
+  // 1. ADD MENU (VERSI BARU YANG BISA UPLOAD FOTO)
+  static Future<bool> addMenu(Map<String, dynamic> data, {Uint8List? imageBytes, String? fileName}) async {
+    try {
+      var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/add_menu.php"));
+
+      // Masukkan data teks
+      data.forEach((key, value) {
+        request.fields[key] = value.toString();
+      });
+
+      // Masukkan file foto (jika user memilih foto)
+      if (imageBytes != null && fileName != null) {
+        var multipartFile = http.MultipartFile.fromBytes(
+          'image', 
+          imageBytes, 
+          filename: fileName,
+        );
+        request.files.add(multipartFile);
+      }
+
+      var response = await request.send();
+      var responseData = await response.stream.bytesToString();
+      
+      if (response.statusCode == 200) {
+        final result = json.decode(responseData);
+        return result['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      print("Add Menu Error: $e");
+      return false;
+    }
+  }
+
+  // 2. UPDATE MENU
+  static Future<bool> updateMenu(Map<String, String> data, {Uint8List? imageBytes}) async {
+    try {
+      var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/update_menu.php"));
+
+      // Masukkan data teks (id, title, price, dll)
+      data.forEach((key, value) {
+        request.fields[key] = value;
+      });
+
+      // Masukkan file foto (jika admin memilih foto baru di galeri)
+      if (imageBytes != null) {
+        var multipartFile = http.MultipartFile.fromBytes(
+          'image', 
+          imageBytes, 
+          filename: 'menu_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        );
+        request.files.add(multipartFile);
+      }
+
+      var response = await request.send();
+      
+      // Cek apakah berhasil
+      if (response.statusCode == 200) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print("Update Menu Error: $e");
+      return false;
+    }
+  }
+
+  // 3. DELETE MENU
+  static Future<bool> deleteMenu(String id) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/delete_menu.php"),
+        body: {'id': id}, 
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // ============================================================
+  // FUNGSI LOGIN
+  // ============================================================
+  static Future<Map<String, dynamic>> login(String identifier, String password, String role) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/login.php"),
+        body: {
+          "identifier": identifier,
+          "password": password,
+          "role": role, // 'admin' atau 'customer'
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        return {"status": "error", "message": "Gagal terhubung ke server HTTP ${response.statusCode}"};
+      }
+    } catch (e) {
+      return {"status": "error", "message": "Tidak dapat terhubung ke server: $e"};
+    }
+  }
+
+  // ============================================================
+  // FUNGSI REGISTRASI CUSTOMER (Baru Ditambahkan)
+  // ============================================================
+  static Future<Map<String, dynamic>> register(String name, String phone, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/register.php'),
+        body: {
+          'name': name,
+          'phone': phone,
+          'password': password,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body); 
+      } else {
+        return {'status': 'error', 'message': 'Gagal terhubung ke server database'};
+      }
+    } catch (e) {
+      return {'status': 'error', 'message': 'Terjadi kesalahan sistem: $e'};
     }
   }
 }

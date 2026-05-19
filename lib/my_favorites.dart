@@ -76,8 +76,8 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
         setState(() => _isLoading = false);
       }
     } catch (e) {
-      print("Error koneksi: $e");
-      setState(() => _isLoading = false);
+      debugPrint("Error koneksi: $e");
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -85,7 +85,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
   void _toggleFavorite(int menuId) async {
     try {
       final response = await http.post(
-        Uri.parse("http://10.0.2.2/pangsit_api/toggle_favorite.php"),
+        Uri.parse("http://localhost/pangsit_api/toggle_favorite.php"),
         body: {
           "customer_id": "1",
           "menu_id": menuId.toString(),
@@ -97,6 +97,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
         _fetchFavorites();
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal koneksi ke server: $e')),
       );
@@ -348,7 +349,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
         ),
         shadows: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -387,7 +388,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
                       shape: const CircleBorder(),
                       shadows: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
+                          color: Colors.black.withValues(alpha: 0.08),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -506,7 +507,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
                           ),
                           shadows: [
                             BoxShadow(
-                              color: const Color(0xFFFF9442).withOpacity(0.4),
+                              color: const Color(0xFFFF9442).withValues(alpha: 0.4),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -525,6 +526,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildCheckoutBanner() {
     return Container(
       width: double.infinity,
@@ -601,7 +603,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
                 ),
                 shadows: [
                   BoxShadow(
-                    color: const Color(0xFF954A00).withOpacity(0.3),
+                    color: const Color(0xFF954A00).withValues(alpha: 0.3),
                     blurRadius: 15,
                     offset: const Offset(0, 8),
                     spreadRadius: -3,
@@ -637,7 +639,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
+        color: Colors.white.withValues(alpha: 0.95),
         border: const Border(
           top: BorderSide(width: 1, color: Color(0xFFFF9442)),
         ),

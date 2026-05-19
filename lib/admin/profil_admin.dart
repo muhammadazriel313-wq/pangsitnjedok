@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '/service/api_service.dart';
 import 'edit_profil.dart'; // Pastikan import ini ada
+import '../halaman_login.dart'; // Import halaman login untuk rute logout
 
 class ProfilReportAdmin extends StatefulWidget {
   const ProfilReportAdmin({super.key});
@@ -28,6 +29,40 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
     });
   }
 
+  // Menampilkan Dialog Konfirmasi Logout
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: const Text(
+            "Konfirmasi Logout", 
+            style: TextStyle(color: Color(0xFF562F00), fontWeight: FontWeight.bold)
+          ),
+          content: const Text("Apakah Anda yakin ingin keluar dari akun ini?"),
+          actions: [
+            TextButton(
+              child: const Text("Batal", style: TextStyle(color: Colors.grey)),
+              onPressed: () => Navigator.pop(context),
+            ),
+            TextButton(
+              child: const Text("Logout", style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                // Hapus semua riwayat routing agar tidak bisa klik 'Back' ke profil
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HalamanLogin()),
+                  (Route<dynamic> route) => false, 
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,6 +79,15 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
           'Admin Profile',
           style: TextStyle(color: Color(0xFFC2410C), fontSize: 20, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          // TOMBOL LOGOUT BARU
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, color: Color(0xFFC2410C)),
+            onPressed: () => _showLogoutDialog(context),
+            tooltip: 'Logout',
+          ),
+          const SizedBox(width: 8), // Sedikit jarak agar tidak terlalu mepet kanan
+        ],
       ),
       body: FutureBuilder<Map<String, dynamic>?>(
         future: _profilFuture,
@@ -72,7 +116,7 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
                   ),
                   child: Column(
                     children: [
-                      // PERBAIKAN: Menggunakan NetworkImage agar foto profil berubah sesuai database
+                      // Menggunakan NetworkImage agar foto profil berubah sesuai database
                       CircleAvatar(
                         radius: 50,
                         backgroundColor: const Color(0xFFFFEEDD),
@@ -103,12 +147,12 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
                                   'username': data['username']?.toString() ?? '',
                                   'phone': data['no_telepon']?.toString() ?? data['phone']?.toString() ?? '',
                                   'email': data['email']?.toString() ?? '',
-                                  'image_url': data['image_url']?.toString() ?? '', // Mengirim URL gambar saat ini[cite: 19]
+                                  'image_url': data['image_url']?.toString() ?? '', // Mengirim URL gambar saat ini
                                 },
                               ),
                             ),
                           );
-                          // Jika kembali membawa nilai true, lakukan refresh data[cite: 15]
+                          // Jika kembali membawa nilai true, lakukan refresh data
                           if (result == true) {
                             _refreshData();
                           }
@@ -179,7 +223,7 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
           _buildNavItem("Dashboard", Icons.dashboard_outlined, false, '/dashboard'),
           _buildNavItem("Orders", Icons.receipt_long_outlined, false, '/order'),
           _buildNavItem("Menu", Icons.restaurant_menu_outlined, false, '/menu'),
-          _buildNavItem("Profit", Icons.bar_chart_outlined, false, '/profit'),
+          _buildNavItem("Income", Icons.bar_chart_outlined, false, '/profit'),
           _buildNavItem("Profile", Icons.person, true, '/profil'),
         ],
       ),

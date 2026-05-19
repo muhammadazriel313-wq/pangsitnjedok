@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'halaman_register.dart';
-import 'customer/dashboard_menu.dart';
 import 'admin/dashboard_admin.dart';
 import '../../../core/network/api_services.dart'; // Import ApiService di sini
 
@@ -48,10 +47,7 @@ final response = await ApiService.login(
       
       // Navigasi dipisah antara Customer dan Admin
       if (isCustomerSelected) {
-        Navigator.pushReplacement(
-          context, 
-          MaterialPageRoute(builder: (context) => const DashboardPage()),
-        );
+        Navigator.pushReplacementNamed(context, '/home_customer');
       } else {
         Navigator.pushReplacement(
           context, 

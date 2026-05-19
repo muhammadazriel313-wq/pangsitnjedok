@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'halaman_utama.dart'; 
-import 'features/apps/customer/order.dart';
 
 
 void main() {
@@ -13,138 +11,138 @@ class PopupTerimakasih extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFCFAEE),
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 40,
-            offset: const Offset(0, 20),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Garis Gradient di bagian atas
-            Container(
-              height: 6,
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF954A00), Color(0xFFFF9644), Color(0xFFFFCF9A)],
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F7F5),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFCFAEE),
+              borderRadius: BorderRadius.circular(32),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 40,
+                  offset: const Offset(0, 20),
                 ),
-              ),
+              ],
             ),
-            
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(32),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Tombol Close (X)
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: IconButton(
-                          onPressed: () {
-                            // Mengarahkan ke HomePage dan menghapus semua halaman sebelumnya
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(builder: (context) => const HalamanUtama()),
-                              (route) => false,
-                            );
-                          },
-                          icon: const Icon(Icons.close, color: Color(0xFF554337)),
-                        ),
-                      ),
-
-                  // Ilustrasi Ikon Centang & Lingkaran
-                  const OrderSuccessIllustration(),
-                  
-                  const SizedBox(height: 32),
-
-                  // Teks Utama
-                  Text(
-                    'Thank you for your\norder!',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.plusJakartaSans(
-                      color: const Color(0xFF562F00),
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      height: 1.2,
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 16),
-
-                  // Deskripsi
-                  Text(
-                    'Your order has been successfully\nplaced and is being prepared.',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.beVietnamPro(
-                      color: const Color(0xFF554337),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      height: 1.5,
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Tombol Track Order
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const MyOrdersPage()),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF9644),
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(double.infinity, 56),
-                      elevation: 4,
-                      shadowColor: const Color(0xFFFF9644).withOpacity(0.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                    child: Text(
-                      'Track Order',
-                      style: GoogleFonts.beVietnamPro(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Info Box "My Orders"
+                  // Garis Gradient di bagian atas
                   Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF6F4E8),
-                      borderRadius: BorderRadius.circular(16),
+                    height: 6,
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF954A00), Color(0xFFFF9644), Color(0xFFFFCF9A)],
+                      ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  ),
+                  
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                    child: Column(
                       children: [
-                        const Icon(Icons.receipt_long_outlined, size: 20, color: Color(0xFF887366)),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            'You can also find this under My Orders',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.plusJakartaSans(
-                              color: const Color(0xFF887366),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
+                        // Tombol Close (X)
+                            Align(
+                              alignment: Alignment.topRight,
+                              child: IconButton(
+                                onPressed: () {
+                                  // Mengarahkan ke HomePage dan menghapus semua halaman sebelumnya
+                                  Navigator.pushNamedAndRemoveUntil(context, '/home_customer', (route) => false);
+                                },
+                                icon: const Icon(Icons.close, color: Color(0xFF554337)),
+                              ),
                             ),
+
+                        // Ilustrasi Ikon Centang & Lingkaran
+                        const OrderSuccessIllustration(),
+                        
+                        const SizedBox(height: 32),
+
+                        // Teks Utama
+                        Text(
+                          'Thank you for your\norder!',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.plusJakartaSans(
+                            color: const Color(0xFF562F00),
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            height: 1.2,
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 16),
+
+                        // Deskripsi
+                        Text(
+                          'Your order has been successfully\nplaced and is being prepared.',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.beVietnamPro(
+                            color: const Color(0xFF554337),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            height: 1.5,
+                          ),
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        // Tombol Track Order
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(context, '/order_customer');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFF9644),
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(double.infinity, 56),
+                            elevation: 4,
+                            shadowColor: const Color(0xFFFF9644).withOpacity(0.5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                          ),
+                          child: Text(
+                            'Track Order',
+                            style: GoogleFonts.beVietnamPro(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Info Box "My Orders"
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF6F4E8),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.receipt_long_outlined, size: 20, color: Color(0xFF887366)),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  'You can also find this under My Orders',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    color: const Color(0xFF887366),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -153,7 +151,7 @@ class PopupTerimakasih extends StatelessWidget {
                 ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

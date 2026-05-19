@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
+import '../service/api_service.dart';
 
 class MyOrdersPage extends StatefulWidget {
   const MyOrdersPage({super.key});
@@ -8,16 +12,104 @@ class MyOrdersPage extends StatefulWidget {
 }
 
 class _MyOrdersPageState extends State<MyOrdersPage> {
-  bool isActiveTab = true;
+  bool isActiveTab = true; // Tab aktif milikmu
+  bool _isLoading = true;
+  List<dynamic> _orders = [];
+  String _customerName = "";
+  String _customerPhone = "";
+  
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCustomerDataAndOrders();
+    // Refresh otomatis setiap 3 detik di belakang layar tanpa merusak UI customer
+    _timer = Timer.periodic(const Duration(seconds: 3), (Timer t) {
+      if (mounted) {
+        _fetchOrdersOnly(); 
+      }
+    });
+  }
+
+  Future<void> _fetchCustomerDataAndOrders() async {
+    try {
+      final profile = await ApiService.getProfile("1");
+      if (profile['status'] == 'success' && profile['data'] is Map) {
+        final data = Map<String, dynamic>.from(profile['data'] as Map);
+        _customerName = (data['name'] ?? 'Customer').toString();
+        _customerPhone = (data['no_telepon'] ?? '-').toString();
+      }
+      await _fetchOrdersOnly();
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchOrdersOnly() async {
+    try {
+      final orders = await ApiService.getCustomerOrders(
+        phoneNumber: _customerPhone,
+        customerName: _customerName,
+      );
+      if (mounted) {
+        setState(() {
+          _orders = orders;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching orders: $e");
+    }
+  }
+
+  Widget _buildEmptyState(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
+      child: Column(
+        children: [
+          const Icon(Icons.receipt_long_outlined, color: Color(0x66562F00), size: 48),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: const TextStyle(
+              color: Color(0x66562F00),
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    // Matikan timer saat pindah halaman agar aplikasi tidak berat/error
+    _timer?.cancel(); 
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // ... (KODE DESAINMU TETAP AMAN DI SINI) ...
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: GestureDetector(
-        onTap: () => Navigator.pop(context),
+        onTap: () {
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          } else {
+            Navigator.pushReplacementNamed(context, '/dashboard_menu');
+          }
+        },
         child: const Padding(
           padding: EdgeInsets.all(12.0), // Berikan sedikit padding agar lebih mudah diklik
           child: Icon(Icons.arrow_back, color: Color(0xFF954A00)),
@@ -63,27 +155,10 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFFFF9442),
         shape: const CircleBorder(),
-        onPressed: () {},
+        onPressed: () => Navigator.pushNamed(context, '/cart'),
         child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
       ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.white,
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _navItem(Icons.home_outlined, 'Home', false),
-              _navItem(Icons.restaurant_menu_outlined, 'Menu', false),
-              const SizedBox(width: 40),
-              _navItem(Icons.receipt_long, 'Orders', true),
-              _navItem(Icons.person_outline, 'Profile', false),
-            ],
-          ),
-        ),
-      ),
+      bottomNavigationBar: buildBottomNavbar(context, '/order_customer'),
     );
   }
 
@@ -112,64 +187,129 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
   }
 
   Widget _buildActiveContent() {
+    final activeOrders = _orders.where((o) {
+      final status = (o['status'] ?? '').toString().toUpperCase();
+      return status == 'WAITING' || status == 'PROCESSING';
+    }).toList();
+
+    if (_isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(40.0),
+          child: CircularProgressIndicator(color: Color(0xFFFF9442)),
+        ),
+      );
+    }
+
+    if (activeOrders.isEmpty) {
+      return _buildEmptyState("No active orders");
+    }
+
     return Column(
       children: [
-        _buildActiveOrderCard(
-          queueNumber: 'A-12',
-          status: 'Processing',
-          statusColor: const Color(0xFFFF9442),
-          itemName: 'Pangsit Tulang Rangu',
-          itemImage: 'assets/images/ptulangrangu.jpeg',
-          price: 'Rp 15.000',
-          paymentStatus: 'PAID VIA CASHIER',
-          details: 'Extra Chili Oil • Toasted Garlic',
-          bottomInfo: const Row(
-            children: [
-              Icon(Icons.access_time, size: 16, color: Color(0xFF554337)),
-              SizedBox(width: 8),
-              Text('Est. Completion', style: TextStyle(fontSize: 12, color: Color(0xFF554337))),
-              Spacer(),
-              Text('8 mins left', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildActiveOrderCard(
-          queueNumber: 'A-15',
-          status: 'Waiting\nConfirmation',
-          statusColor: const Color(0xFF7B572C),
-          itemName: 'Njedog Special Ramen',
-          itemImage: 'https://picsum.photos/100',
-          price: 'Rp 52.000',
-          paymentStatus: 'WAITING PAYMENT',
-          details: 'Soft Boiled Egg • Seaweed',
-          bottomInfo: const Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.info_outline, size: 18, color: Color(0xFF954A00)),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Your order is being reviewed by the chef. Please stay nearby for pickup notification.',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF554337), height: 1.5),
-                ),
+        ...activeOrders.map((order) {
+          List<dynamic> itemsRaw = [];
+          try {
+            itemsRaw = json.decode(order['items_raw']);
+          } catch (e) {
+            itemsRaw = [];
+          }
+
+          String itemName = "Pangsit Njedog Order";
+          String details = "Total: ${itemsRaw.length} item";
+          if (itemsRaw.isNotEmpty) {
+            itemName = itemsRaw[0]['name'] ?? 'Pangsit';
+            details = itemsRaw.map((i) => "${i['qty']}x ${i['name']}").join(" • ");
+          }
+
+          final status = (order['status'] ?? '').toString();
+          final String queueNo = (order['id'] ?? '').toString().length > 5 
+              ? (order['id'] ?? '').toString().substring((order['id'] ?? '').toString().length - 5) 
+              : (order['id'] ?? '').toString();
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _buildActiveOrderCard(
+              queueNumber: queueNo,
+              status: status,
+              statusColor: status.toUpperCase() == 'PROCESSING' ? const Color(0xFFFF9442) : const Color(0xFF7B572C),
+              itemName: itemName,
+              itemImage: 'assets/images/ptulangrangu.jpeg',
+              price: '${order['totalAmount']}',
+              paymentStatus: status.toUpperCase() == 'PROCESSING' ? 'PAID' : 'WAITING CONFIRMATION',
+              details: details,
+              bottomInfo: Row(
+                children: [
+                  const Icon(Icons.access_time, size: 16, color: Color(0xFF554337)),
+                  const SizedBox(width: 8),
+                  const Text('Status', style: TextStyle(fontSize: 12, color: Color(0xFF554337))),
+                  const Spacer(),
+                  Text(
+                    status.toUpperCase() == 'PROCESSING' ? 'Sedang Diproses' : 'Menunggu Konfirmasi',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        }),
         const SizedBox(height: 24),
-        _buildCravingBanner(), // Panggil banner di sini
-        const SizedBox(height: 80), 
+        _buildCravingBanner(),
+        const SizedBox(height: 80),
       ],
     );
   }
 
   Widget _buildHistoryContent() {
+    final historyOrders = _orders.where((o) {
+      final status = (o['status'] ?? '').toString().toUpperCase();
+      return status == 'COMPLETED' || status == 'CANCELLED';
+    }).toList();
+
+    if (_isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(40.0),
+          child: CircularProgressIndicator(color: Color(0xFFFF9442)),
+        ),
+      );
+    }
+
+    if (historyOrders.isEmpty) {
+      return _buildEmptyState("No history records");
+    }
+
     return Column(
       children: [
-        _buildHistoryCard('#A-242', 'COMPLETED', 'Rp 42.000', '1x Pangsit Njedog Original', const Color(0xFFFFCF9A)),
-        const SizedBox(height: 16),
-        _buildHistoryCard('#B-019', 'COMPLETED', 'Rp 30.000', '2x Oseng Pangsit', const Color(0xFFFFCF9A)),
+        ...historyOrders.map((order) {
+          List<dynamic> itemsRaw = [];
+          try {
+            itemsRaw = json.decode(order['items_raw']);
+          } catch (e) {
+            itemsRaw = [];
+          }
+
+          String itemsSummary = "Detail pesanan kosong";
+          if (itemsRaw.isNotEmpty) {
+            itemsSummary = itemsRaw.map((i) => "${i['qty']}x ${i['name']}").join(", ");
+          }
+
+          final status = (order['status'] ?? '').toString().toUpperCase();
+          final isCancelled = status == 'CANCELLED';
+          final labelColor = isCancelled ? Colors.red[100]! : const Color(0xFFFFCF9A);
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _buildHistoryCard(
+              '#${order['id']}',
+              status,
+              '${order['totalAmount']}',
+              itemsSummary,
+              labelColor,
+              isCancelled: isCancelled,
+            ),
+          );
+        }),
         const SizedBox(height: 16),
         const Icon(Icons.restaurant, color: Color(0xFFEAE8DD), size: 40),
         const Text("End of Records", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF554337))),
@@ -365,13 +505,4 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     );
   }
 
-  Widget _navItem(IconData icon, String label, bool isActive) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: isActive ? const Color(0xFFFF9442) : Colors.grey),
-        Text(label, style: TextStyle(fontSize: 10, color: isActive ? const Color(0xFFFF9442) : Colors.grey)),
-      ],
-    );
-  }
 }

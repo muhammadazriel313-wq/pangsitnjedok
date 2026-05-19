@@ -2,6 +2,7 @@
     
     <!-- 1. TAMBAHKAN INI: Izin untuk mengakses Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:label="aplikasipangsitnjedok"

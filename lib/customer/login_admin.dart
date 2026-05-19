@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const FigmaToCodeApp());
+  runApp(const LoginAdmin());
 }
 
 //Untuk menjalankan Aplikasi Utama
-class FigmaToCodeApp extends StatelessWidget {
-  const FigmaToCodeApp({super.key});
+class LoginAdmin extends StatelessWidget {
+  const LoginAdmin({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,15 +16,15 @@ class FigmaToCodeApp extends StatelessWidget {
       ),
       home: Scaffold(
         body: ListView(children: [
-          Frame1000003605(), //frame untuk memanggil login
+          const LoginAdminContent(), //frame untuk memanggil login
         ]),
       ),
     );
   }
 }
 
-class Frame1000003605 extends StatelessWidget {
-  const Frame1000003605({super.key});
+class LoginAdminContent extends StatelessWidget {
+  const LoginAdminContent({super.key});
 
   @override
   Widget build(BuildContext context) {

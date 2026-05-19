@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; 
+import 'dart:convert';
 
-// IMPORT INI PENTING (Sesuaikan path-nya jika perlu)
-import 'dashboard_menu.dart'; 
 import '../service/api_service.dart';
+import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const PangsitApp());
@@ -34,6 +35,7 @@ class MenuFoodScreen extends StatefulWidget {
 }
 
 class _MenuFoodScreenState extends State<MenuFoodScreen> {
+  static const String _cartStorageKey = 'customer_cart_items_v1';
   bool _isFoodSelected = true;
 
   // --- VARIABEL UNTUK API ---
@@ -52,6 +54,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
   void initState() {
     super.initState();
     _fetchMenuData(); // PANGGIL API SAAT HALAMAN DIBUKA
+    _loadCartItemCount();
 
     // Timer slider tetap jalan
     _carouselTimer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
@@ -293,6 +296,8 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
   Widget _buildMenuCard(dynamic item) {
     String title = item['title'] ?? 'Nama Menu'; 
     String price = item['price']?.toString() ?? '0'; 
+    int priceValue = int.tryParse(price) ?? 0;
+    String subtitle = _isFoodSelected ? 'Food' : 'Beverages';
     String imageUrl = item['image_url'] ?? ''; 
     
     // ✅ 1. AMBIL DATA STOK DARI DATABASE (Penting!)
@@ -389,11 +394,14 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
                       Text("Rp $price", style: const TextStyle(color: Color(0xFFFF9442), fontSize: 14, fontWeight: FontWeight.w800)), 
                       // ✅ LOGIKA TOMBOL (+) DENGAN SNACKBAR MELAYANG
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
                           if (stock > 0) {
-                            setState(() {
-                              _cartItemCount++; // Nambah angka keranjang
-                            });
+                            await _addItemToCart(
+                              title: title,
+                              subtitle: subtitle,
+                              price: priceValue,
+                            );
+                            if (!mounted) return;
                             // ✅ NOTIFIKASI DIUBAH JADI MELAYANG BIAR KERANJANG NGGAK NAIK
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -465,53 +473,56 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
 
   // --- BAGIAN NAVIGATION BAR BAWAH --- //
   Widget _buildBottomNavigationBar(BuildContext context) {
-    return BottomAppBar(
-      color: Colors.white,
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8.0,
-      elevation: 10,
-      child: SizedBox(
-        height: 60,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.home_outlined, 'Home', false, () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const DashboardPage()));
-            }),
-            _buildNavItem(Icons.restaurant_menu, 'Menu', true, () {}),
-            const SizedBox(width: 48), 
-            _buildNavItem(Icons.receipt_long_outlined, 'Order', false, () {}),
-            _buildNavItem(Icons.person_outline, 'Profil', false, () {}),
-          ],
-        ),
-      ),
-    );
+    return buildBottomNavbar(context, '/dashboard_menu');
   }
 
-  Widget _buildNavItem(IconData icon, String label, bool isActive, VoidCallback onTap) {
-    return InkWell( 
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8)),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8),
-                fontSize: 10,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
+  List<Map<String, dynamic>> _decodeCartItems(String? raw) {
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is List) {
+        return decoded.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<void> _loadCartItemCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final items = _decodeCartItems(prefs.getString(_cartStorageKey));
+    final total = items.fold<int>(
+      0,
+      (sum, item) => sum + (int.tryParse('${item['qty'] ?? 0}') ?? 0),
     );
+    if (!mounted) return;
+    setState(() => _cartItemCount = total);
+  }
+
+  Future<void> _addItemToCart({
+    required String title,
+    required String subtitle,
+    required int price,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final items = _decodeCartItems(prefs.getString(_cartStorageKey));
+
+    final existingIndex = items.indexWhere((item) => '${item['title']}' == title);
+    if (existingIndex >= 0) {
+      final currentQty = int.tryParse('${items[existingIndex]['qty'] ?? 0}') ?? 0;
+      items[existingIndex]['qty'] = currentQty + 1;
+      items[existingIndex]['price'] = price;
+      items[existingIndex]['subtitle'] = subtitle;
+    } else {
+      items.add({
+        'title': title,
+        'subtitle': subtitle,
+        'price': price,
+        'qty': 1,
+      });
+    }
+
+    await prefs.setString(_cartStorageKey, jsonEncode(items));
+    await _loadCartItemCount();
   }
 
   Widget _buildFab() {
@@ -524,7 +535,10 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
             boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)]
           ),
           child: FloatingActionButton(
-            onPressed: () {},
+            onPressed: () async {
+              await Navigator.pushNamed(context, '/cart');
+              _loadCartItemCount();
+            },
             backgroundColor: const Color(0xFFFF9442),
             elevation: 0,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50), side: const BorderSide(color: Colors.white, width: 4)),

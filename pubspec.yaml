@@ -27,6 +27,17 @@ dependencies:
   # PENTING: Untuk fitur Kalender (DatePicker) dan Format Rupiah di profit Admin
   intl: ^0.18.1
 
+  # Penyimpanan lokal sederhana untuk data cart
+  shared_preferences: ^2.2.3
+
+  # Notifikasi lokal saat status order selesai
+  # flutter_local_notifications: ^17.2.3
+
+  # Firebase Cloud Messaging (push notification)
+  # Nonaktifkan dulu - butuh google-services.json & flutterfire configure
+  # firebase_core: ^3.15.1
+  # firebase_messaging: ^15.2.9
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; 
 import '/service/api_service.dart';
 
-class profitAdmin extends StatefulWidget {
-  const profitAdmin({super.key});
+class ProfitAdmin extends StatefulWidget {
+  const ProfitAdmin({super.key});
 
   @override
-  State<profitAdmin> createState() => _profitAdminState();
+  State<ProfitAdmin> createState() => _ProfitAdminState();
 }
 
-class _profitAdminState extends State<profitAdmin> {
+class _ProfitAdminState extends State<ProfitAdmin> {
   DateTime _selectedDate = DateTime.now();
 
   // --- NAVIGASI NORMAL ---
@@ -34,69 +34,6 @@ class _profitAdminState extends State<profitAdmin> {
     if (picked != null) setState(() => _selectedDate = picked);
   }
 
-  // --- WIDGET HEADER ---
-  Widget buildHeader() {
-    return Container(
-      padding: const EdgeInsets.only(top: 40, left: 24, right: 24, bottom: 20),
-      decoration: const BoxDecoration(
-        color: Color(0xFFFFFDF1),
-        border: Border(bottom: BorderSide(width: 1, color: Color(0xFFFFCE99))),
-      ),
-      child: FutureBuilder<Map<String, dynamic>>(
-        future: ApiService.getDashboardData(), // Mengambil data profil dari API
-        builder: (context, snapshot) {
-          // Ambil data dari snapshot jika tersedia
-          final String? imageUrl = snapshot.data?['image_url']; 
-          final String adminName = snapshot.data?['name'] ?? 'Admin';
-
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(width: 2, color: const Color(0xFFFF9442)),
-                    ),
-                    child: ClipOval(
-                      child: (imageUrl != null && imageUrl.isNotEmpty)
-                          ? Image.network(
-                              "${ApiService.baseUrl}/uploads/$imageUrl", // Foto dari database
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => 
-                                  Image.asset("assets/images/Dimas oi oi.jpeg", fit: BoxFit.cover),
-                            )
-                          : Image.asset("assets/images/Dimas oi oi.jpeg", fit: BoxFit.cover),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Welcome, $adminName', // Nama admin dinamis
-                        style: const TextStyle(
-                          color: Color(0xFF562F00), 
-                          fontSize: 16, 
-                          fontWeight: FontWeight.w700, 
-                          fontFamily: 'Inter'
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     // Format tanggal untuk dikirim ke API (YYYY-MM-DD)
@@ -104,75 +41,73 @@ class _profitAdminState extends State<profitAdmin> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFFDF1),
-      // AppBar "Financial Income" sudah dihapus
-      body: Column(
-        children: [
-          // Header profil sebagai bagian paling atas
-          buildHeader(),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFFFF7ED),
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          'Financial Income', 
+          style: TextStyle(color: Color(0xFFC2410C), fontWeight: FontWeight.bold)
+        ),
+      ),
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: ApiService.getprofitData(dateForApi),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Color(0xFFFF9442)));
+          }
           
-          // Sisa konten dibungkus Expanded agar bisa di-scroll tanpa bentrok dengan Header
-          Expanded(
-            child: FutureBuilder<Map<String, dynamic>>(
-              future: ApiService.getprofitData(dateForApi),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFFFF9442)));
-                }
-                
-                // Handling data dari API
-                final data = snapshot.data ?? {};
-                final List chartPoints = data['chart_data'] ?? [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1];
-                final List bestSelling = data['best_selling'] ?? [];
+          // Handling data dari API
+          final data = snapshot.data ?? {};
+          final List chartPoints = data['chart_data'] ?? [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1];
+          final List bestSelling = data['best_selling'] ?? [];
 
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildDateCard(), // Tombol tanggal di tengah
-                      const SizedBox(height: 32),
-                      
-                      // Row untuk Revenue dan profit
-                      Row(
-                        children: [
-                          Expanded(child: _buildMetricCard('Revenue', data['total_revenue'] ?? 'Rp 0')),
-                          const SizedBox(width: 16),
-                          Expanded(child: _buildMetricCard('Net profit (40%)', data['net_profit'] ?? 'Rp 0')),
-                        ],
-                      ),
-                      
-                      const SizedBox(height: 32),
-                      const Text('7 Day Trend', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF562F00))),
-                      const SizedBox(height: 16),
-                      _buildChart(chartPoints.cast<double>()), // Grafik trend omset
-                      
-                      const SizedBox(height: 32),
-                      const Text('Best Selling', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF562F00))),
-                      const SizedBox(height: 16),
-                      
-                      if (bestSelling.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20),
-                          child: Center(child: Text("Belum ada data penjualan")),
-                        )
-                      else
-                        ...bestSelling.asMap().entries.map((e) {
-                          var item = e.value;
-                          return _buildBestItem(
-                            e.key + 1, 
-                            item['name'].toString(), 
-                            // Konversi aman ke int untuk menghindari TypeError
-                            int.parse(item['sold'].toString()), 
-                            item['amount'].toString()
-                          );
-                        }),
-                    ],
-                  ),
-                );
-              },
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildDateCard(), // Tombol tanggal di tengah
+                const SizedBox(height: 32),
+                
+                // Row untuk Revenue dan Profit
+                Row(
+                  children: [
+                    Expanded(child: _buildMetricCard('Revenue', data['total_revenue'] ?? 'Rp 0')),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildMetricCard('Net Profit (40%)', data['net_profit'] ?? 'Rp 0')),
+                  ],
+                ),
+                
+                const SizedBox(height: 32),
+                const Text('7 Day Trend', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF562F00))),
+                const SizedBox(height: 16),
+                _buildChart(chartPoints.cast<double>()), // Grafik trend omset
+                
+                const SizedBox(height: 32),
+                const Text('Best Selling', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF562F00))),
+                const SizedBox(height: 16),
+                
+                if (bestSelling.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Center(child: Text("Belum ada data penjualan")),
+                  )
+                else
+                  ...bestSelling.asMap().entries.map((e) {
+                    var item = e.value;
+                    return _buildBestItem(
+                      e.key + 1, 
+                      item['name'].toString(), 
+                      // Konversi aman ke int untuk menghindari TypeError
+                      int.parse(item['sold'].toString()), 
+                      item['amount'].toString()
+                    );
+                  }).toList(),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
       bottomNavigationBar: _buildBottomNav(),
     );
