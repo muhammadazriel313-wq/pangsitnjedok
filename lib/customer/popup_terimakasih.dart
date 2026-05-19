@@ -25,7 +25,7 @@ class PopupTerimakasih extends StatelessWidget {
               borderRadius: BorderRadius.circular(32),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 40,
                   offset: const Offset(0, 20),
                 ),
@@ -106,7 +106,7 @@ class PopupTerimakasih extends StatelessWidget {
                             foregroundColor: Colors.white,
                             minimumSize: const Size(double.infinity, 56),
                             elevation: 4,
-                            shadowColor: const Color(0xFFFF9644).withOpacity(0.5),
+                            shadowColor: const Color(0xFFFF9644).withValues(alpha: 0.5),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(24),
                             ),

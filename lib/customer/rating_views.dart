@@ -4,8 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'reviews.dart';
 
-// ✅ JALUR IMPORT DIBENARKAN (Langsung panggil nama file karena satu folder)
-import 'profil_customer.dart';
+
 
 void main() {
   runApp(const RatingViewsPage());
