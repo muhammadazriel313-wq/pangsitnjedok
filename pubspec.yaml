@@ -37,7 +37,13 @@ dependencies:
   # Nonaktifkan dulu - butuh google-services.json & flutterfire configure
   # firebase_core: ^3.15.1
   # firebase_messaging: ^15.2.9
-
+  
+  # Untuk generate PDF laporan penjualan
+  pdf: ^3.10.7
+  printing: ^5.11.1
+  path_provider: ^2.1.2
+  share_plus: ^9.0.0
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -51,6 +57,7 @@ flutter:
     - assets/images/
     # Jika kamu punya gambar spesifik untuk logo, daftarkan di bawah ini:
     # - assets/images/logo.png
+    - assets/fonts/
 
   # Jika kamu menggunakan font khusus seperti 'Inter' yang ada di kode Dashboard:
   # fonts:

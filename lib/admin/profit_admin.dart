@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; 
 import '/service/api_service.dart';
+import '/service/pdf_service.dart';
+import 'dart:io';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart'; // untuk kIsWeb
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html; // hanya aktif di web
 
 class ProfitAdmin extends StatefulWidget {
   const ProfitAdmin({super.key});
@@ -11,6 +18,7 @@ class ProfitAdmin extends StatefulWidget {
 
 class _ProfitAdminState extends State<ProfitAdmin> {
   DateTime _selectedDate = DateTime.now();
+  bool _isGeneratingPdf = false;
 
   // --- NAVIGASI NORMAL ---
   void _navigateTo(String route) {
@@ -33,6 +41,58 @@ class _ProfitAdminState extends State<ProfitAdmin> {
     );
     if (picked != null) setState(() => _selectedDate = picked);
   }
+// --- FUNGSI GENERATE & DOWNLOAD PDF ---
+ Future<void> _downloadPDF(Map<String, dynamic> data) async {
+  setState(() => _isGeneratingPdf = true);
+
+  try {
+    final pdfBytes = await PdfService.generateFinancialReport(
+      selectedDate: DateFormat('yyyy-MM-dd').format(_selectedDate),
+      revenue: data['total_revenue'] ?? 'Rp 0',
+      netProfit: data['net_profit'] ?? 'Rp 0',
+      chartData: (data['chart_data'] as List?)?.cast<double>() ?? [0.1,0.1,0.1,0.1,0.1,0.1,0.1],
+      bestSelling: data['best_selling'] ?? [],
+    );
+
+    // kIsWeb untuk cek platform
+    if (kIsWeb) {
+      // Untuk web: download langsung via browser
+      // ignore: avoid_web_libraries_in_flutter
+      final blob = html.Blob([pdfBytes], 'application/pdf');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute('download', 'laporan_${DateFormat('yyyyMMdd').format(_selectedDate)}.pdf')
+        ..click();
+      html.Url.revokeObjectUrl(url);
+    } else {
+      // Untuk mobile: simpan & share
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/laporan_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.pdf');
+      await file.writeAsBytes(pdfBytes);
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Laporan Financial Income Pangsit Njedok\nPeriode: ${DateFormat('dd MMMM yyyy').format(_selectedDate)}',
+      );
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('PDF berhasil dibuat!'),
+          backgroundColor: Color(0xFFC2410C),
+        ),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal: $e'), backgroundColor: Colors.red),
+      );
+    }
+  } finally {
+    if (mounted) setState(() => _isGeneratingPdf = false);
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +145,38 @@ class _ProfitAdminState extends State<ProfitAdmin> {
                 _buildChart(chartPoints.cast<double>()), // Grafik trend omset
                 
                 const SizedBox(height: 32),
-                const Text('Best Selling', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF562F00))),
+                  // Header Best Selling dengan Tombol Download
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Best Selling',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF562F00)),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: _isGeneratingPdf ? null : () => _downloadPDF(data),
+                      icon: _isGeneratingPdf
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.picture_as_pdf, size: 20),
+                      label: Text(_isGeneratingPdf ? 'Memproses...' : 'Unduh PDF'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC2410C),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 16),
                 
                 if (bestSelling.isEmpty)
@@ -99,11 +190,12 @@ class _ProfitAdminState extends State<ProfitAdmin> {
                     return _buildBestItem(
                       e.key + 1, 
                       item['name'].toString(), 
-                      // Konversi aman ke int untuk menghindari TypeError
                       int.parse(item['sold'].toString()), 
                       item['amount'].toString()
                     );
                   }).toList(),
+                
+                const SizedBox(height: 20),
               ],
             ),
           );
