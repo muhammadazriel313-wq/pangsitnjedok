@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; 
 import '/service/api_service.dart';
+import '/service/pdf_service.dart';
+import 'dart:io';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ProfitAdmin extends StatefulWidget {
   const ProfitAdmin({super.key});
@@ -11,6 +15,7 @@ class ProfitAdmin extends StatefulWidget {
 
 class _ProfitAdminState extends State<ProfitAdmin> {
   DateTime _selectedDate = DateTime.now();
+  bool _isGeneratingPdf = false;
 
   // --- NAVIGASI NORMAL ---
   void _navigateTo(String route) {
@@ -32,6 +37,60 @@ class _ProfitAdminState extends State<ProfitAdmin> {
       ),
     );
     if (picked != null) setState(() => _selectedDate = picked);
+  }
+
+  // --- FUNGSI UNDUH PDF ---
+  Future<void> _downloadPDF(Map<String, dynamic> data) async {
+    setState(() {
+      _isGeneratingPdf = true;
+    });
+
+    try {
+      // Generate PDF
+      final pdfBytes = await PdfService.generateFinancialReport(
+        selectedDate: DateFormat('yyyy-MM-dd').format(_selectedDate),
+        revenue: data['total_revenue'] ?? 'Rp 0',
+        netProfit: data['net_profit'] ?? 'Rp 0',
+        chartData: (data['chart_data'] as List?)?.cast<double>() ?? [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+        bestSelling: data['best_selling'] ?? [],
+      );
+
+      // Simpan file sementara dan share
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/financial_report_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.pdf');
+      await file.writeAsBytes(pdfBytes);
+
+      // Share PDF
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Laporan Financial Income SmartCanteen\nPeriode: ${DateFormat('dd MMMM yyyy').format(_selectedDate)}',
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('PDF berhasil dibuat dan siap dibagikan'),
+            backgroundColor: Color(0xFFC2410C),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal membuat PDF: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGeneratingPdf = false;
+        });
+      }
+    }
   }
 
   @override
@@ -85,7 +144,38 @@ class _ProfitAdminState extends State<ProfitAdmin> {
                 _buildChart(chartPoints.cast<double>()), // Grafik trend omset
                 
                 const SizedBox(height: 32),
-                const Text('Best Selling', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF562F00))),
+                  // Header Best Selling dengan Tombol Download
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Best Selling',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF562F00)),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: _isGeneratingPdf ? null : () => _downloadPDF(data),
+                      icon: _isGeneratingPdf
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.picture_as_pdf, size: 20),
+                      label: Text(_isGeneratingPdf ? 'Memproses...' : 'Unduh PDF'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC2410C),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 16),
                 
                 if (bestSelling.isEmpty)
@@ -99,11 +189,12 @@ class _ProfitAdminState extends State<ProfitAdmin> {
                     return _buildBestItem(
                       e.key + 1, 
                       item['name'].toString(), 
-                      // Konversi aman ke int untuk menghindari TypeError
                       int.parse(item['sold'].toString()), 
                       item['amount'].toString()
                     );
                   }).toList(),
+                
+                const SizedBox(height: 20),
               ],
             ),
           );
