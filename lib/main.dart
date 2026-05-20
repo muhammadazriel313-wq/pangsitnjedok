@@ -59,7 +59,7 @@ class PangsitNjedokApp extends StatelessWidget {
         '/dashboard_admin': (context) => const DashboardAdmin(),
         '/menu':            (context) => const MenuManagement(),
         '/order_admin':     (context) => const OrderManagement(),
-        '/profit':          (context) => const profitAdmin(),
+        '/profit':          (context) => const ProfitAdmin(),
         '/profil_admin':    (context) => const ProfilReportAdmin(),
         '/customers':       (context) => const ManageCustomers(),
       },
