@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
-// ✅ Cukup keluar satu tingkat (../) saja
-import 'service/api_service.dart';
+import '../../core/network/api_services.dart';
 
 class HalamanRegister extends StatefulWidget {
   const HalamanRegister({super.key});

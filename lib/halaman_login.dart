@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+// ✅ IMPORT SHAREDPREFERENCES UNTUK BRANKAS HP
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:aplikasipangsitnjedok/customer/dashboard_menu.dart';
 import 'halaman_register.dart'; 
-import 'service/api_service.dart';
+import '../admin/dashboard_admin.dart'; 
+import '../core/network/api_services.dart';
 
 class HalamanLogin extends StatefulWidget {
   const HalamanLogin({super.key});
@@ -34,18 +39,33 @@ class _HalamanLoginState extends State<HalamanLogin> {
         _passwordController.text,
         isCustomerSelected ? 'customer' : 'admin', 
       );
+
       if (!mounted) return; 
       setState(() => _isLoading = false);
 
       if (response['status'] == 'success') {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'] ?? 'Login sukses!'), backgroundColor: Colors.green),
+          SnackBar(content: Text(response['message']), backgroundColor: Colors.green),
         );
         
+        // 🚀 KODINGAN RAHASIA: NYIMPEN ID KE DALAM BRANKAS HP! 🚀
+        // Mengecek apakah data 'id' dikirim dari server PHP
+        if (response['data'] != null && response['data']['id'] != null) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          // Menyimpan ID dengan kunci 'id'
+          await prefs.setString('id', response['data']['id'].toString());
+        }
+
         if (isCustomerSelected) {
-          Navigator.pushReplacementNamed(context, '/home_customer');
+          Navigator.pushReplacement(
+            context, 
+            MaterialPageRoute(builder: (context) => const DashboardPage()),
+          );
         } else {
-          Navigator.pushReplacementNamed(context, '/dashboard_admin');
+          Navigator.pushReplacement(
+            context, 
+            MaterialPageRoute(builder: (context) => const DashboardAdmin()),
+          );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -63,7 +83,6 @@ class _HalamanLoginState extends State<HalamanLogin> {
 
   @override
   Widget build(BuildContext context) {
-    // ... Sisa kodingan build kamu sudah bener ...
     return Scaffold(
       backgroundColor: const Color(0xFFFFFDF1),
       appBar: AppBar(

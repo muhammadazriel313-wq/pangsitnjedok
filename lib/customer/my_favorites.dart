@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:aplikasipangsitnjedok/core/network/api_services.dart'; 
+// Import navigasi
+import 'profil_customer.dart'; 
+import 'dashboard_menu.dart'; 
+import 'halaman_menu.dart';   
+import 'cart.dart';
+import 'package:aplikasipangsitnjedok/customer/order.dart';
 
-
-class MyFavoritesScreen extends StatefulWidget {
-  const MyFavoritesScreen({super.key});
+class FavoritePage extends StatefulWidget {
+  const FavoritePage({super.key});
 
   @override
-  State<MyFavoritesScreen> createState() => _MyFavoritesScreenState();
+  State<FavoritePage> createState() => _FavoritePageState();
 }
 
-class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
+class _FavoritePageState extends State<FavoritePage> {
   String selectedCategory = 'All Items';
-  int selectedNavIndex = 4; // Profile active
+  String userId = ""; 
   Map<int, int> cartItems = {};
   int cartCount = 0;
   bool _isLoading = true;
+  String? profileImageUrl; 
 
   final List<String> categories = ['All Items', 'Food', 'Drink', 'Beverages'];
   List<Map<String, dynamic>> menuItems = [];
@@ -24,66 +30,53 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
   void initState() {
     super.initState();
     _fetchFavorites();
+    _loadUserProfile();
   }
 
-  // Mengambil data dari XAMPP
+  Future<void> _loadUserProfile() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    userId = prefs.getString('id') ?? "1"; 
+    var response = await ApiService.getProfile(userId);
+    if (response['status'] == 'success' && mounted) {
+      setState(() {
+        profileImageUrl = response['data']['foto_profil'];
+      });
+    }
+  }
+
   Future<void> _fetchFavorites() async {
     setState(() => _isLoading = true);
     try {
-      // Menggunakan ID customer 1 (Budi Santoso)
-      final response = await http.get(
-        Uri.parse("http://10.0.2.2/pangsit_api/get_favorites.php?customer_id=1"),
-      );
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      userId = prefs.getString('id') ?? "1"; 
 
-      if (response.statusCode == 200) {
-        List<dynamic> rawData = json.decode(response.body);
+      List<dynamic> rawData = await ApiService.getFavorites(userId);
+      
+      if (mounted) {
         setState(() {
-          // Mapping data dari database ke format yang dibutuhkan UI
           menuItems = rawData.map((item) => {
                 'id': int.parse(item['id'].toString()),
                 'name': item['title'],
                 'price': 'Rp ${item['price']}',
-                'priceValue': int.parse(item['price'].toString()),
                 'description': 'Pilihan favorit lezat dari dapur kami.',
-                'tag': (item['is_best_seller'] == 1 || item['is_best_seller'] == true || item['is_best_seller'] == '1') ? 'BEST SELLER' : null,
+                'tag': (item['is_best_seller'] == 1 || item['is_best_seller'] == '1') ? 'BEST SELLER' : null,
                 'tagColor': const Color(0xFFFFCF9A),
                 'tagTextColor': const Color(0xFF954A00),
-                'info': item['category'],
+                'info': item['category'] ?? 'Food',
                 'infoIcon': item['category'] == 'Drink' ? Icons.local_cafe_outlined : Icons.restaurant_outlined,
                 'image': item['image_url'], 
               }).toList();
           _isLoading = false;
         });
-      } else {
-        setState(() => _isLoading = false);
       }
     } catch (e) {
-      debugPrint("Error koneksi: $e");
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // Mengirim perintah hapus favorit ke XAMPP
   void _toggleFavorite(int menuId) async {
-    try {
-      final response = await http.post(
-        Uri.parse("http://10.0.2.2/pangsit_api/toggle_favorite.php"),
-        body: {
-          "customer_id": "1",
-          "menu_id": menuId.toString(),
-        },
-      );
-
-      if (response.statusCode == 200) {
-        // Refresh daftar setelah dihapus dari database
-        _fetchFavorites();
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal koneksi ke server: $e')),
-      );
-    }
+    bool success = await ApiService.toggleFavorite(userId, menuId.toString());
+    if (success) _fetchFavorites(); 
   }
 
   void _addToCart(int index) {
@@ -93,97 +86,25 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${menuItems[index]['name']} ditambahkan ke keranjang'),
-        duration: const Duration(seconds: 1),
+        content: Text('${menuItems[index]['name']} masuk keranjang!'),
         backgroundColor: const Color(0xFF954A00),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(milliseconds: 800),
       ),
     );
   }
 
   void _placeOrder() {
     if (cartCount == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Keranjang masih kosong!'),
-          backgroundColor: Colors.red[700],
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Keranjang masih kosong!'), backgroundColor: Colors.red));
       return;
     }
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text(
-          'Pesanan Dikonfirmasi! 🎉',
-          style: TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1B1C15),
-          ),
-        ),
-        content: Text(
-          'Pesanan $cartCount item berhasil diproses. Silakan tunggu.',
-          style: const TextStyle(
-            fontFamily: 'Be Vietnam Pro',
-            color: Color(0xFF554337),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              setState(() {
-                cartItems.clear();
-                cartCount = 0;
-              });
-            },
-            child: const Text(
-              'OK',
-              style: TextStyle(
-                color: Color(0xFFFF9442),
-                fontWeight: FontWeight.w700,
-                fontFamily: 'Plus Jakarta Sans',
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _handleBottomNavTap(int index) {
-    setState(() => selectedNavIndex = index);
-    const routes = {
-      0: '/home_customer',
-      1: '/dashboard_menu',
-      2: '/cart',
-      3: '/order_customer',
-      4: '/profil_customer',
-    };
-
-    final route = routes[index];
-    if (route == null) return;
-
-    if (route == '/cart') {
-      Navigator.pushNamed(context, route);
-    } else {
-      Navigator.pushReplacementNamed(context, route);
-    }
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const CartPage()));
   }
 
   List<Map<String, dynamic>> get filteredItems {
     if (selectedCategory == 'All Items') return menuItems;
-    if (selectedCategory == 'Food') {
-      return menuItems.where((item) => item['info'] == 'Food').toList();
-    }
-    if (selectedCategory == 'Drink' || selectedCategory == 'Beverages') {
-      return menuItems.where((item) => item['info'] == 'Drink').toList();
-    }
+    if (selectedCategory == 'Food') return menuItems.where((item) => item['info'] == 'Food').toList();
+    if (selectedCategory == 'Drink' || selectedCategory == 'Beverages') return menuItems.where((item) => item['info'] == 'Drink').toList();
     return menuItems;
   }
 
@@ -191,92 +112,67 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFCFAEE),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: _buildFab(context),
+      bottomNavigationBar: _buildBottomNavigationBar(context),
       body: Column(
         children: [
-          // Top Navigation Bar
-// Top Navigation Bar
-          // Top Navigation Bar
+          // APP BAR SESUAI GAMBAR (Search dihapus, tinggal Foto Profil)
           Container(
-            color: const Color(0xFFFCFAEE),
-            padding: const EdgeInsets.only(top: 44, left: 16, right: 16, bottom: 12),
+            padding: const EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 12),
             child: Row(
-              // --- PERUBAHAN: Ubah alignment ke start ---
-              mainAxisAlignment: MainAxisAlignment.start, 
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, 
               children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context); // Kembali ke halaman sebelumnya
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: const Icon(Icons.arrow_back, color: Color(0xFF1B1C15), size: 24),
-                  ),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context), 
+                      child: const Icon(Icons.arrow_back, color: Color(0xFF1B1C15), size: 24),
+                    ),
+                    const SizedBox(width: 12), 
+                    const Text('Favorites', style: TextStyle(color: Color(0xFF954A00), fontSize: 18, fontWeight: FontWeight.w700)),
+                  ],
                 ),
-                const SizedBox(width: 8), // Jarak kecil antara panah dan tulisan
-                const Text(
-                  'Favorites',
-                  style: TextStyle(
-                    color: Color(0xFF954A00),
-                    fontSize: 18,
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontWeight: FontWeight.w700,
-                  ),
+                Row(
+                  children: [
+                    // ✅ Ikon Search sudah hilang dari sini
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor: Colors.grey.shade300,
+                      backgroundImage: profileImageUrl != null && profileImageUrl!.isNotEmpty
+                          ? NetworkImage(profileImageUrl!) as ImageProvider
+                          : const AssetImage('assets/images/nipis.jpeg'),
+                    ),
+                  ],
                 ),
-                // Tidak perlu Row ikon pencarian/profil lagi di sini agar bersih
               ],
             ),
           ),
-          // Main Content
+          
           Expanded(
             child: _isLoading 
                 ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF9442)))
                 : SingleChildScrollView(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
                           RichText(
                             text: const TextSpan(
                               children: [
-                                TextSpan(
-                                  text: 'Your Curated\n',
-                                  style: TextStyle(
-                                    color: Color(0xFF1B1C15),
-                                    fontSize: 36,
-                                    fontFamily: 'Plus Jakarta Sans',
-                                    fontWeight: FontWeight.w800,
-                                    height: 1.25,
-                                    letterSpacing: -0.90,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: 'Best Bites',
-                                  style: TextStyle(
-                                    color: Color(0xFF954A00),
-                                    fontSize: 36,
-                                    fontFamily: 'Plus Jakarta Sans',
-                                    fontWeight: FontWeight.w800,
-                                    height: 1.25,
-                                    letterSpacing: -0.90,
-                                  ),
-                                ),
+                                TextSpan(text: 'Your Curated\n', style: TextStyle(color: Color(0xFF1B1C15), fontSize: 32, fontWeight: FontWeight.w800, height: 1.2)),
+                                TextSpan(text: 'Best Bites', style: TextStyle(color: Color(0xFF954A00), fontSize: 32, fontWeight: FontWeight.w800, height: 1.2)),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           const Text(
                             'Handpicked flavors from your kitchen to\nyour heart. Ready to order again?',
-                            style: TextStyle(
-                              color: Color(0xFF554337),
-                              fontSize: 18,
-                              fontFamily: 'Be Vietnam Pro',
-                              fontWeight: FontWeight.w400,
-                              height: 1.56,
-                            ),
+                            style: TextStyle(color: Color(0xFF554337), fontSize: 16, fontWeight: FontWeight.w400, height: 1.5),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
 
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
@@ -287,8 +183,8 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
                                   onTap: () => setState(() => selectedCategory = category),
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 200),
-                                    margin: const EdgeInsets.only(right: 10),
-                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                                    margin: const EdgeInsets.only(right: 12),
+                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                                     decoration: ShapeDecoration(
                                       color: isSelected ? const Color(0xFFFF9442) : const Color(0xFFF6F4E8),
                                       shape: const StadiumBorder(),
@@ -297,10 +193,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
                                       category,
                                       style: TextStyle(
                                         color: isSelected ? Colors.white : const Color(0xFF554337),
-                                        fontSize: 14,
-                                        fontFamily: 'Plus Jakarta Sans',
-                                        fontWeight: FontWeight.w600,
-                                        height: 1.43,
+                                        fontSize: 14, fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ),
@@ -308,214 +201,110 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
                               }).toList(),
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
 
                           if (filteredItems.isEmpty)
                             const Padding(
                               padding: EdgeInsets.only(top: 40, bottom: 40),
-                              child: Center(
-                                child: Text(
-                                  "Belum ada menu favorit di kategori ini.",
-                                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 16),
-                                ),
-                              ),
+                              child: Center(child: Text("Belum ada menu favorit di kategori ini.", style: TextStyle(color: Color(0xFF94A3B8), fontSize: 16))),
                             )
                           else
-                            ...filteredItems.asMap().entries.map((entry) {
-                              final idx = menuItems.indexOf(entry.value);
-                              return _buildMenuCard(entry.value, idx);
-                            }),
+                            ...filteredItems.asMap().entries.map((entry) => _buildMenuCard(entry.value, entry.key)),
+                          
+                          if (cartCount > 0) ...[
+                            const SizedBox(height: 16),
+                            _buildCheckoutBanner(),
+                          ],
 
-                          const SizedBox(height: 80),
+                          const SizedBox(height: 40), 
                         ],
                       ),
                     ),
                   ),
           ),
-
-          // Bottom Navigation Bar
-          _buildBottomNavBar(),
         ],
       ),
     );
   }
 
   Widget _buildMenuCard(Map<String, dynamic> item, int index) {
+    Widget imageWidget;
+    if (item['image'] != null && item['image'].toString().startsWith('http')) {
+      imageWidget = Image.network(item['image'], fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.restaurant, size: 64, color: Color(0xFF954A00)));
+    } else {
+      imageWidget = Image.asset(item['image'] ?? 'assets/images/esbuahleci.jpg', fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.restaurant, size: 64, color: Color(0xFF954A00)));
+    }
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 24),
       clipBehavior: Clip.antiAlias,
-      decoration: ShapeDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
-        shadows: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Stack(
             children: [
-              SizedBox(
-                width: double.infinity,
-                height: 268,
-                // Menggunakan AssetImage karena data database menyimpan path lokal (misal assets/images/...)
-                child: Image.asset(
-                  item['image'],
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => Container(
-                    height: 268,
-                    color: const Color(0xFFE0D5C5),
-                    child: const Icon(Icons.restaurant, size: 64, color: Color(0xFF954A00)),
-                  ),
-                ),
-              ),
+              SizedBox(width: double.infinity, height: 220, child: imageWidget),
               Positioned(
-                right: 12,
-                top: 16,
+                right: 16, top: 16,
                 child: GestureDetector(
-                  onTap: () => _toggleFavorite(item['id']), // Mengirimkan ID asli dari database
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 40,
-                    height: 40,
-                    decoration: ShapeDecoration(
-                      color: const Color(0xE5FCFAEE),
-                      shape: const CircleBorder(),
-                      shadows: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.favorite, // Selalu favorite karena ini halaman My Favorites
-                      color: Color(0xFFEF4444),
-                      size: 20,
-                    ),
+                  onTap: () => _toggleFavorite(item['id']), 
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                    child: const Icon(Icons.favorite, color: Color(0xFFEF4444), size: 20),
                   ),
                 ),
               ),
               if (item['tag'] != null)
                 Positioned(
-                  left: 12,
-                  bottom: 12,
+                  left: 16, bottom: 16,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: ShapeDecoration(
-                      color: item['tagColor'],
-                      shape: const StadiumBorder(),
-                    ),
-                    child: Text(
-                      item['tag'],
-                      style: TextStyle(
-                        color: item['tagTextColor'],
-                        fontSize: 10,
-                        fontFamily: 'Be Vietnam Pro',
-                        fontWeight: FontWeight.w700,
-                        height: 1.50,
-                        letterSpacing: 0.52,
-                      ),
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(color: item['tagColor'], borderRadius: BorderRadius.circular(20)),
+                    child: Text(item['tag'], style: TextStyle(color: item['tagTextColor'], fontSize: 10, fontWeight: FontWeight.w800)),
                   ),
                 ),
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item['name'],
-                      style: const TextStyle(
-                        color: Color(0xFF1B1C15),
-                        fontSize: 20,
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontWeight: FontWeight.w700,
-                        height: 1.40,
-                      ),
-                    ),
-                    Text(
-                      item['price'],
-                      style: const TextStyle(
-                        color: Color(0xFFFF9442),
-                        fontSize: 16,
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontWeight: FontWeight.w800,
-                        height: 1.50,
-                      ),
-                    ),
+                    Text(item['name'], style: const TextStyle(color: Color(0xFF1B1C15), fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(item['price'], style: const TextStyle(color: Color(0xFFFF9442), fontSize: 16, fontWeight: FontWeight.w800)),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  item['description'],
-                  style: const TextStyle(
-                    color: Color(0xFF554337),
-                    fontSize: 14,
-                    fontFamily: 'Be Vietnam Pro',
-                    fontWeight: FontWeight.w400,
-                    height: 1.43,
-                  ),
-                ),
+                Text(item['description'], style: const TextStyle(color: Color(0xFF554337), fontSize: 13, height: 1.4)),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          item['infoIcon'],
-                          size: 16,
-                          color: const Color(0xFF554337),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          item['info'],
-                          style: const TextStyle(
-                            color: Color(0xFF554337),
-                            fontSize: 12,
-                            fontFamily: 'Be Vietnam Pro',
-                            fontWeight: FontWeight.w500,
-                            height: 1.33,
-                          ),
-                        ),
+                        Icon(item['infoIcon'], size: 16, color: const Color(0xFF94A3B8)),
+                        const SizedBox(width: 6),
+                        Text(item['info'], style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12, fontWeight: FontWeight.bold)),
                       ],
                     ),
                     GestureDetector(
                       onTap: () => _addToCart(index),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        width: 48,
-                        height: 48,
-                        decoration: ShapeDecoration(
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
                           color: const Color(0xFFFF9442),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          shadows: [
-                            BoxShadow(
-                              color: const Color(0xFFFF9442).withValues(alpha: 0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.add, color: Colors.white, size: 24),
+                        child: const Icon(Icons.add, color: Colors.white, size: 20),
                       ),
                     ),
                   ],
@@ -528,101 +317,47 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
     );
   }
 
-  // ignore: unused_element
   Widget _buildCheckoutBanner() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(32),
-      decoration: ShapeDecoration(
-        color: const Color(0x4CFFCF9A),
-        shape: RoundedRectangleBorder(
-          side: const BorderSide(width: 1, color: Color(0x26DBC1B2)),
-          borderRadius: BorderRadius.circular(32),
-        ),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED),
+        border: Border.all(color: const Color(0xFFFFEDD5)),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         children: [
           Row(
             children: [
               Container(
-                width: 64,
-                height: 64,
-                decoration: const ShapeDecoration(
-                  color: Colors.white,
-                  shape: CircleBorder(),
-                  shadows: [
-                    BoxShadow(
-                      color: Color(0x0C000000),
-                      blurRadius: 2,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.shopping_basket_outlined,
-                  color: Color(0xFF954A00),
-                  size: 28,
-                ),
+                padding: const EdgeInsets.all(16),
+                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                child: const Icon(Icons.shopping_basket_outlined, color: Color(0xFF954A00), size: 28),
               ),
               const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Ready to checkout?',
-                    style: TextStyle(
-                      color: Color(0xFF7A562B),
-                      fontSize: 20,
-                      fontFamily: 'Plus Jakarta Sans',
-                      fontWeight: FontWeight.w700,
-                      height: 1.40,
-                    ),
-                  ),
-                  Text(
-                    '$cartCount item${cartCount == 1 ? '' : 's'} in your quick\nbasket.',
-                    style: const TextStyle(
-                      color: Color(0xB27A562B),
-                      fontSize: 16,
-                      fontFamily: 'Be Vietnam Pro',
-                      fontWeight: FontWeight.w400,
-                      height: 1.50,
-                    ),
-                  ),
+                  const Text('Ready to checkout?', style: TextStyle(color: Color(0xFF7A562B), fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text('$cartCount items in your quick\nbasket.', style: const TextStyle(color: Color(0xFF954A00), fontSize: 14)),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           GestureDetector(
             onTap: _placeOrder,
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: ShapeDecoration(
+              decoration: BoxDecoration(
                 color: const Color(0xFFFF9442),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                shadows: [
-                  BoxShadow(
-                    color: const Color(0xFF954A00).withValues(alpha: 0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
-                    spreadRadius: -3,
-                  ),
-                ],
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))],
               ),
-              child: const Text(
-                'Place Order Now',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontFamily: 'Plus Jakarta Sans',
-                  fontWeight: FontWeight.w700,
-                  height: 1.56,
-                ),
-              ),
+              child: const Text('Place Order Now', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -630,120 +365,63 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
     );
   }
 
-  Widget _buildBottomNavBar() {
-    final navItems = [
-      {'icon': Icons.home_outlined, 'activeIcon': Icons.home, 'label': 'Home'},
-      {'icon': Icons.restaurant_menu_outlined, 'activeIcon': Icons.restaurant_menu, 'label': 'Menu'},
-      {'icon': Icons.shopping_cart_outlined, 'activeIcon': Icons.shopping_cart, 'label': 'Cart', 'isCenter': true},
-      {'icon': Icons.receipt_long_outlined, 'activeIcon': Icons.receipt_long, 'label': 'Orders'},
-      {'icon': Icons.person_outline, 'activeIcon': Icons.person, 'label': 'Profile'},
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.95),
-        border: const Border(
-          top: BorderSide(width: 1, color: Color(0xFFFF9442)),
+  Widget _buildBottomNavigationBar(BuildContext context) {
+    return BottomAppBar(
+      color: Colors.white, shape: const CircularNotchedRectangle(), notchMargin: 8.0, elevation: 10,
+      child: SizedBox(
+        height: 60,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(Icons.home_outlined, 'Home', false, () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardPage()))),
+            _buildNavItem(Icons.restaurant_menu, 'Menu', false, () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen()))),
+            const SizedBox(width: 48), 
+            _buildNavItem(Icons.receipt_long_outlined, 'Order', false, () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MyOrdersPage()))),
+            _buildNavItem(Icons.person, 'Profil', true, () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ProfilePage()))),
+          ],
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: navItems.asMap().entries.map((entry) {
-          final i = entry.key;
-          final item = entry.value;
-          final isCenter = item['isCenter'] == true;
-          final isActive = selectedNavIndex == i;
+    );
+  }
 
-          if (isCenter) {
-            return GestureDetector(
-              onTap: () => _handleBottomNavTap(i),
-              child: SizedBox(
-                width: 56,
-                height: 56,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned(
-                      top: -24,
-                      left: 0,
-                      child: Container(
-                        width: 56,
-                        height: 56,
-                        decoration: ShapeDecoration(
-                          color: const Color(0xFFFF9442),
-                          shape: RoundedRectangleBorder(
-                            side: const BorderSide(width: 4, color: Color(0xFFF8F7F5)),
-                            borderRadius: BorderRadius.circular(9999),
-                          ),
-                          shadows: const [
-                            BoxShadow(
-                              color: Color(0x66FF9442),
-                              blurRadius: 15,
-                              offset: Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(Icons.shopping_cart, color: Colors.white, size: 26),
-                      ),
-                    ),
-                    if (cartCount > 0)
-                      Positioned(
-                        top: -24,
-                        right: -4,
-                        child: Container(
-                          width: 20,
-                          height: 20,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFFEF4444),
-                            shape: RoundedRectangleBorder(
-                              side: const BorderSide(width: 2, color: Colors.white),
-                              borderRadius: BorderRadius.circular(9999),
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              '$cartCount',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            );
-          }
+  Widget _buildNavItem(IconData icon, String label, bool isActive, VoidCallback onTap) {
+    return InkWell( 
+      onTap: onTap, borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min, 
+          children: [
+            Icon(icon, color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8)), 
+            const SizedBox(height: 4), 
+            Text(label, style: TextStyle(color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8), fontSize: 10, fontWeight: isActive ? FontWeight.bold : FontWeight.w500))
+          ],
+        ),
+      ),
+    );
+  }
 
-          return GestureDetector(
-            onTap: () => _handleBottomNavTap(i),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  isActive ? item['activeIcon'] as IconData : item['icon'] as IconData,
-                  color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8),
-                  size: 22,
+  Widget _buildFab(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)]),
+      child: FloatingActionButton(
+        onPressed: _placeOrder,
+        backgroundColor: const Color(0xFFFF9442), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50), side: const BorderSide(color: Colors.white, width: 4)),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+            if (cartCount > 0)
+              Positioned(
+                right: -4, top: -4,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                  child: Text('$cartCount', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  item['label'] as String,
-                  style: TextStyle(
-                    color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8),
-                    fontSize: 10,
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
+              )
+          ],
+        ),
       ),
     );
   }

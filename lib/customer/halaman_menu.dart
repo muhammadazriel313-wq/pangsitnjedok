@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; 
+import 'package:http/http.dart' as http; // ✅ TAMBAHAN BUAT PANGGIL API FAVORITE
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart'; // ✅ UNTUK TARIK ID CUSTOMER
 
+import 'dashboard_menu.dart'; 
 import '../service/api_service.dart';
-import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// ✅ IMPORT HALAMAN DARI NOVIA
+import 'cart.dart'; 
+import 'order.dart';
+import 'profil_customer.dart';
 
 void main() {
   runApp(const PangsitApp());
@@ -35,14 +40,13 @@ class MenuFoodScreen extends StatefulWidget {
 }
 
 class _MenuFoodScreenState extends State<MenuFoodScreen> {
-  static const String _cartStorageKey = 'customer_cart_items_v1';
   bool _isFoodSelected = true;
+  List<dynamic> _allMenus = []; 
+  bool _isLoading = true; 
 
-  // --- VARIABEL UNTUK API ---
-  List<dynamic> _allMenus = []; // Wadah untuk nyimpen data dari XAMPP
-  bool _isLoading = true;       // Penanda buat nampilin animasi loading
+  // ✅ LIST UNTUK NYIMPEN ID MENU YANG DI-FAVORITKAN
+  List<int> _favoriteMenuIds = [];
 
-  // --- VARIABEL UNTUK SLIDER BANNER ---
   final PageController _pageController = PageController();
   int _currentPage = 0;
   Timer? _carouselTimer;
@@ -53,10 +57,9 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchMenuData(); // PANGGIL API SAAT HALAMAN DIBUKA
-    _loadCartItemCount();
+    _fetchMenuData(); 
+    _fetchFavorites(); // ✅ TARIK DATA FAVORITE SAAT HALAMAN DIBUKA
 
-    // Timer slider tetap jalan
     _carouselTimer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
       if (_currentPage < 2) { 
         _currentPage++;
@@ -73,19 +76,83 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     });
   }
 
-  // === FUNGSI SAKTI UNTUK TARIK DATA API ===
+  // ✅ FUNGSI BACA DATA MENU UTAMA
   Future<void> _fetchMenuData() async {
     try {
-      final data = await ApiService.getMenus(); // Manggil fungsi dari api_service.dart
+      final data = await ApiService.getMenus(); 
       setState(() {
-        _allMenus = data; // Masukkan data ke wadah
-        _isLoading = false; // Matikan loading
+        _allMenus = data; 
+        _isLoading = false; 
       });
     } catch (e) {
       print("Error ambil menu: $e");
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() { _isLoading = false; });
+    }
+  }
+
+  // ✅ FUNGSI BACA DAFTAR FAVORITE CUSTOMER DARI DATABASE
+  Future<void> _fetchFavorites() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String customerId = prefs.getString('id') ?? "1"; // Default ke user ID 1 kalau belum ada
+
+      final response = await http.get(
+        Uri.parse("http://localhost/pangsit_njedok_api/get_favorites.php?customer_id=$customerId")
+      );
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        setState(() {
+          // Ambil semua ID menu dan simpan ke dalam list _favoriteMenuIds
+          _favoriteMenuIds = data.map<int>((item) => int.parse(item['id'].toString())).toList();
+        });
+      }
+    } catch (e) {
+      print("Error ambil daftar favorite: $e");
+    }
+  }
+
+  // ✅ FUNGSI KLIK TOMBOL FAVORITE (SIMPAN / HAPUS)
+  Future<void> _toggleFavorite(int menuId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String customerId = prefs.getString('id') ?? "1"; 
+    
+    // Cek apakah menu sudah ada di favorit atau belum
+    bool isAlreadyFavorite = _favoriteMenuIds.contains(menuId);
+
+    // Langsung ubah UI biar keliatan responsif (Optimistic UI)
+    setState(() {
+      if (isAlreadyFavorite) {
+        _favoriteMenuIds.remove(menuId);
+      } else {
+        _favoriteMenuIds.add(menuId);
+      }
+    });
+
+    try {
+      // ✅ PASTIKAN KAMU PUNYA FILE toggle_favorite.php DI XAMPP
+      final response = await http.post(
+        Uri.parse("http://localhost/pangsit_njedok_api/toggle_favorite.php"),
+        body: {
+          "customer_id": customerId,
+          "menu_id": menuId.toString(),
+          "action": isAlreadyFavorite ? "remove" : "add"
+        }
+      );
+
+      // Kalau ternyata gagal di sisi server, kembalikan UI-nya ke awal
+      if (response.statusCode != 200) {
+        setState(() {
+          if (isAlreadyFavorite) {
+            _favoriteMenuIds.add(menuId); // Balikin lagi kalau gagal ngapus
+          } else {
+            _favoriteMenuIds.remove(menuId); // Hapus lagi kalau gagal nambah
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal mengubah favorit!')));
+      }
+    } catch (e) {
+      print("Error toggle favorite: $e");
     }
   }
 
@@ -113,7 +180,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
         children: [
           _buildBanner(),
           _buildCategoryTabs(),
-          _buildMenuGrid(), // Bagian yang dinamis
+          _buildMenuGrid(), 
         ],
       ),
       bottomNavigationBar: _buildBottomNavigationBar(context),
@@ -121,8 +188,6 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
       floatingActionButton: _buildFab(),
     );
   }
-
-  // --- WIDGETS --- //
 
   Widget _buildBanner() {
     List<String> bannerImages = _isFoodSelected 
@@ -142,9 +207,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5))
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5))],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
@@ -153,18 +216,13 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
             PageView.builder(
               controller: _pageController,
               itemCount: bannerImages.length,
-              onPageChanged: (index) {
-                setState(() { _currentPage = index; });
-              },
-              itemBuilder: (context, index) {
-                return Image.asset(bannerImages[index], fit: BoxFit.cover, width: double.infinity);
-              },
+              onPageChanged: (index) { setState(() { _currentPage = index; }); },
+              itemBuilder: (context, index) { return Image.asset(bannerImages[index], fit: BoxFit.cover, width: double.infinity); },
             ),
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
+                  begin: Alignment.bottomCenter, end: Alignment.topCenter,
                   colors: [Colors.black.withOpacity(0.8), Colors.transparent],
                 ),
               ),
@@ -199,26 +257,16 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
       child: Row(
         children: [
           _buildTabButton(
-            title: 'Makanan',
-            isActive: _isFoodSelected,
+            title: 'Makanan', isActive: _isFoodSelected,
             onTap: () {
-              setState(() {
-                _isFoodSelected = true;
-                _currentPage = 0;
-                if (_pageController.hasClients) _pageController.jumpToPage(0);
-              });
+              setState(() { _isFoodSelected = true; _currentPage = 0; if (_pageController.hasClients) _pageController.jumpToPage(0); });
             },
           ),
           const SizedBox(width: 12),
           _buildTabButton(
-            title: 'Minuman',
-            isActive: !_isFoodSelected,
+            title: 'Minuman', isActive: !_isFoodSelected,
             onTap: () {
-              setState(() {
-                _isFoodSelected = false;
-                _currentPage = 0;
-                if (_pageController.hasClients) _pageController.jumpToPage(0);
-              });
+              setState(() { _isFoodSelected = false; _currentPage = 0; if (_pageController.hasClients) _pageController.jumpToPage(0); });
             },
           ),
         ],
@@ -236,25 +284,18 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
             color: isActive ? const Color(0xFFFF9442) : Colors.transparent,
             border: isActive ? null : Border.all(color: const Color(0xFFCBD5E1)),
             borderRadius: BorderRadius.circular(30),
-            boxShadow: isActive
-                ? [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))]
-                : [],
+            boxShadow: isActive ? [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
           ),
           alignment: Alignment.center,
           child: Text(
             title,
-            style: TextStyle(
-              color: isActive ? Colors.white : const Color(0xFF64748B),
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: isActive ? Colors.white : const Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 14),
           ),
         ),
       ),
     );
   }
 
-  // === GRID DINAMIS ===
   Widget _buildMenuGrid() {
     if (_isLoading) {
       return const Padding(
@@ -280,35 +321,27 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 0.75,
+        crossAxisCount: 2, mainAxisSpacing: 16, crossAxisSpacing: 16, childAspectRatio: 0.75,
       ),
       itemCount: filteredList.length,
-      itemBuilder: (context, index) {
-        return _buildMenuCard(filteredList[index]); 
-      },
+      itemBuilder: (context, index) { return _buildMenuCard(filteredList[index]); },
     );
   }
 
-  // === DESAIN CARD (Menerima data dinamis + Logika Stok) ===
   Widget _buildMenuCard(dynamic item) {
+    int id = int.tryParse(item['id'].toString()) ?? 0;
     String title = item['title'] ?? 'Nama Menu'; 
     String price = item['price']?.toString() ?? '0'; 
-    int priceValue = int.tryParse(price) ?? 0;
-    String subtitle = _isFoodSelected ? 'Food' : 'Beverages';
     String imageUrl = item['image_url'] ?? ''; 
-    
-    // ✅ 1. AMBIL DATA STOK DARI DATABASE (Penting!)
     int stock = int.tryParse(item['stock']?.toString() ?? '0') ?? 0;
+    
+    // ✅ CEK APAKAH MENU INI ADA DI DAFTAR FAVORIT
+    bool isFav = _favoriteMenuIds.contains(id);
 
     Widget imageWidget;
     if (imageUrl.isNotEmpty) {
       imageWidget = Image.network(
-        "${ApiService.baseUrl}/uploads/$imageUrl", 
-        width: double.infinity, 
-        fit: BoxFit.cover,
+        "http://localhost/pangsit_njedok_api/uploads/$imageUrl", width: double.infinity, fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => const Icon(Icons.fastfood, size: 50, color: Colors.grey),
       );
     } else {
@@ -317,21 +350,14 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
 
     return GestureDetector(
       onTap: () {
-        if (stock <= 0) {
-          _showOutOfStockDialog(context); 
-        } else {
-          print("Buka detail menu $title"); 
-        }
+        if (stock <= 0) { _showOutOfStockDialog(context); } else { print("Buka detail menu $title"); }
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          color: Colors.white, borderRadius: BorderRadius.circular(20),
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 4))],
         ),
-        foregroundDecoration: stock <= 0 
-            ? BoxDecoration(color: Colors.white.withOpacity(0.5), borderRadius: BorderRadius.circular(20)) 
-            : null,
+        foregroundDecoration: stock <= 0 ? BoxDecoration(color: Colors.white.withOpacity(0.5), borderRadius: BorderRadius.circular(20)) : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -340,25 +366,29 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                    child: Container(
-                      width: double.infinity,
-                      color: Colors.grey.shade100,
-                      child: imageWidget, 
-                    ),
+                    child: Container(width: double.infinity, color: Colors.grey.shade100, child: imageWidget),
                   ),
+                  
+                  // ✅ TOMBOL FAVORITE DINAMIS DENGAN DATABASE
                   Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(color: Colors.black.withOpacity(0.4), shape: BoxShape.circle),
-                      child: const Icon(Icons.favorite_border, color: Colors.white, size: 16),
+                    top: 8, right: 8,
+                    child: GestureDetector(
+                      onTap: () => _toggleFavorite(id),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(color: Colors.black.withOpacity(0.4), shape: BoxShape.circle),
+                        child: Icon(
+                          isFav ? Icons.favorite : Icons.favorite_border, // Ganti Ikon kalau di-favoritkan
+                          color: isFav ? Colors.redAccent : Colors.white, 
+                          size: 16
+                        ),
+                      ),
                     ),
                   ),
+                  
                   if (stock <= 0)
                     Positioned(
-                      bottom: 8,
-                      left: 8,
+                      bottom: 8, left: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(8)),
@@ -374,49 +404,31 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    children: [
-                      const Icon(Icons.star, color: Color(0xFFFF9442), size: 14),
-                      const SizedBox(width: 4),
-                      const Text('4.8', style: TextStyle(color: Color(0xFFFF9442), fontSize: 12, fontWeight: FontWeight.bold)), 
+                    children: const [
+                      Icon(Icons.star, color: Color(0xFFFF9442), size: 14), SizedBox(width: 4),
+                      Text('4.8', style: TextStyle(color: Color(0xFFFF9442), fontSize: 12, fontWeight: FontWeight.bold)), 
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    title, 
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.bold, height: 1.2),
-                  ),
+                  Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.bold, height: 1.2)),
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text("Rp $price", style: const TextStyle(color: Color(0xFFFF9442), fontSize: 14, fontWeight: FontWeight.w800)), 
-                      // ✅ LOGIKA TOMBOL (+) DENGAN SNACKBAR MELAYANG
                       GestureDetector(
-                        onTap: () async {
+                        onTap: () {
                           if (stock > 0) {
-                            await _addItemToCart(
-                              title: title,
-                              subtitle: subtitle,
-                              price: priceValue,
-                            );
-                            if (!mounted) return;
-                            // ✅ NOTIFIKASI DIUBAH JADI MELAYANG BIAR KERANJANG NGGAK NAIK
+                            setState(() { _cartItemCount++; });
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('$title ditambahkan!', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                duration: const Duration(seconds: 1),
-                                backgroundColor: const Color(0xFFFF9442),
-                                behavior: SnackBarBehavior.floating, 
-                                margin: const EdgeInsets.only(bottom: 80, left: 40, right: 40), 
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                elevation: 0,
+                                duration: const Duration(seconds: 1), backgroundColor: const Color(0xFFFF9442),
+                                behavior: SnackBarBehavior.floating, margin: const EdgeInsets.only(bottom: 80, left: 40, right: 40), 
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0,
                               ),
                             );
-                          } else {
-                            _showOutOfStockDialog(context);
-                          }
+                          } else { _showOutOfStockDialog(context); }
                         },
                         child: Icon(Icons.add_circle, color: stock <= 0 ? Colors.grey : const Color(0xFFFF9442), size: 28),
                       ),
@@ -431,7 +443,6 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     );
   }
 
-  // === FUNGSI DIALOG SINGKAT, PADAT, JELAS ===
   void _showOutOfStockDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -440,28 +451,17 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
           content: Column(
-            mainAxisSize: MainAxisSize.min, // Biar kotaknya nggak kebesaran
+            mainAxisSize: MainAxisSize.min,
             children: const [
-              Icon(Icons.error_outline, color: Colors.red, size: 48), // Icon peringatan
-              SizedBox(height: 16),
-              Text(
-                'Stok tidak tersedia',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                textAlign: TextAlign.center,
-              ),
+              Icon(Icons.error_outline, color: Colors.red, size: 48), SizedBox(height: 16),
+              Text('Stok tidak tersedia', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)), textAlign: TextAlign.center),
             ],
           ),
           actions: [
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Buat nutup pop-up
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF9442),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  minimumSize: const Size(120, 40), // Ukuran tombol
-                ),
+                onPressed: () { Navigator.of(context).pop(); },
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF9442), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), minimumSize: const Size(120, 40)),
                 child: const Text('OK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ),
@@ -471,58 +471,53 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     );
   }
 
-  // --- BAGIAN NAVIGATION BAR BAWAH --- //
+  // ✅ KABEL BOTTOM NAV BAR DIJAHIT SEMUA
   Widget _buildBottomNavigationBar(BuildContext context) {
-    return buildBottomNavbar(context, '/dashboard_menu');
-  }
-
-  List<Map<String, dynamic>> _decodeCartItems(String? raw) {
-    if (raw == null || raw.isEmpty) return [];
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is List) {
-        return decoded.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
-      }
-    } catch (_) {}
-    return [];
-  }
-
-  Future<void> _loadCartItemCount() async {
-    final prefs = await SharedPreferences.getInstance();
-    final items = _decodeCartItems(prefs.getString(_cartStorageKey));
-    final total = items.fold<int>(
-      0,
-      (sum, item) => sum + (int.tryParse('${item['qty'] ?? 0}') ?? 0),
+    return BottomAppBar(
+      color: Colors.white, shape: const CircularNotchedRectangle(), notchMargin: 8.0, elevation: 10,
+      child: SizedBox(
+        height: 60,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(Icons.home_outlined, 'Home', context.widget is DashboardPage, () {
+              if (context.widget is! DashboardPage) {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardPage()));
+              }
+            }),
+            _buildNavItem(Icons.restaurant_menu, 'Menu', context.widget is MenuFoodScreen, () {
+              if (context.widget is! MenuFoodScreen) {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen()));
+              }
+            }),
+            const SizedBox(width: 48), 
+            _buildNavItem(Icons.receipt_long_outlined, 'Order', false, () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const MyOrdersPage())); 
+            }),
+            _buildNavItem(Icons.person_outline, 'Profil', false, () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage())); 
+            }),
+          ],
+        ),
+      ),
     );
-    if (!mounted) return;
-    setState(() => _cartItemCount = total);
   }
 
-  Future<void> _addItemToCart({
-    required String title,
-    required String subtitle,
-    required int price,
-  }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final items = _decodeCartItems(prefs.getString(_cartStorageKey));
-
-    final existingIndex = items.indexWhere((item) => '${item['title']}' == title);
-    if (existingIndex >= 0) {
-      final currentQty = int.tryParse('${items[existingIndex]['qty'] ?? 0}') ?? 0;
-      items[existingIndex]['qty'] = currentQty + 1;
-      items[existingIndex]['price'] = price;
-      items[existingIndex]['subtitle'] = subtitle;
-    } else {
-      items.add({
-        'title': title,
-        'subtitle': subtitle,
-        'price': price,
-        'qty': 1,
-      });
-    }
-
-    await prefs.setString(_cartStorageKey, jsonEncode(items));
-    await _loadCartItemCount();
+  Widget _buildNavItem(IconData icon, String label, bool isActive, VoidCallback onTap) {
+    return InkWell( 
+      onTap: onTap, borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8)),
+            const SizedBox(height: 4),
+            Text(label, style: TextStyle(color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8), fontSize: 10, fontWeight: isActive ? FontWeight.bold : FontWeight.w500)),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildFab() {
@@ -530,14 +525,14 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
       clipBehavior: Clip.none, 
       children: [
         Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)]
-          ),
+          decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)]),
           child: FloatingActionButton(
-            onPressed: () async {
-              await Navigator.pushNamed(context, '/cart');
-              _loadCartItemCount();
+            // ✅ KABEL MENUJU KERANJANG NOVIA (CartPage)
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartPage()),
+              );
             },
             backgroundColor: const Color(0xFFFF9442),
             elevation: 0,
@@ -547,15 +542,11 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
         ),
         if (_cartItemCount > 0)
           Positioned(
-            right: -2,
-            top: -2,
+            right: -2, top: -2,
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
-              child: Text(
-                '$_cartItemCount', 
-                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-              ),
+              child: Text('$_cartItemCount', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
             ),
           ),
       ],

@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http; // Ditambahkan untuk koneksi API
+import 'package:http/http.dart' as http; 
 import 'dart:convert';
 import 'rating_views.dart'; 
+// ✅ IMPORT SUDAH DIALAHKAN KE DASHBOARD MENU
+import 'dashboard_menu.dart'; 
 
-// KELAS 1
-class ReviewsApp extends StatelessWidget {
+class ReviewsApp extends StatefulWidget {
   const ReviewsApp({super.key});
 
   @override
-  Widget build(BuildContext context) => const WriteAReviewScreen();
+  State<ReviewsApp> createState() => _ReviewsAppState();
+}
+
+class _ReviewsAppState extends State<ReviewsApp> {
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false, 
+      home: WriteAReviewScreen(),
+    );
+  }
 }
 
 class WriteAReviewScreen extends StatefulWidget {
@@ -24,22 +35,13 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
   Set<String> selectedTags = {'Taste', 'Portion Size'};
   final TextEditingController _reviewController = TextEditingController();
   int charCount = 0;
-  bool _isSubmitting = false; // Untuk indikator loading saat kirim data
+  bool _isSubmitting = false; 
 
   final List<String> tags = [
     'Taste',
     'Packaging',
     'Portion Size',
     'Value for Money',
-  ];
-
-  final List<String> starLabels = [
-    '',
-    'Terrible',
-    'Bad',
-    'Okay',
-    'Good',
-    'Amazing!',
   ];
 
   @override
@@ -68,7 +70,6 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
     });
   }
 
-// --- FUNGSI BARU: MEMAKSA FORMAT JSON ---
   Future<void> _submitReview() async {
     if (selectedStars == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -86,7 +87,6 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
     try {
       String combinedTags = selectedTags.isEmpty ? "REGULAR" : selectedTags.join(", ");
 
-      // Kita bungkus semua data menjadi JSON yang ketat
       final Map<String, dynamic> dataYangDikirim = {
         "customer_id": "1", 
         "rating": selectedStars.toString(),
@@ -95,8 +95,7 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
       };
 
       final response = await http.post(
-        // UBAH DARI 10.0.2.2 MENJADI localhost
-        Uri.parse("http://localhost/pangsit_api/submit_review.php"),
+        Uri.parse("http://localhost/pangsit_njedok_api/submit_review.php"),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
@@ -104,14 +103,11 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
         body: jsonEncode(dataYangDikirim), 
       );
 
-      print("RESPON DARI SERVER: ${response.body}"); // Tambahan untuk mengecek di terminal VS Code
-
       if (response.statusCode == 200) {
         final result = json.decode(response.body);
         if (result['status'] == 'success') {
           _showSuccessDialog();
         } else {
-          // Tampilkan pesan error dari PHP ke layar HP
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Gagal: ${result['message']}')),
           );
@@ -138,51 +134,39 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 72,
-              height: 72,
-              decoration: const ShapeDecoration(
-                color: Color(0xFFFFCF9A),
-                shape: CircleBorder(),
-              ),
+              width: 72, height: 72,
+              decoration: const ShapeDecoration(color: Color(0xFFFFCF9A), shape: CircleBorder()),
               child: const Icon(Icons.check_rounded, color: Color(0xFF954A00), size: 40),
             ),
             const SizedBox(height: 20),
             const Text(
               'Thank you for your\nreview!',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color(0xFF1B1C15),
-                fontSize: 22,
-                fontFamily: 'Plus Jakarta Sans',
-                fontWeight: FontWeight.w800,
-                height: 1.35,
-              ),
+              style: TextStyle(color: Color(0xFF1B1C15), fontSize: 22, fontFamily: 'Plus Jakarta Sans', fontWeight: FontWeight.w800, height: 1.35),
             ),
             
             const SizedBox(height: 28),
             GestureDetector(
               onTap: () {
-                Navigator.of(ctx).pop(); // Tutup dialog
-                Navigator.pushNamedAndRemoveUntil(context, '/home_customer', (route) => false);
+                Navigator.of(ctx).pop(); // Tutup pop-up dialog
+                
+                // ✅ SEKARANG SUDAH MENGARAH KE DASHBOARD PAGE & MENGHAPUS RIWAYAT HALAMAN SEBELUMNYA
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const DashboardPage()), 
+                  (Route<dynamic> route) => false,
+                );
               },
               child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: ShapeDecoration(
                   color: const Color(0xFF954A00),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 child: const Text(
                   'Back to Home',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontFamily: 'Plus Jakarta Sans', fontWeight: FontWeight.w700),
                 ),
               ),
             ),
@@ -198,7 +182,6 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
       backgroundColor: const Color(0xFFFCFAEE),
       body: Column(
         children: [
-          // Top App Bar
           Container(
             color: const Color(0xFFFCFAEE),
             padding: const EdgeInsets.only(top: 52, left: 16, right: 16, bottom: 12),
@@ -206,35 +189,15 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    if (Navigator.canPop(context)) {
-                      Navigator.pop(context);
-                    } else {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const RatingViewsPage()),
-                      );
-                    }
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const RatingViewsPage()));
                   },
-                  // -----------------------------
                   child: Container(
                     padding: const EdgeInsets.all(8),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Color(0xFF954A00),
-                      size: 24,
-                    ),
+                    child: const Icon(Icons.arrow_back, color: Color(0xFF954A00), size: 24),
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'Rate Your Order',
-                  style: TextStyle(
-                    color: Color(0xFF954A00),
-                    fontSize: 18,
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                const Text('Rate Your Order', style: TextStyle(color: Color(0xFF954A00), fontSize: 18, fontFamily: 'Plus Jakarta Sans', fontWeight: FontWeight.w700)),
               ],
             ),
           ),
@@ -267,11 +230,9 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
     );
   }
 
-  // --- Widget Builders tetap sama dengan file asli[cite: 3] ---
   Widget _buildOrderCard() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      width: double.infinity, padding: const EdgeInsets.all(24),
       decoration: ShapeDecoration(
         color: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
@@ -284,7 +245,7 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
             decoration: BoxDecoration(color: const Color(0xFFF0EEE2), borderRadius: BorderRadius.circular(16)),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.network('https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=80&h=80&fit=crop', fit: BoxFit.cover),
+              child: Image.asset('assets/images/ptulangrangu.jpeg', fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.fastfood, color: Colors.grey)),
             ),
           ),
           const SizedBox(width: 16),
