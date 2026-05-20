@@ -5,6 +5,7 @@ import 'my_favorites.dart';
 import 'rating_views.dart';
 import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
 import '../service/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -26,13 +27,17 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _loadData() async {
     try {
-      var response = await ApiService.getProfile("1"); 
+      final prefs = await SharedPreferences.getInstance();
+      final customerId = prefs.getString('customer_id') ?? "1"; // Memakai ID customer yang tersimpan di HP
+      var response = await ApiService.getProfile(customerId); 
 
       if (mounted) {
         setState(() {
           if (response['status'] == 'success') {
             name = response['data']['name'];
             phone = response['data']['no_telepon'];
+            // Sync nama terbaru ke memori HP
+            prefs.setString('customer_name', name);
           } else {
             name = "User Tidak Ditemukan";
           }
@@ -226,8 +231,16 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildLogoutButton() {
     return GestureDetector(
-      onTap: () {
-        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      onTap: () async {
+        // Hapus data session dari memori HP saat logout
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('customer_id');
+        await prefs.remove('customer_name');
+        await prefs.remove('customer_phone');
+        
+        if (context.mounted) {
+          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+        }
       },
       child: Container(
         width: double.infinity, 

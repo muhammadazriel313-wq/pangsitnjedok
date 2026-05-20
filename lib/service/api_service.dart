@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Alamat URL disesuaikan dengan folder di htdocs kamu
-  // Gunakan 10.0.2.2 untuk emulator Android atau localhost untuk iOS/Web
+  // 📍 BASE URL (Alamat Server Backend)
+  // - Pakai 'http://localhost/pangsit_njedok_api' kalau kamu jalankan di Web atau Simulator iOS.
+  // - Pakai 'http://10.0.2.2/pangsit_njedok_api' kalau kamu jalankan di Emulator Android bawaan.
+  // - Pakai IP HP/Laptop kamu (misal: 'http://192.168.1.5/pangsit_njedok_api') kalau kamu jalankan di HP asli (koneksikan HP & Laptop ke Wi-Fi yang sama).
   static const String baseUrl = "http://localhost/pangsit_njedok_api"; 
 
   // ============================================================
@@ -47,7 +49,7 @@ class ApiService {
   static Future<Map<String, dynamic>> updateProfile(String id, String name, String phone) async {
     try {
       final response = await http.post(
-        Uri.parse("$baseUrl/update_profil_customer.php"),
+        Uri.parse("$baseUrl/ganti_profil.php"), // Menggunakan ganti_profil.php sesuai file yang ada di backend
         body: {"id": id, "name": name, "no_telepon": phone},
       );
       return response.statusCode == 200 ? json.decode(response.body) : {"status": "error", "message": "Gagal Update"};

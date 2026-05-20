@@ -1,7 +1,6 @@
 // lib/service/pdf_service.dart
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'dart:typed_data';
 import 'dart:math' as math;
@@ -73,7 +72,7 @@ class PdfService {
                       sold: int.parse(item['sold'].toString()),
                       amount: item['amount'].toString(),
                     );
-                  }).toList(),
+                  }),
                 
                 pw.SizedBox(height: 40),
                 pw.Align(

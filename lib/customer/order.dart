@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
 import '../service/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyOrdersPage extends StatefulWidget {
   const MyOrdersPage({super.key});
@@ -34,7 +35,9 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
 
   Future<void> _fetchCustomerDataAndOrders() async {
     try {
-      final profile = await ApiService.getProfile("1");
+      final prefs = await SharedPreferences.getInstance();
+      final customerId = prefs.getString('customer_id') ?? "1"; // Ambil ID customer dari session HP
+      final profile = await ApiService.getProfile(customerId);
       if (profile['status'] == 'success' && profile['data'] is Map) {
         final data = Map<String, dynamic>.from(profile['data'] as Map);
         _customerName = (data['name'] ?? 'Customer').toString();
@@ -86,6 +89,28 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
         ],
       ),
     );
+  }
+
+  String _getProductImage(String productName) {
+    final nameLower = productName.toLowerCase();
+    if (nameLower.contains('tulang rangu') || nameLower.contains('rangu')) {
+      return 'assets/images/pangsittulangrangu.jpg';
+    } else if (nameLower.contains('goreng')) {
+      return 'assets/images/pangsitgoreng.jpg';
+    } else if (nameLower.contains('wonton') || nameLower.contains('chili')) {
+      return 'assets/images/wontonchilioil.jpg';
+    } else if (nameLower.contains('mentai')) {
+      return 'assets/images/wontonmentai.jpg';
+    } else if (nameLower.contains('mietiaw') || nameLower.contains('mietieaw') || nameLower.contains('tiaw')) {
+      return 'assets/images/mietieawchilioil.jpg';
+    } else if (nameLower.contains('siomay')) {
+      return 'assets/images/siomay.jpg';
+    } else if (nameLower.contains('oseng')) {
+      return 'assets/images/osengpangsit.jpg';
+    } else if (nameLower.contains('es') || nameLower.contains('leci') || nameLower.contains('buah') || nameLower.contains('teh') || nameLower.contains('lemon') || nameLower.contains('jeruk') || nameLower.contains('sbuah')) {
+      return 'assets/images/esbuahleci.jpg';
+    }
+    return 'assets/images/logopangsitnjedok.png';
   }
 
   @override
@@ -218,8 +243,8 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           String itemName = "Pangsit Njedog Order";
           String details = "Total: ${itemsRaw.length} item";
           if (itemsRaw.isNotEmpty) {
-            itemName = itemsRaw[0]['name'] ?? 'Pangsit';
-            details = itemsRaw.map((i) => "${i['qty']}x ${i['name']}").join(" • ");
+            itemName = itemsRaw[0]['menu_id'] ?? itemsRaw[0]['name'] ?? 'Pangsit';
+            details = itemsRaw.map((i) => "${i['qty']}x ${i['menu_id'] ?? i['name'] ?? 'Pangsit'}").join(" • ");
           }
 
           final status = (order['status'] ?? '').toString();
@@ -234,7 +259,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
               status: status,
               statusColor: status.toUpperCase() == 'PROCESSING' ? const Color(0xFFFF9442) : const Color(0xFF7B572C),
               itemName: itemName,
-              itemImage: 'assets/images/ptulangrangu.jpeg',
+              itemImage: _getProductImage(itemName),
               price: '${order['totalAmount']}',
               paymentStatus: status.toUpperCase() == 'PROCESSING' ? 'PAID' : 'WAITING CONFIRMATION',
               details: details,
@@ -291,7 +316,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
 
           String itemsSummary = "Detail pesanan kosong";
           if (itemsRaw.isNotEmpty) {
-            itemsSummary = itemsRaw.map((i) => "${i['qty']}x ${i['name']}").join(", ");
+            itemsSummary = itemsRaw.map((i) => "${i['qty']}x ${i['menu_id'] ?? i['name'] ?? 'Pangsit'}").join(", ");
           }
 
           final status = (order['status'] ?? '').toString().toUpperCase();
@@ -366,21 +391,35 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     // 1. Bagian Gambar
     ClipRRect(
       borderRadius: BorderRadius.circular(12),
-      child: Image.network(
-        itemImage,
-        width: 64,
-        height: 64,
-        fit: BoxFit.cover,
-        // Tambahkan errorBuilder agar jika gambar gagal, aplikasi tidak rusak
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            width: 64,
-            height: 64,
-            color: Colors.grey[300],
-            child: const Icon(Icons.broken_image, color: Colors.grey),
-          );
-        },
-      ),
+      child: itemImage.startsWith('assets/')
+          ? Image.asset(
+              itemImage,
+              width: 64,
+              height: 64,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 64,
+                  height: 64,
+                  color: const Color(0xFFF6F4E8),
+                  child: const Icon(Icons.fastfood, color: Color(0xFFFF9442)),
+                );
+              },
+            )
+          : Image.network(
+              itemImage,
+              width: 64,
+              height: 64,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 64,
+                  height: 64,
+                  color: const Color(0xFFF6F4E8),
+                  child: const Icon(Icons.fastfood, color: Color(0xFFFF9442)),
+                );
+              },
+            ),
     ),
     const SizedBox(width: 16),
     

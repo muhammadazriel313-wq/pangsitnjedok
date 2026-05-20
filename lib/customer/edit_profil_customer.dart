@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
 import '../service/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EditAccountPage extends StatefulWidget {
   const EditAccountPage({super.key});
@@ -53,7 +54,9 @@ class _EditAccountPageState extends State<EditAccountPage> {
 
   Future<void> _loadUserData() async {
     try {
-      final response = await ApiService.getProfile("1");
+      final prefs = await SharedPreferences.getInstance();
+      final customerId = prefs.getString('customer_id') ?? "1"; // Ambil ID customer dari session HP
+      final response = await ApiService.getProfile(customerId);
 
       if (!mounted) return;
 
@@ -77,8 +80,10 @@ class _EditAccountPageState extends State<EditAccountPage> {
     setState(() => isLoading = true);
 
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final customerId = prefs.getString('customer_id') ?? "1"; // Kirim ID customer yang sesuai
       final response = await ApiService.updateProfile(
-        "1",
+        customerId,
         nameController.text,
         phoneController.text,
       );
@@ -86,6 +91,10 @@ class _EditAccountPageState extends State<EditAccountPage> {
       if (!mounted) return;
 
       if (response['status'] == 'success') {
+        // Sync data yang baru diubah ke memori HP
+        await prefs.setString('customer_name', nameController.text);
+        await prefs.setString('customer_phone', phoneController.text);
+        
         Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

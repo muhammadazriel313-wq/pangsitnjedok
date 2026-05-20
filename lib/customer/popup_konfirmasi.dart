@@ -33,7 +33,9 @@ class _OrderConfirmationDialogState extends State<OrderConfirmationDialog> {
   bool _isSubmitting = false;
 
   Future<Map<String, String>> _getCustomerIdentity() async {
-    final profile = await ApiService.getProfile("1");
+    final prefs = await SharedPreferences.getInstance();
+    final customerId = prefs.getString('customer_id') ?? "1"; // Ambil ID customer dari session HP
+    final profile = await ApiService.getProfile(customerId);
     if (profile['status'] == 'success' && profile['data'] is Map) {
       final data = Map<String, dynamic>.from(profile['data'] as Map);
       return {

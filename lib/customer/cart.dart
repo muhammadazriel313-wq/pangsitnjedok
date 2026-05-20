@@ -1,71 +1,19 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'popup_konfirmasi.dart';
-
-class _CartItem {
-  _CartItem({
-    required this.title,
-    required this.subtitle,
-    required this.price,
-    required this.qty,
-  });
-
-  final String title;
-  final String subtitle;
-  final int price;
-  int qty;
-
-  Map<String, dynamic> toJson() {
-    return {'title': title, 'subtitle': subtitle, 'price': price, 'qty': qty};
-  }
-
-  factory _CartItem.fromJson(Map<String, dynamic> json) {
-    final parsedPrice = int.tryParse('${json['price'] ?? 0}') ?? 0;
-    final parsedQty = int.tryParse('${json['qty'] ?? 0}') ?? 0;
-    return _CartItem(
-      title: json['title']?.toString() ?? 'Menu',
-      subtitle: json['subtitle']?.toString() ?? '-',
-      price: parsedPrice,
-      qty: parsedQty < 0 ? 0 : parsedQty,
-    );
-  }
-
-  _CartItem copy() {
-    return _CartItem(title: title, subtitle: subtitle, price: price, qty: qty);
-  }
-}
+import '../service/cart_service.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
 
-  static const String _storageKey = 'customer_cart_items_v1';
-
-  // Data default hanya dipakai saat belum ada data tersimpan.
-  static final List<_CartItem> _defaultCartItems = [
-    _CartItem(
-      title: 'Mietiaw Pangsit Njedog',
-      subtitle: 'Extra Spicy',
-      price: 19000,
-      qty: 2,
-    ),
-    _CartItem(
-      title: 'Es Buah Segar',
-      subtitle: 'Less Ice',
-      price: 9000,
-      qty: 1,
-    ),
-  ];
-
   // Cache sesi biar perpindahan halaman tetap cepat.
-  static final List<_CartItem> _sessionCartItems = [];
+  static final List<CartItem> _sessionCartItems = [];
 
   @override
   State<CartPage> createState() => _CartPageState();
 }
 
 class _CartPageState extends State<CartPage> {
-  List<_CartItem> get _cartItems => CartPage._sessionCartItems;
+  List<CartItem> get _cartItems => CartPage._sessionCartItems;
   bool _isInitializing = true;
 
   @override
@@ -80,31 +28,7 @@ class _CartPageState extends State<CartPage> {
   int get totalItems => _cartItems.fold(0, (sum, item) => sum + item.qty);
 
   Future<void> _loadCartFromStorage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(CartPage._storageKey);
-
-    List<_CartItem> loadedItems = [];
-    if (raw == null || raw.isEmpty) {
-      loadedItems = CartPage._defaultCartItems
-          .map((item) => item.copy())
-          .toList();
-    } else {
-      try {
-        final decoded = jsonDecode(raw);
-        if (decoded is List) {
-          loadedItems = decoded
-              .whereType<Map>()
-              .map(
-                (item) => _CartItem.fromJson(Map<String, dynamic>.from(item)),
-              )
-              .toList();
-        }
-      } catch (_) {
-        loadedItems = CartPage._defaultCartItems
-            .map((item) => item.copy())
-            .toList();
-      }
-    }
+    final loadedItems = await CartService.getCartItems();
 
     if (!mounted) return;
     setState(() {
@@ -119,9 +43,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   Future<void> _saveCartToStorage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final payload = _cartItems.map((item) => item.toJson()).toList();
-    await prefs.setString(CartPage._storageKey, jsonEncode(payload));
+    await CartService.saveCartItems(_cartItems);
   }
 
   void _updateQty(int index, int newQty) {
@@ -262,7 +184,7 @@ class _CartPageState extends State<CartPage> {
 
   // Widget untuk Item Keranjang
   Widget _buildCartItem({
-    required _CartItem item,
+    required CartItem item,
     required ValueChanged<int> onQtyChanged,
   }) {
     return Container(

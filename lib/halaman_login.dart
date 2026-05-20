@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'halaman_register.dart'; 
 import 'service/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HalamanLogin extends StatefulWidget {
   const HalamanLogin({super.key});
@@ -41,6 +42,20 @@ class _HalamanLoginState extends State<HalamanLogin> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(response['message'] ?? 'Login sukses!'), backgroundColor: Colors.green),
         );
+        
+        // 💾 Simpan session (data login) ke memori HP biar tidak usah hardcode ID "1" lagi
+        final prefs = await SharedPreferences.getInstance();
+        final userData = response['data'];
+        if (userData != null) {
+          if (isCustomerSelected) {
+            await prefs.setString('customer_id', userData['id'].toString());
+            await prefs.setString('customer_name', userData['name'].toString());
+            await prefs.setString('customer_phone', _idController.text);
+          } else {
+            await prefs.setString('admin_id', userData['id'].toString());
+            await prefs.setString('admin_name', userData['name'].toString());
+          }
+        }
         
         if (isCustomerSelected) {
           Navigator.pushReplacementNamed(context, '/home_customer');

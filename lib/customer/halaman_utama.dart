@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../service/cart_service.dart';
 
 class HalamanUtama extends StatelessWidget {
   const HalamanUtama({super.key});
@@ -29,33 +30,30 @@ class _HomepageState extends State<Homepage> {
   int _cartCount = 0;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  String _customerName = "Customer"; // Untuk menampung nama customer secara dinamis
 
   @override
   void initState() {
     super.initState();
     _loadCartCount();
+    _loadCustomerName(); // Mengambil nama saat pertama kali dibuka
+  }
+
+  // 📂 Mengambil nama customer yang tersimpan di SharedPreferences
+  Future<void> _loadCustomerName() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString('customer_name');
+    if (name != null && name.isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          _customerName = name;
+        });
+      }
+    }
   }
 
   Future<void> _loadCartCount() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString('customer_cart_items_v1');
-
-    int total = 0;
-    if (raw != null && raw.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(raw);
-        if (decoded is List) {
-          for (final item in decoded) {
-            if (item is Map) {
-              total += int.tryParse('${item['qty'] ?? 0}') ?? 0;
-            }
-          }
-        }
-      } catch (_) {
-        total = 0;
-      }
-    }
-
+    final total = await CartService.getCartCount();
     if (!mounted) return;
     setState(() => _cartCount = total);
   }
@@ -151,9 +149,9 @@ class _HomepageState extends State<Homepage> {
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text('Welcome back,', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
-                Text('Customer', style: TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
+              children: [
+                const Text('Welcome back,', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                Text(_customerName, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
           ],

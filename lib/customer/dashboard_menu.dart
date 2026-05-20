@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; 
-import 'dart:convert';
+
+import 'halaman_menu.dart'; 
 import '../service/api_service.dart';
-import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// ✅ IMPORT HALAMAN DARI NOVIA
+import 'cart.dart'; 
+import 'order.dart';
+import 'profil_customer.dart';
+import '../service/cart_service.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -13,7 +17,6 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  static const String _cartStorageKey = 'customer_cart_items_v1';
   bool _isFoodSelected = true;
   
   // --- VARIABEL API ---
@@ -25,14 +28,14 @@ class _DashboardPageState extends State<DashboardPage> {
   int _currentPage = 0;
   Timer? _carouselTimer;
 
-  // ✅ VARIABEL UNTUK JUMLAH KERANJANG DI DASHBOARD
+  // ✅ VARIABEL UNTUK JUMLAH KERANJANG
   int _cartItemCount = 0;
 
   @override
   void initState() {
     super.initState();
-    _fetchDashboardData(); // AMBIL DATA DARI DATABASE
-    _loadCartItemCount();
+    _fetchDashboardData(); 
+    _loadCartCount();
 
     _carouselTimer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
       if (_currentPage < 1) { 
@@ -50,7 +53,14 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
-  // FUNGSI TARIK DATA DARI XAMPP
+  Future<void> _loadCartCount() async {
+    final count = await CartService.getCartCount();
+    if (!mounted) return;
+    setState(() {
+      _cartItemCount = count;
+    });
+  }
+
   Future<void> _fetchDashboardData() async {
     try {
       final data = await ApiService.getMenus();
@@ -93,7 +103,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                 ),
                 const SizedBox(height: 16),
-                _buildPopularItems(), // SEKARANG JADI DINAMIS
+                _buildPopularItems(), 
               ],
             ),
           ),
@@ -105,8 +115,6 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // --- WIDGET KOMPONEN ---
-  
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -200,7 +208,13 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                   const Spacer(),
                   ElevatedButton(
-                    onPressed: () {}, 
+                    // ✅ KABEL MENUJU HALAMAN PESANAN (MyOrdersPage)
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const MyOrdersPage()),
+                      );
+                    }, 
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white, foregroundColor: const Color(0xFF0F172A),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -290,11 +304,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _foodCard(dynamic item) {
     String title = item['title'] ?? 'Menu';
     String price = item['price']?.toString() ?? '0';
-    int priceValue = int.tryParse(price) ?? 0;
-    String subtitle = _isFoodSelected ? 'Food' : 'Beverages';
     String img = item['image_url'] ?? '';
-    
-    // Ambil data stok
     int stock = int.tryParse(item['stock']?.toString() ?? '0') ?? 0;
 
     return GestureDetector(
@@ -355,16 +365,14 @@ class _DashboardPageState extends State<DashboardPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text("Rp $price", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFFF9442))),
-                      GestureDetector(
+                       GestureDetector(
                         onTap: () async {
                           if (stock > 0) {
-                            await _addItemToCart(
-                              title: title,
-                              subtitle: subtitle,
-                              price: priceValue,
-                            );
+                            final category = item['category']?.toString() ?? 'food';
+                            final parsedPrice = int.tryParse(price.replaceAll('.', '').replaceAll('Rp ', '').trim()) ?? 0;
+                            await CartService.addToCart(title, parsedPrice, category);
+                            await _loadCartCount();
                             if (!mounted) return;
-                            // ✅ NOTIFIKASI DIUBAH JADI MELAYANG BIAR KERANJANG NGGAK NAIK
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('$title ditambahkan!', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -393,7 +401,6 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // ✅ FUNGSI DIALOG STOK HABIS (Sama persis kayak di menu)
   void _showOutOfStockDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -416,9 +423,7 @@ class _DashboardPageState extends State<DashboardPage> {
           actions: [
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); 
-                },
+                onPressed: () { Navigator.of(context).pop(); },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFF9442),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -433,57 +438,53 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  // ✅ KABEL BOTTOM NAV BAR DIJAHIT SEMUA
   Widget _buildBottomNavigationBar(BuildContext context) {
-    return buildBottomNavbar(context, '/dashboard_menu');
-  }
-
-  List<Map<String, dynamic>> _decodeCartItems(String? raw) {
-    if (raw == null || raw.isEmpty) return [];
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is List) {
-        return decoded.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
-      }
-    } catch (_) {}
-    return [];
-  }
-
-  Future<void> _loadCartItemCount() async {
-    final prefs = await SharedPreferences.getInstance();
-    final items = _decodeCartItems(prefs.getString(_cartStorageKey));
-    final total = items.fold<int>(
-      0,
-      (sum, item) => sum + (int.tryParse('${item['qty'] ?? 0}') ?? 0),
+    return BottomAppBar(
+      color: Colors.white, shape: const CircularNotchedRectangle(), notchMargin: 8.0, elevation: 10,
+      child: SizedBox(
+        height: 60,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(Icons.home_outlined, 'Home', context.widget is DashboardPage, () {
+              if (context.widget is! DashboardPage) {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardPage()));
+              }
+            }),
+            _buildNavItem(Icons.restaurant_menu, 'Menu', context.widget is MenuFoodScreen, () {
+              if (context.widget is! MenuFoodScreen) {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen()));
+              }
+            }),
+            const SizedBox(width: 48), 
+            _buildNavItem(Icons.receipt_long_outlined, 'Order', false, () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const MyOrdersPage())); 
+            }),
+            _buildNavItem(Icons.person_outline, 'Profil', false, () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage())); 
+            }),
+          ],
+        ),
+      ),
     );
-    if (!mounted) return;
-    setState(() => _cartItemCount = total);
   }
 
-  Future<void> _addItemToCart({
-    required String title,
-    required String subtitle,
-    required int price,
-  }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final items = _decodeCartItems(prefs.getString(_cartStorageKey));
-
-    final existingIndex = items.indexWhere((item) => '${item['title']}' == title);
-    if (existingIndex >= 0) {
-      final currentQty = int.tryParse('${items[existingIndex]['qty'] ?? 0}') ?? 0;
-      items[existingIndex]['qty'] = currentQty + 1;
-      items[existingIndex]['price'] = price;
-      items[existingIndex]['subtitle'] = subtitle;
-    } else {
-      items.add({
-        'title': title,
-        'subtitle': subtitle,
-        'price': price,
-        'qty': 1,
-      });
-    }
-
-    await prefs.setString(_cartStorageKey, jsonEncode(items));
-    await _loadCartItemCount();
+  Widget _buildNavItem(IconData icon, String label, bool isActive, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap, borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8)),
+            const SizedBox(height: 4),
+            Text(label, style: TextStyle(color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8), fontSize: 10, fontWeight: isActive ? FontWeight.bold : FontWeight.w500)),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildFab() {
@@ -496,9 +497,13 @@ class _DashboardPageState extends State<DashboardPage> {
             boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)]
           ),
           child: FloatingActionButton(
+            // ✅ KABEL MENUJU KERANJANG NOVIA (CartPage)
             onPressed: () async {
-              await Navigator.pushNamed(context, '/cart');
-              _loadCartItemCount();
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartPage()),
+              );
+              _loadCartCount();
             },
             backgroundColor: const Color(0xFFFF9442),
             elevation: 0, 
