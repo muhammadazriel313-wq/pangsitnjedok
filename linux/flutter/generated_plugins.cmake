@@ -5,7 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_linux
   printing
-  rive_native
+  rive_common
   url_launcher_linux
 )
 
