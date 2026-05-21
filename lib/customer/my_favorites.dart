@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../service/api_service.dart'; 
+
 // Import navigasi
 import 'profil_customer.dart'; 
 import 'dashboard_menu.dart'; 
@@ -23,7 +24,8 @@ class _FavoritePageState extends State<FavoritePage> {
   bool _isLoading = true;
   String? profileImageUrl; 
 
-  final List<String> categories = ['All Items', 'Food', 'Drink', 'Beverages'];
+  // ✅ 'Drink' dihapus, sisa Food dan Beverages
+  final List<String> categories = ['All Items', 'Food', 'Beverages'];
   List<Map<String, dynamic>> menuItems = [];
 
   @override
@@ -74,7 +76,6 @@ class _FavoritePageState extends State<FavoritePage> {
     }
   }
 
-  // ✅ DIPERBAIKI: Parameter 'remove' ditambahkan & Optimistic UI agar cepat hilang saat diklik
   void _toggleFavorite(int menuId) async {
     setState(() {
       menuItems.removeWhere((item) => item['id'] == menuId);
@@ -83,7 +84,7 @@ class _FavoritePageState extends State<FavoritePage> {
     bool success = await ApiService.toggleFavorite(userId, menuId.toString(), "remove");
     
     if (!success) {
-      _fetchFavorites(); // Kalau gagal hapus di database, panggil ulang datanya
+      _fetchFavorites(); 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal menghapus favorit!'), backgroundColor: Colors.red));
       }
@@ -112,11 +113,17 @@ class _FavoritePageState extends State<FavoritePage> {
     Navigator.push(context, MaterialPageRoute(builder: (context) => const CartPage()));
   }
 
+  // ✅ LOGIKA FILTER DIUPDATE (Menu "drink" dari API akan otomatis masuk ke tab Beverages)
   List<Map<String, dynamic>> get filteredItems {
     if (selectedCategory == 'All Items') return menuItems;
-    if (selectedCategory == 'Food') return menuItems.where((item) => item['info'].toString().toLowerCase() == 'food').toList();
-    if (selectedCategory == 'Drink' || selectedCategory == 'Beverages') {
-      return menuItems.where((item) => item['info'].toString().toLowerCase() == 'drink' || item['info'].toString().toLowerCase() == 'beverage').toList();
+    if (selectedCategory == 'Food') {
+      return menuItems.where((item) => item['info'].toString().toLowerCase() == 'food').toList();
+    }
+    if (selectedCategory == 'Beverages') {
+      return menuItems.where((item) {
+        String info = item['info'].toString().toLowerCase();
+        return info == 'drink' || info == 'beverage' || info == 'beverages';
+      }).toList();
     }
     return menuItems;
   }
@@ -238,7 +245,6 @@ class _FavoritePageState extends State<FavoritePage> {
     );
   }
 
-  // ✅ DIPERBAIKI: Logika gambar sudah dikaitkan ke API agar muncul
   Widget _buildMenuCard(Map<String, dynamic> item, int index) {
     Widget imageWidget;
     String imgPath = item['image'] ?? '';

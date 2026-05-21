@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; 
-import 'package:shared_preferences/shared_preferences.dart'; // ✅ TAMBAHAN UNTUK TARIK DATA PROFIL
+import 'package:shared_preferences/shared_preferences.dart'; 
 
 import 'halaman_menu.dart'; 
 import '../service/api_service.dart';
-// ✅ IMPORT HALAMAN DARI NOVIA
 import 'cart.dart'; 
 import 'order.dart';
 import 'profil_customer.dart';
+import 'my_favorites.dart'; 
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -20,26 +20,25 @@ class _DashboardPageState extends State<DashboardPage> {
   bool _isFoodSelected = true;
   
   // --- VARIABEL PROFIL DINAMIS ---
-  String _customerName = "Pelanggan";
+  String _userId = "1";
+  String _customerName = "Customer"; 
   String _customerPhoto = "";
 
-  // --- VARIABEL API ---
+  // --- VARIABEL API & FAVORIT ---
   List<dynamic> _allMenus = [];
+  Set<int> _favoriteMenuIds = {}; 
   bool _isLoading = true;
 
-  // --- VARIABEL SLIDER ---
+  // --- VARIABEL SLIDER & KERANJANG ---
   final PageController _pageController = PageController();
   int _currentPage = 0;
   Timer? _carouselTimer;
-
-  // ✅ VARIABEL UNTUK JUMLAH KERANJANG
   int _cartItemCount = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadUserProfile(); // ✅ TARIK FOTO & NAMA PAS APLIKASI DIBUKA
-    _fetchDashboardData(); 
+    _loadUserProfile(); 
 
     _carouselTimer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
       if (_currentPage < 1) { 
@@ -57,26 +56,92 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
-  // ✅ FUNGSI BACA DATA PROFIL DARI STORAGE LOKAL
+  // ✅ BACA PROFIL SEKALIGUS TARIK DATA MENU & FAVORIT
   Future<void> _loadUserProfile() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    _userId = prefs.getString('id') ?? prefs.getString('customer_id') ?? "1"; 
+
     setState(() {
-      // Pastikan key 'name' dan 'photo' ini sama dengan yang kamu set pas login ya
-      _customerName = prefs.getString('name') ?? "Pelanggan";
+      _customerName = prefs.getString('name') ?? "Customer";
       _customerPhoto = prefs.getString('photo') ?? ""; 
     });
+
+    try {
+      var response = await ApiService.getProfile(_userId);
+      if (response['status'] == 'success') {
+        if (mounted) {
+          setState(() {
+            _customerName = response['data']['name'] ?? _customerName;
+            _customerPhoto = response['data']['foto_profil'] ?? _customerPhoto;
+          });
+        }
+      }
+    } catch (e) {
+      print("Error loading profile: $e");
+    }
+
+    _fetchDashboardData(); 
   }
 
   Future<void> _fetchDashboardData() async {
     try {
-      final data = await ApiService.getMenus();
+      final menus = await ApiService.getMenus();
+      
+      // ✅ DIPERBAIKI: Menggunakan int.parse agar tidak error merah!
+      final favs = await ApiService.getFavorites(int.parse(_userId));
+      Set<int> favIds = favs.map<int>((f) => int.parse(f['id'].toString())).toSet();
+
       setState(() {
-        _allMenus = data;
+        _allMenus = menus;
+        _favoriteMenuIds = favIds;
         _isLoading = false;
       });
     } catch (e) {
       print("Error Dashboard: $e");
       setState(() { _isLoading = false; });
+    }
+  }
+
+  // ✅ LOGIKA KLIK ICON LOVE
+  void _toggleFavorite(int menuId) async {
+    bool isCurrentlyFav = _favoriteMenuIds.contains(menuId);
+    String action = isCurrentlyFav ? "remove" : "add";
+
+    // Optimistic UI: Langsung ubah warna seketika
+    setState(() {
+      if (isCurrentlyFav) {
+        _favoriteMenuIds.remove(menuId);
+      } else {
+        _favoriteMenuIds.add(menuId);
+      }
+    });
+
+    try {
+      // Pastikan fungsi toggleFavorite sudah ada di api_service.dart kamu!
+      bool success = await ApiService.toggleFavorite(_userId, menuId.toString(), action);
+      
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(isCurrentlyFav ? 'Removed from Favorites' : 'Added to Favorites', textAlign: TextAlign.center),
+              backgroundColor: isCurrentlyFav ? Colors.red : Colors.green,
+              duration: const Duration(seconds: 1),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            )
+          );
+        } else {
+          // Kalau gagal ke database, batalkan perubahan warna
+          setState(() {
+            if (isCurrentlyFav) _favoriteMenuIds.add(menuId);
+            else _favoriteMenuIds.remove(menuId);
+          });
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to update favorites')));
+        }
+      }
+    } catch (e) {
+      print("Toggle Favorite Error: $e");
     }
   }
 
@@ -90,6 +155,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFCFAEE),
       body: SafeArea(
         child: RefreshIndicator( 
           onRefresh: _fetchDashboardData,
@@ -105,7 +171,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 _buildCategories(), 
                 const SizedBox(height: 24),
                 const Text(
-                  'Rekomendasi', 
+                  'Recommendations', 
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                 ),
                 const SizedBox(height: 16),
@@ -127,16 +193,18 @@ class _DashboardPageState extends State<DashboardPage> {
       children: [
         Row(
           children: [
+            // ✅ LOGIKA FOTO PROFIL
             Container(
               width: 48, height: 48,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: const Color(0xFFFF9442), width: 2), 
-                // ✅ FOTO PROFIL DINAMIS
                 image: DecorationImage(
-                  image: _customerPhoto.isNotEmpty
-                      ? NetworkImage("http://localhost/pangsit_njedok_api/uploads/$_customerPhoto") as ImageProvider
-                      : const AssetImage("assets/images/user.jpeg"), 
+                  image: _customerPhoto.isNotEmpty && _customerPhoto.startsWith('http')
+                      ? NetworkImage(_customerPhoto) as ImageProvider
+                      : _customerPhoto.isNotEmpty
+                          ? NetworkImage("${ApiService.baseUrl}/uploads/$_customerPhoto") as ImageProvider
+                          : const AssetImage("assets/images/user.jpeg"), 
                   fit: BoxFit.cover,
                 ),
               ),
@@ -145,17 +213,18 @@ class _DashboardPageState extends State<DashboardPage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Selamat Datang', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
-                // ✅ NAMA DINAMIS
-                Text(_customerName, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text('Welcome,', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)), 
+                Text(
+                  _customerName, // ✅ NAMA SESUAI USER LOGIN
+                  style: const TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)
+                ),
               ],
             ),
           ],
         ),
-        // ✅ ICON LONCENG DIGANTI JADI FAVORITE & BISA DIKLIK
         GestureDetector(
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const FavoritePage()));
           },
           child: Container(
             padding: const EdgeInsets.all(8),
@@ -210,25 +279,22 @@ class _DashboardPageState extends State<DashboardPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(color: const Color(0xFFFF9442), borderRadius: BorderRadius.circular(20)),
-                    child: const Text('PENAWARAN SPESIAL', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                    child: const Text('SPECIAL OFFER', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)), 
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    _isFoodSelected ? 'Varian Rasa Terbaru' : 'Kesegaran Hakiki', 
+                    _isFoodSelected ? 'Newest Flavors' : 'Ultimate Freshness', 
                     style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _isFoodSelected ? 'Pedesnya pas, nikmatnya puas!' : 'Segernya pas, nikmatnya puas!', 
+                    _isFoodSelected ? 'Perfectly spicy, purely satisfying!' : 'Perfectly fresh, purely satisfying!', 
                     style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   const Spacer(),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const MyOrdersPage()),
-                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const MyOrdersPage()));
                     }, 
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white, foregroundColor: const Color(0xFF0F172A),
@@ -236,7 +302,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       elevation: 0,
                     ),
-                    child: const Text('Pesan Sekarang', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    child: const Text('Order Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)), 
                   )
                 ],
               ),
@@ -299,83 +365,109 @@ class _DashboardPageState extends State<DashboardPage> {
 
     final filtered = _allMenus.where((item) {
       String cat = item['category']?.toString().toLowerCase() ?? 'food';
-      return _isFoodSelected ? cat == 'food' : cat == 'beverages';
+      return _isFoodSelected ? cat == 'food' : (cat == 'drink' || cat == 'beverages');
     }).toList();
 
     if (filtered.isEmpty) {
-      return const Center(child: Text("Belum ada rekomendasi."));
+      return const Center(child: Text("No recommendations yet.", style: TextStyle(color: Colors.grey))); 
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: _foodCard(filtered[0])),
-        const SizedBox(width: 16),
-        Expanded(child: filtered.length > 1 ? _foodCard(filtered[1]) : const SizedBox()),
-      ],
+    final displayItems = filtered.take(4).toList();
+
+    return GridView.builder(
+      shrinkWrap: true, 
+      physics: const NeverScrollableScrollPhysics(), 
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, 
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 0.75, // Menyeimbangkan bentuk kotak
+      ),
+      itemCount: displayItems.length,
+      itemBuilder: (context, index) {
+        return _foodCard(displayItems[index]);
+      },
     );
   }
 
   Widget _foodCard(dynamic item) {
+    int menuId = int.tryParse(item['id']?.toString() ?? '0') ?? 0;
     String title = item['title'] ?? 'Menu';
     String price = item['price']?.toString() ?? '0';
     String img = item['image_url'] ?? '';
     int stock = int.tryParse(item['stock']?.toString() ?? '0') ?? 0;
+    
+    // Cek apakah menu ini dilove oleh user
+    bool isLiked = _favoriteMenuIds.contains(menuId); 
 
     return GestureDetector(
       onTap: () {
         if (stock <= 0) {
           _showOutOfStockDialog(context);
         } else {
-          print("Buka detail menu rekomendasi: $title");
+          print("Open detail: $title");
         }
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(30),
+          color: Colors.white, borderRadius: BorderRadius.circular(24),
           border: Border.all(color: Colors.grey.shade100),
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         foregroundDecoration: stock <= 0 
-            ? BoxDecoration(color: Colors.white.withOpacity(0.5), borderRadius: BorderRadius.circular(30)) 
+            ? BoxDecoration(color: Colors.white.withOpacity(0.5), borderRadius: BorderRadius.circular(24)) 
             : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, 
           children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)), 
-                  child: img.isNotEmpty 
-                    ? Image.network("http://localhost/pangsit_njedok_api/uploads/$img", height: 120, width: double.infinity, fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.fastfood, size: 50))
-                    : const Icon(Icons.image_not_supported, size: 50),
-                ),
-                Positioned(
-                  top: 8, right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), shape: BoxShape.circle),
-                    child: const Icon(Icons.favorite_border, size: 18, color: Color(0xFF64748B)),
+            // ✅ DIPERBAIKI: Menggunakan Expanded supaya gambar mengisi ruang kosong & teks tetap padat di bawah
+            Expanded(
+              child: Stack(
+                fit: StackFit.expand, 
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)), 
+                    child: img.isNotEmpty 
+                      ? Image.network("${ApiService.baseUrl}/uploads/$img", fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.fastfood, size: 50))
+                      : const Center(child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey)),
                   ),
-                ),
-                if (stock <= 0)
+                  // ✅ LOGIKA KLIK ICON LOVE
                   Positioned(
-                    bottom: 8, left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(8)),
-                      child: const Text('HABIS', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                    top: 8, right: 8,
+                    child: GestureDetector(
+                      onTap: () => _toggleFavorite(menuId), 
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.9), shape: BoxShape.circle),
+                        child: Icon(
+                          isLiked ? Icons.favorite : Icons.favorite_border, 
+                          size: 18, 
+                          color: isLiked ? Colors.red : const Color(0xFF64748B)
+                        ),
+                      ),
                     ),
                   ),
-              ],
+                  if (stock <= 0)
+                    Positioned(
+                      bottom: 8, left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(8)),
+                        child: const Text('SOLD OUT', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)), 
+                      ),
+                    ),
+                ],
+              ),
             ),
+            // ✅ BAGIAN TEKS DAN HARGA JADI RAPAT
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(12.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min, // Membungkus konten teks seminimal mungkin
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 8),
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A)), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 8), 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -386,20 +478,18 @@ class _DashboardPageState extends State<DashboardPage> {
                             setState(() { _cartItemCount++; });
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('$title ditambahkan!', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                content: Text('$title added to cart!', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)), 
                                 duration: const Duration(seconds: 1),
                                 backgroundColor: const Color(0xFFFF9442),
                                 behavior: SnackBarBehavior.floating, 
-                                margin: const EdgeInsets.only(bottom: 80, left: 40, right: 40), 
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                elevation: 0,
                               ),
                             );
                           } else {
                             _showOutOfStockDialog(context);
                           }
                         },
-                        child: Icon(Icons.add_circle, color: stock <= 0 ? Colors.grey : const Color(0xFFFF9442), size: 24),
+                        child: Icon(Icons.add_circle, color: stock <= 0 ? Colors.grey : const Color(0xFFFF9442), size: 28),
                       ),
                     ],
                   ),
@@ -425,7 +515,7 @@ class _DashboardPageState extends State<DashboardPage> {
               Icon(Icons.error_outline, color: Colors.red, size: 48), 
               SizedBox(height: 16),
               Text(
-                'Stok tidak tersedia',
+                'Out of Stock', 
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                 textAlign: TextAlign.center,
               ),
@@ -471,7 +561,7 @@ class _DashboardPageState extends State<DashboardPage> {
             _buildNavItem(Icons.receipt_long_outlined, 'Order', false, () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const MyOrdersPage())); 
             }),
-            _buildNavItem(Icons.person_outline, 'Profil', false, () {
+            _buildNavItem(Icons.person_outline, 'Profile', false, () { 
               Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage())); 
             }),
           ],
@@ -508,10 +598,7 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           child: FloatingActionButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const CartPage()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const CartPage()));
             },
             backgroundColor: const Color(0xFFFF9442),
             elevation: 0, 
