@@ -26,6 +26,7 @@ dependencies:
   
   # PENTING: Untuk fitur Kalender (DatePicker) dan Format Rupiah di profit Admin
   intl: ^0.18.1
+  fl_chart: ^1.2.0
 
   # Penyimpanan lokal sederhana untuk data cart
   shared_preferences: ^2.2.3

@@ -29,7 +29,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
     setState(() => _isLoading = true);
 
     try {
-      // ✅ Memanggil fungsi login dari ApiService
+      // Memanggil fungsi login dari ApiService
       final response = await ApiService.login(
         _idController.text,
         _passwordController.text,
@@ -78,7 +78,6 @@ class _HalamanLoginState extends State<HalamanLogin> {
 
   @override
   Widget build(BuildContext context) {
-    // ... Sisa kodingan build kamu sudah bener ...
     return Scaffold(
       backgroundColor: const Color(0xFFFFFDF1),
       appBar: AppBar(
@@ -100,7 +99,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
               width: 180, 
               height: 180,
               alignment: Alignment.center,
-              child: Image.asset('assets/images/logopangsitnjedok.png'),
+              child: Image.asset('assets/images/logopangsitnjedok1.png'),
             ),
             
             const SizedBox(height: 32),
