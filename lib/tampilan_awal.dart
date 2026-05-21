@@ -37,7 +37,7 @@ class TampilanAwal extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(color: const Color(0x33FF9442), width: 4),
                     boxShadow: [
-                      BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
+                      BoxShadow(color: const Color(0xFFFF9442).withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))
                     ],
                   ),
                   child: const Icon(Icons.soup_kitchen, size: 80, color: Color(0xFFFF9442)),

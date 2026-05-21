@@ -2,27 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // Ditambahkan untuk koneksi API
 import 'dart:convert';
 import 'rating_views.dart'; 
-import 'halaman_utama.dart'; 
 
 // KELAS 1
-class ReviewsApp extends StatefulWidget {
+class ReviewsApp extends StatelessWidget {
   const ReviewsApp({super.key});
 
   @override
-  State<ReviewsApp> createState() => _ReviewsAppState();
+  Widget build(BuildContext context) => const WriteAReviewScreen();
 }
 
-// KELAS 2 (Pastikan ini di luar Kelas 1)
-class _ReviewsAppState extends State<ReviewsApp> {
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: WriteAReviewScreen(),
-    );
-  }
-} // <--- PASTIKAN ADA KURUNG INI SEBELUM KELAS BERIKUTNYA
-
-// KELAS 3 (Pastikan ini di luar Kelas 2)
 class WriteAReviewScreen extends StatefulWidget {
   const WriteAReviewScreen({super.key});
 
@@ -175,11 +163,7 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
             GestureDetector(
               onTap: () {
                 Navigator.of(ctx).pop(); // Tutup dialog
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HalamanUtama()), 
-                  (Route<dynamic> route) => false,
-                );
+                Navigator.pushNamedAndRemoveUntil(context, '/home_customer', (route) => false);
               },
               child: Container(
                 width: double.infinity,
@@ -222,10 +206,14 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const RatingViewsPage()),
-                    );
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    } else {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const RatingViewsPage()),
+                      );
+                    }
                   },
                   // -----------------------------
                   child: Container(

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'edit_profil_customer.dart';
-import 'package:aplikasipangsitnjedok/customer/order.dart'; 
+import 'order.dart';
+import 'my_favorites.dart';
+import 'rating_views.dart';
 import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
 import '../service/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -24,13 +27,17 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _loadData() async {
     try {
-      var response = await ApiService.getProfile("1"); 
+      final prefs = await SharedPreferences.getInstance();
+      final customerId = prefs.getString('customer_id') ?? "1"; // Memakai ID customer yang tersimpan di HP
+      var response = await ApiService.getProfile(customerId); 
 
       if (mounted) {
         setState(() {
           if (response['status'] == 'success') {
             name = response['data']['name'];
             phone = response['data']['no_telepon'];
+            // Sync nama terbaru ke memori HP
+            prefs.setString('customer_name', name);
           } else {
             name = "User Tidak Ditemukan";
           }
@@ -56,7 +63,13 @@ class _ProfilePageState extends State<ProfilePage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF954A00)),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushReplacementNamed(context, '/home_customer');
+            }
+          },
         ),
         title: const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -106,8 +119,28 @@ class _ProfilePageState extends State<ProfilePage> {
                       }
                     ),
                     
-                    _buildMenuItem(Icons.favorite_outline, 'My Favorites', 'Your loved items'),
-                    _buildMenuItem(Icons.star_outline, 'Rating & Reviews', 'Rate Us'),
+                    _buildMenuItem(
+                      Icons.favorite_outline,
+                      'My Favorites',
+                      'Your loved items',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const MyFavoritesScreen()),
+                        );
+                      },
+                    ),
+                    _buildMenuItem(
+                      Icons.star_outline,
+                      'Rating & Reviews',
+                      'Rate Us',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const RatingViewsPage()),
+                        );
+                      },
+                    ),
 
                     const SizedBox(height: 20),
                     _buildLogoutButton(),
@@ -116,6 +149,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
             ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFFFF9442),
+        shape: const CircleBorder(),
+        onPressed: () => Navigator.pushNamed(context, '/cart'),
+        child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+      ),
+      bottomNavigationBar: buildBottomNavbar(context, '/profil_customer'),
     );
   }
 
@@ -189,16 +230,28 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildLogoutButton() {
-    return Container(
-      width: double.infinity, 
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(color: const Color(0xFFFF9644), borderRadius: BorderRadius.circular(24)),
-      child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(Icons.logout, color: Colors.white),
-        SizedBox(width: 12),
-        Text('Log Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-      ]),
+    return GestureDetector(
+      onTap: () async {
+        // Hapus data session dari memori HP saat logout
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('customer_id');
+        await prefs.remove('customer_name');
+        await prefs.remove('customer_phone');
+        
+        if (context.mounted) {
+          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+        }
+      },
+      child: Container(
+        width: double.infinity, 
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(color: const Color(0xFFFF9644), borderRadius: BorderRadius.circular(24)),
+        child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(Icons.logout, color: Colors.white),
+          SizedBox(width: 12),
+          Text('Log Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+        ]),
+      ),
     );
   }
 }
-

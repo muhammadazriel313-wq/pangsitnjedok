@@ -36,8 +36,8 @@ Widget buildBottomNavbar(BuildContext context, String currentRoute) {
             context,
             icon: Icons.receipt_long,
             label: 'Orders',
-            route: '/order',
-            isActive: currentRoute == '/order',
+            route: '/order_customer',
+            isActive: currentRoute == '/order_customer',
           ),
           // TOMBOL AKUN / PROFIL
           _buildNavbarItem(

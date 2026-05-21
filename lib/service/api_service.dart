@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Alamat URL disesuaikan dengan folder di htdocs kamu
-  // Gunakan 10.0.2.2 untuk emulator Android atau localhost untuk iOS/Web
+  // 📍 BASE URL (Alamat Server Backend)
+  // - Pakai 'http://localhost/pangsit_njedok_api' kalau kamu jalankan di Web atau Simulator iOS.
+  // - Pakai 'http://10.0.2.2/pangsit_njedok_api' kalau kamu jalankan di Emulator Android bawaan.
+  // - Pakai IP HP/Laptop kamu (misal: 'http://192.168.1.5/pangsit_njedok_api') kalau kamu jalankan di HP asli (koneksikan HP & Laptop ke Wi-Fi yang sama).
   static const String baseUrl = "http://localhost/pangsit_njedok_api"; 
 
   // ============================================================
@@ -47,7 +49,7 @@ class ApiService {
   static Future<Map<String, dynamic>> updateProfile(String id, String name, String phone) async {
     try {
       final response = await http.post(
-        Uri.parse("$baseUrl/update_profil_customer.php"),
+        Uri.parse("$baseUrl/ganti_profil.php"), // Menggunakan ganti_profil.php sesuai file yang ada di backend
         body: {"id": id, "name": name, "no_telepon": phone},
       );
       return response.statusCode == 200 ? json.decode(response.body) : {"status": "error", "message": "Gagal Update"};
@@ -105,22 +107,128 @@ class ApiService {
   }
 
   static Future<bool> updateOrderStatus(String id, String newStatus) async {
-    try {
-      final response = await http.post(
-        Uri.parse("$baseUrl/update_status.php"),
-        body: {"id": id, "status": newStatus},
-      );
-      if (response.statusCode == 200) {
-        final result = json.decode(response.body);
-        return result['success'] == true;
+    final endpoints = ['update_status.php', 'update_status_order.php'];
+    for (final endpoint in endpoints) {
+      try {
+        final response = await http.post(
+          Uri.parse("$baseUrl/$endpoint"),
+          body: {
+            "id": id,
+            "status": newStatus,
+          },
+        );
+
+        if (response.statusCode != 200) continue;
+
+        final body = response.body.trim();
+        if (body.isEmpty) return true;
+
+        final result = json.decode(body);
+        if (result is Map<String, dynamic>) {
+          if (result['success'] == true) return true;
+          if ((result['status'] ?? '').toString().toLowerCase() == 'success') {
+            return true;
+          }
+        }
+      } catch (e) {
+        print("Error update status ($endpoint): $e");
       }
-      return false;
+    }
+    return false;
+  }
+
+  static Future<List<dynamic>> getCustomerOrders({
+    String? phoneNumber,
+    String? customerName,
+  }) async {
+    final orders = await getOrders();
+
+    final normalizedPhone = (phoneNumber ?? '').trim();
+    final normalizedName = (customerName ?? '').trim().toLowerCase();
+
+    if (normalizedPhone.isEmpty && normalizedName.isEmpty) {
+      return orders;
+    }
+
+    return orders.where((rawOrder) {
+      final order = Map<String, dynamic>.from(rawOrder as Map);
+      final orderPhone = (order['no_telepon'] ?? '').toString().trim();
+      final orderName = (order['customerName'] ?? '').toString().trim().toLowerCase();
+
+      final phoneMatch =
+          normalizedPhone.isNotEmpty && orderPhone == normalizedPhone;
+      final nameMatch = normalizedName.isNotEmpty && orderName == normalizedName;
+      return phoneMatch || nameMatch;
+    }).toList();
+  }
+
+  static Future<Map<String, dynamic>> acceptOrderAndUpdateStock({
+    required String orderId,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    final statusUpdated = await updateOrderStatus(orderId, 'PROCESSING');
+    if (!statusUpdated) {
+      return {
+        'success': false,
+        'statusUpdated': false,
+        'stockUpdated': false,
+      };
+    }
+
+    final stockUpdated = await _decreaseStockByItems(items);
+    return {
+      'success': true,
+      'statusUpdated': true,
+      'stockUpdated': stockUpdated,
+    };
+  }
+
+  static Future<bool> _decreaseStockByItems(List<Map<String, dynamic>> items) async {
+    if (items.isEmpty) return true;
+
+    try {
+      final menus = await getMenus();
+      final mutableMenus = menus
+          .whereType<Map>()
+          .map((menu) => Map<String, dynamic>.from(menu))
+          .toList();
+
+      for (final item in items) {
+        final title = (item['name'] ?? '').toString().trim();
+        final qty = int.tryParse('${item['qty'] ?? 0}') ?? 0;
+        if (title.isEmpty || qty <= 0) continue;
+
+        final menuIndex = mutableMenus.indexWhere((menu) {
+          final menuTitle = (menu['title'] ?? '').toString().trim();
+          return menuTitle.toLowerCase() == title.toLowerCase();
+        });
+
+        if (menuIndex < 0) continue;
+
+        final menu = mutableMenus[menuIndex];
+        final currentStock = int.tryParse('${menu['stock'] ?? 0}') ?? 0;
+        final nextStock = (currentStock - qty).clamp(0, 9999999);
+
+        final updatePayload = <String, String>{
+          'id': '${menu['id']}',
+          'title': '${menu['title'] ?? ''}',
+          'price': '${menu['price'] ?? 0}',
+          'stock': '$nextStock',
+          'category': '${menu['category'] ?? 'food'}',
+        };
+
+        final updated = await updateMenu(updatePayload);
+        if (!updated) return false;
+
+        menu['stock'] = nextStock;
+      }
+
+      return true;
     } catch (e) {
-      print("Error update status: $e");
+      print('Error reduce stock: $e');
       return false;
     }
   }
-
   // ============================================================
   // 5. FUNGSI PROFIL ADMIN
   // ============================================================
@@ -253,7 +361,7 @@ class ApiService {
   }
 
   // ============================================================
-  // FUNGSI GET FAVORIT 
+  // 9. FUNGSI GET FAVORIT
   // ============================================================
   static Future<List<dynamic>> getFavorites(int customerId) async {
     try {
@@ -263,5 +371,37 @@ class ApiService {
       print("Error Get Favorites: $e");
       return [];
     }
-  }
-}
+  } // Batas penutup fungsi getFavorites
+
+  // ============================================================
+  // FUNGSI SIMPAN PESANAN (CHECKOUT)
+  // ============================================================
+  static Future<bool> submitOrder(Map<String, dynamic> orderData) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/simpan_pesanan.php"),
+        headers: {
+          "Content-Type": "application/json", 
+        },
+        body: jsonEncode(orderData), 
+      );
+
+      print("Response PHP Simpan Pesanan: ${response.body}"); 
+
+      if (response.statusCode == 200) {
+        if (response.body.isEmpty) {
+          print("PHP mengirim balasan kosong!");
+          return false;
+        }
+
+        final result = jsonDecode(response.body);
+        return result['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      print("Error saat submitOrder: $e");
+      return false;
+    }
+  } // Batas penutup fungsi submitOrder
+
+} // <--- KURUNG KURAWAL INI HARUS DI PALING BAWAH UNTUK MENUTUP CLASS APISERVICE

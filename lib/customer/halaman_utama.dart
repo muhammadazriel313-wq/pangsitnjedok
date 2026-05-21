@@ -1,29 +1,73 @@
 import 'package:flutter/material.dart';
+import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../service/cart_service.dart';
 
 class HalamanUtama extends StatelessWidget {
   const HalamanUtama({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Pangsit Njedok',
-      theme: ThemeData(
-        // Set warna background utama aplikasi di sini
-        scaffoldBackgroundColor: const Color(0xFFF8F7F5), 
-        fontFamily: 'Plus Jakarta Sans', // Pastikan font ini udah ditambahin di pubspec.yaml ya
+    final baseTheme = Theme.of(context);
+    return Theme(
+      data: baseTheme.copyWith(
+        textTheme: baseTheme.textTheme.apply(fontFamily: 'Plus Jakarta Sans'),
       ),
-      home: const Homepage(),
+      child: const Homepage(),
     );
   }
 }
 
-class Homepage extends StatelessWidget {
+class Homepage extends StatefulWidget {
   const Homepage({super.key});
+
+  @override
+  State<Homepage> createState() => _HomepageState();
+}
+
+class _HomepageState extends State<Homepage> {
+  int _cartCount = 0;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  String _customerName = "Customer"; // Untuk menampung nama customer secara dinamis
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCartCount();
+    _loadCustomerName(); // Mengambil nama saat pertama kali dibuka
+  }
+
+  // 📂 Mengambil nama customer yang tersimpan di SharedPreferences
+  Future<void> _loadCustomerName() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString('customer_name');
+    if (name != null && name.isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          _customerName = name;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadCartCount() async {
+    final total = await CartService.getCartCount();
+    if (!mounted) return;
+    setState(() => _cartCount = total);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F7F5),
       // SafeArea biar konten gak nabrak poni kamera / jam di layar atas
       body: SafeArea(
         child: SingleChildScrollView( // Biar layarnya bisa di-scroll ke bawah
@@ -60,26 +104,33 @@ class Homepage extends StatelessWidget {
           FloatingActionButton(
             backgroundColor: const Color(0xFFFF9442),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-            onPressed: () {},
+            onPressed: () async {
+              await Navigator.pushNamed(context, '/cart');
+              _loadCartCount();
+            },
             child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
           ),
           // Bikin angka "3" (badge) di pojok keranjang
-          Positioned(
-            right: -2,
-            top: -2,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
+          if (_cartCount > 0)
+            Positioned(
+              right: -2,
+              top: -2,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  '$_cartCount',
+                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                ),
               ),
-              child: const Text('3', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
             ),
-          )
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: buildBottomNavbar(context, '/home_customer'),
     );
   }
 
@@ -98,9 +149,9 @@ class Homepage extends StatelessWidget {
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text('Welcome back,', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
-                Text('Customer', style: TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
+              children: [
+                const Text('Welcome back,', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                Text(_customerName, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
           ],
@@ -125,16 +176,93 @@ class Homepage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2)),
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2)),
         ],
       ),
       child: Row(
-        children: const [
-          Icon(Icons.search, color: Colors.grey),
-          SizedBox(width: 12),
-          Text('Search for dumplings or drinks...', style: TextStyle(color: Color(0xFF6B7280))),
+        children: [
+          const Icon(Icons.search, color: Colors.grey),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              textInputAction: TextInputAction.search,
+              onChanged: (value) => setState(() => _searchQuery = value),
+              decoration: const InputDecoration(
+                hintText: 'Search for dumplings or drinks...',
+                hintStyle: TextStyle(color: Color(0xFF6B7280)),
+                border: InputBorder.none,
+                isCollapsed: true,
+              ),
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  List<Map<String, String>> _getPopularItems() {
+    final items = <Map<String, String>>[
+      {
+        'title': 'Smoked Beef Dimsum',
+        'price': 'Rp 12.000',
+        'rating': '4.9 (120+)',
+        'imageUrl': 'https://placehold.co/150x112/png',
+      },
+      {
+        'title': 'Lemon Tea',
+        'price': 'Rp 10.000',
+        'rating': '5.0 (500+)',
+        'imageUrl': 'https://placehold.co/150x112/png',
+      },
+    ];
+
+    final keyword = _searchQuery.trim().toLowerCase();
+    if (keyword.isEmpty) return items;
+
+    return items.where((item) {
+      final title = item['title']?.toLowerCase() ?? '';
+      return title.contains(keyword);
+    }).toList();
+  }
+
+  Widget _buildPopularItems() {
+    final filteredItems = _getPopularItems();
+
+    if (filteredItems.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: Text(
+            'Menu tidak ditemukan.',
+            style: TextStyle(color: Color(0xFF6B7280)),
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          child: _foodCard(
+            filteredItems[0]['title']!,
+            filteredItems[0]['price']!,
+            filteredItems[0]['rating']!,
+            filteredItems[0]['imageUrl']!,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: filteredItems.length > 1
+              ? _foodCard(
+                  filteredItems[1]['title']!,
+                  filteredItems[1]['price']!,
+                  filteredItems[1]['rating']!,
+                  filteredItems[1]['imageUrl']!,
+                )
+              : const SizedBox(),
+        ),
+      ],
     );
   }
 
@@ -190,9 +318,9 @@ class Homepage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFF9442).withValues(alpha: 0.1),
+        color: const Color(0xFFFF9442).withOpacity(0.1),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: const Color(0xFFFF9442).withValues(alpha: 0.3)),
+        border: Border.all(color: const Color(0xFFFF9442).withOpacity(0.3)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -209,16 +337,6 @@ class Homepage extends StatelessWidget {
     );
   }
 
-  Widget _buildPopularItems() {
-    return Row(
-      children: [
-        Expanded(child: _foodCard('Smoked Beef Dimsum', 'Rp 12.000', '4.9 (120+)', 'https://placehold.co/150x112/png')),
-        const SizedBox(width: 16),
-        Expanded(child: _foodCard('Smoked Beef Dimsum', 'IDR 22k', '5.0 (500+)', 'https://placehold.co/150x112/png')),
-      ],
-    );
-  }
-
   // Bikin kerangka kartu makanan biar gak nulis kode berulang-ulang
   Widget _foodCard(String title, String price, String rating, String imageUrl) {
     return Container(
@@ -226,7 +344,7 @@ class Homepage extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,31 +383,4 @@ class Homepage extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomNav() {
-    return BottomAppBar(
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8.0,
-      color: Colors.white,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _navItem(Icons.home_filled, 'Home', true),
-          _navItem(Icons.restaurant_menu, 'Menu', false),
-          const SizedBox(width: 40), // Ruang kosong buat tempat tombol keranjang di tengah
-          _navItem(Icons.receipt_long, 'Orders', false),
-          _navItem(Icons.person_outline, 'Profile', false),
-        ],
-      ),
-    );
-  }
-
-  Widget _navItem(IconData icon, String label, bool isActive) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: isActive ? const Color(0xFFFF9442) : Colors.grey),
-        Text(label, style: TextStyle(fontSize: 10, color: isActive ? const Color(0xFFFF9442) : Colors.grey, fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
-      ],
-    );
-  }
 }

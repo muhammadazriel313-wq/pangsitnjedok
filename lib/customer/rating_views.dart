@@ -1,12 +1,10 @@
-import 'package:aplikasipangsitnjedok/customer/profil_customer.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'reviews.dart';
 
-// ✅ JALUR IMPORT DIBENARKAN (Langsung panggil nama file karena satu folder)
-import 'profil_customer.dart';
+
 
 void main() {
   runApp(const RatingViewsPage());
@@ -123,15 +121,11 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
           highlightColor: Colors.transparent,
           hoverColor: Colors.transparent,
           onPressed: () {
-            // Gunakan PageRouteBuilder agar animasinya nol (instan)
-            Navigator.pushReplacement(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation1, animation2) => const ProfilePage(),
-                transitionDuration: Duration.zero,
-                reverseTransitionDuration: Duration.zero,
-              ),
-            );
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushReplacementNamed(context, '/profil_customer');
+            }
           },
         ),
         title: Text(

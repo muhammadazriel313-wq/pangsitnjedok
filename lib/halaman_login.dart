@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'halaman_register.dart'; 
-import '../customer/halaman_utama.dart'; 
-import '../admin/dashboard_admin.dart'; 
 import 'service/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HalamanLogin extends StatefulWidget {
   const HalamanLogin({super.key});
@@ -36,25 +35,32 @@ class _HalamanLoginState extends State<HalamanLogin> {
         _passwordController.text,
         isCustomerSelected ? 'customer' : 'admin', 
       );
-
       if (!mounted) return; 
       setState(() => _isLoading = false);
 
       if (response['status'] == 'success') {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message']), backgroundColor: Colors.green),
+          SnackBar(content: Text(response['message'] ?? 'Login sukses!'), backgroundColor: Colors.green),
         );
         
+        // 💾 Simpan session (data login) ke memori HP biar tidak usah hardcode ID "1" lagi
+        final prefs = await SharedPreferences.getInstance();
+        final userData = response['data'];
+        if (userData != null) {
+          if (isCustomerSelected) {
+            await prefs.setString('customer_id', userData['id'].toString());
+            await prefs.setString('customer_name', userData['name'].toString());
+            await prefs.setString('customer_phone', _idController.text);
+          } else {
+            await prefs.setString('admin_id', userData['id'].toString());
+            await prefs.setString('admin_name', userData['name'].toString());
+          }
+        }
+        
         if (isCustomerSelected) {
-          Navigator.pushReplacement(
-            context, 
-            MaterialPageRoute(builder: (context) => const HalamanUtama()),
-          );
+          Navigator.pushReplacementNamed(context, '/home_customer');
         } else {
-          Navigator.pushReplacement(
-            context, 
-            MaterialPageRoute(builder: (context) => const DashboardAdmin()),
-          );
+          Navigator.pushReplacementNamed(context, '/dashboard_admin');
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
