@@ -104,7 +104,7 @@ class _ProfitAdminState extends State<ProfitAdmin> {
         // Tampilkan pesan sukses warna oranye di bagian bawah layar (SnackBar)
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('PDF berhasil dibuat!'),
+            content: Text('PDF created successfully!'),
             backgroundColor: Color(0xFFC2410C),
           ),
         );
@@ -113,7 +113,7 @@ class _ProfitAdminState extends State<ProfitAdmin> {
       // Jika terjadi error di tengah jalan, tampilkan pesan gagal warna merah
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -205,7 +205,7 @@ class _ProfitAdminState extends State<ProfitAdmin> {
                               ),
                             )
                           : const Icon(Icons.picture_as_pdf, size: 20),
-                      label: Text(_isGeneratingPdf ? 'Memproses...' : 'Unduh PDF'),
+                      label: Text(_isGeneratingPdf ? 'Processing...' : 'Download PDF'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFC2410C),
                         foregroundColor: Colors.white,
@@ -223,7 +223,7 @@ class _ProfitAdminState extends State<ProfitAdmin> {
                 if (bestSelling.isEmpty)
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Center(child: Text("Belum ada data penjualan")),
+                    child: Center(child: Text("No sales data yet")),
                   )
                 else
                   // Jika ada data, tampilkan daftarnya satu per satu dengan menggunakan map.
@@ -338,7 +338,7 @@ class _ProfitAdminState extends State<ProfitAdmin> {
         // Nama produk dan total porsi terjual
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF562F00))), 
-          Text('$sold porsi terjual', style: const TextStyle(color: Colors.grey, fontSize: 12))
+          Text('$sold portions sold', style: const TextStyle(color: Colors.grey, fontSize: 12))
         ])),
         // Total uang dari penjualan item tersebut
         Text(amount, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFC2410C))),

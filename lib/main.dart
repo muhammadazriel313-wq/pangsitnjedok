@@ -6,7 +6,7 @@ import 'halaman_login.dart';
 import 'halaman_register.dart';
 
 // --- IMPORT SISI CUSTOMER (Jalur Folder lib/customer/) ---
-import 'customer/halaman_utama.dart';
+import 'customer/dashboard_menu.dart';
 import 'customer/halaman_menu.dart';
 import 'customer/cart.dart';
 import 'customer/order.dart';
@@ -49,7 +49,7 @@ class PangsitNjedokApp extends StatelessWidget {
         '/register': (context) => const HalamanRegister(),
 
         // Rute Customer
-        '/home_customer': (context) => const HalamanUtama(),
+        '/home_customer': (context) => const DashboardPage(),
         '/dashboard_menu': (context) => const MenuFoodScreen(),
         '/cart': (context) => const CartPage(),
         '/order_customer': (context) => const MyOrdersPage(),

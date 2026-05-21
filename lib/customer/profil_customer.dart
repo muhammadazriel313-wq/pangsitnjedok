@@ -39,7 +39,7 @@ class _ProfilePageState extends State<ProfilePage> {
             // Sync nama terbaru ke memori HP
             prefs.setString('customer_name', name);
           } else {
-            name = "User Tidak Ditemukan";
+            name = "User Not Found";
           }
           isLoading = false;
         });
@@ -47,7 +47,7 @@ class _ProfilePageState extends State<ProfilePage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          name = "Error Koneksi";
+          name = "Connection Error";
           isLoading = false;
         });
       }

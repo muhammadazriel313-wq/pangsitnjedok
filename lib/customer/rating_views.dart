@@ -223,7 +223,7 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 40),
                     child: Text(
-                      'Belum ada ulasan untuk $_selectedFilter.', 
+                      'No reviews for $_selectedFilter yet.', 
                       style: const TextStyle(color: Colors.grey)
                     ),
                   )

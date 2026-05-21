@@ -99,7 +99,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 _buildCategories(), 
                 const SizedBox(height: 24),
                 const Text(
-                  'Rekomendasi', 
+                  'Recommendations', 
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                 ),
                 const SizedBox(height: 16),
@@ -136,8 +136,8 @@ class _DashboardPageState extends State<DashboardPage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
-                Text('Selamat Datang', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
-                Text('Pelanggan', style: TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('Welcome', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                Text('Customer', style: TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
           ],
@@ -194,16 +194,16 @@ class _DashboardPageState extends State<DashboardPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(color: const Color(0xFFFF9442), borderRadius: BorderRadius.circular(20)),
-                    child: const Text('PENAWARAN SPESIAL', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                    child: const Text('SPECIAL OFFER', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    _isFoodSelected ? 'Varian Rasa Terbaru' : 'Kesegaran Hakiki', 
+                    _isFoodSelected ? 'Newest Flavors' : 'Ultimate Refreshment', 
                     style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _isFoodSelected ? 'Pedesnya pas, nikmatnya puas!' : 'Segernya pas, nikmatnya puas!', 
+                    _isFoodSelected ? 'Perfect spice, absolute satisfaction!' : 'Perfectly fresh, absolute satisfaction!', 
                     style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   const Spacer(),
@@ -221,7 +221,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       elevation: 0,
                     ),
-                    child: const Text('Pesan Sekarang', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    child: const Text('Order Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                   )
                 ],
               ),
@@ -236,13 +236,13 @@ class _DashboardPageState extends State<DashboardPage> {
     return Row(
       children: [
         Expanded(
-          child: _categoryButton(Icons.restaurant_menu, 'Makanan', _isFoodSelected, () {
+          child: _categoryButton(Icons.restaurant_menu, 'Food', _isFoodSelected, () {
             setState(() { _isFoodSelected = true; _currentPage = 0; if (_pageController.hasClients) _pageController.jumpToPage(0); });
           }),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _categoryButton(Icons.local_bar_outlined, 'Minuman', !_isFoodSelected, () {
+          child: _categoryButton(Icons.local_bar_outlined, 'Beverages', !_isFoodSelected, () {
             setState(() { _isFoodSelected = false; _currentPage = 0; if (_pageController.hasClients) _pageController.jumpToPage(0); });
           }),
         ),
@@ -288,7 +288,7 @@ class _DashboardPageState extends State<DashboardPage> {
     }).toList();
 
     if (filtered.isEmpty) {
-      return const Center(child: Text("Belum ada rekomendasi."));
+      return const Center(child: Text("No recommendations yet."));
     }
 
     return Row(
@@ -349,7 +349,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(8)),
-                      child: const Text('HABIS', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      child: const Text('SOLD OUT', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   ),
               ],
@@ -375,7 +375,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             if (!mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('$title ditambahkan!', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                content: Text('$title added!', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
                                 duration: const Duration(seconds: 1),
                                 backgroundColor: const Color(0xFFFF9442),
                                 behavior: SnackBarBehavior.floating, 
@@ -414,7 +414,7 @@ class _DashboardPageState extends State<DashboardPage> {
               Icon(Icons.error_outline, color: Colors.red, size: 48), 
               SizedBox(height: 16),
               Text(
-                'Stok tidak tersedia',
+                'Out of stock',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                 textAlign: TextAlign.center,
               ),

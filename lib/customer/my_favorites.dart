@@ -44,7 +44,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
                 'name': item['title'],
                 'price': 'Rp ${item['price']}',
                 'priceValue': int.parse(item['price'].toString()),
-                'description': 'Pilihan favorit lezat dari dapur kami.',
+                'description': 'Delicious favorite choices from our kitchen.',
                 'tag': (item['is_best_seller'] == 1 || item['is_best_seller'] == true || item['is_best_seller'] == '1') ? 'BEST SELLER' : null,
                 'tagColor': const Color(0xFFFFCF9A),
                 'tagTextColor': const Color(0xFF954A00),
@@ -81,7 +81,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal koneksi ke server: $e')),
+        SnackBar(content: Text('Failed connection to server: $e')),
       );
     }
   }
@@ -93,7 +93,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${menuItems[index]['name']} ditambahkan ke keranjang'),
+        content: Text('${menuItems[index]['name']} added to cart'),
         duration: const Duration(seconds: 1),
         backgroundColor: const Color(0xFF954A00),
         behavior: SnackBarBehavior.floating,
@@ -106,7 +106,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
     if (cartCount == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Keranjang masih kosong!'),
+          content: const Text('Cart is still empty!'),
           backgroundColor: Colors.red[700],
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -119,7 +119,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text(
-          'Pesanan Dikonfirmasi! 🎉',
+          'Order Confirmed! 🎉',
           style: TextStyle(
             fontFamily: 'Plus Jakarta Sans',
             fontWeight: FontWeight.w700,
@@ -127,7 +127,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
           ),
         ),
         content: Text(
-          'Pesanan $cartCount item berhasil diproses. Silakan tunggu.',
+          'Order of $cartCount item(s) successfully processed. Please wait.',
           style: const TextStyle(
             fontFamily: 'Be Vietnam Pro',
             color: Color(0xFF554337),
@@ -315,7 +315,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
                               padding: EdgeInsets.only(top: 40, bottom: 40),
                               child: Center(
                                 child: Text(
-                                  "Belum ada menu favorit di kategori ini.",
+                                  "No favorite menus in this category yet.",
                                   style: TextStyle(color: Color(0xFF94A3B8), fontSize: 16),
                                 ),
                               ),

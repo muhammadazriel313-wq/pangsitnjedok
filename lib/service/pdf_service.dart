@@ -26,16 +26,16 @@ class PdfService {
               children: [
                 // Header
                 pw.Text(
-                  'Laporan Financial Income',
+                  'Financial Income Report',
                   style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, color: PdfColors.orange800),
                 ),
                 pw.SizedBox(height: 10),
                 pw.Text(
-                  'Periode: ${DateFormat('dd MMMM yyyy').format(DateTime.parse(selectedDate))}',
+                  'Period: ${DateFormat('dd MMMM yyyy').format(DateTime.parse(selectedDate))}',
                   style: pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
                 ),
                 pw.Text(
-                  'Tanggal Laporan: ${DateFormat('dd MMMM yyyy HH:mm').format(DateTime.now())}',
+                  'Report Date: ${DateFormat('dd MMMM yyyy HH:mm').format(DateTime.now())}',
                   style: pw.TextStyle(fontSize: 12, color: PdfColors.grey600),
                 ),
                 pw.Divider(),
@@ -61,7 +61,7 @@ class PdfService {
                 pw.Text('Best Selling Products', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.brown)),
                 pw.SizedBox(height: 16),
                 if (bestSelling.isEmpty)
-                  pw.Text('Belum ada data penjualan', style: pw.TextStyle(color: PdfColors.grey600))
+                  pw.Text('No sales data yet', style: pw.TextStyle(color: PdfColors.grey600))
                 else
                   ...bestSelling.asMap().entries.map((entry) {
                     final item = entry.value;
@@ -225,7 +225,7 @@ class PdfService {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text(name, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 15, color: PdfColors.brown)),
-                pw.Text('$sold terjual', style: pw.TextStyle(color: PdfColors.grey600, fontSize: 12)),
+                pw.Text('$sold portions sold', style: pw.TextStyle(color: PdfColors.grey600, fontSize: 12)),
               ],
             ),
           ),

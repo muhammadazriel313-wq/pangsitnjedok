@@ -9,6 +9,14 @@ class ManageCustomers extends StatefulWidget {
 }
 
 class _ManageCustomersState extends State<ManageCustomers> {
+  late Future<List<dynamic>> _customersFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _customersFuture = ApiService.getCustomers();
+  }
+
   // 1. Fungsi Navigasi Standar (Tanpa Smooth Transition)
   void _navigateTo(String route) {
     Navigator.pushReplacementNamed(context, route);
@@ -18,19 +26,22 @@ class _ManageCustomersState extends State<ManageCustomers> {
   void _deleteCustomer(String id, String name) async {
     // Memanggil ApiService yang sudah kita buat sebelumnya
     bool success = await ApiService.deleteCustomer(id);
-    
+
     if (success) {
-      setState(() {}); // Memicu FutureBuilder untuk refresh data otomatis
+      setState(() {
+        _customersFuture =
+            ApiService.getCustomers(); // Memicu FutureBuilder untuk refresh data otomatis
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Pelanggan $name telah dihapus'),
+          content: Text('Customer $name has been deleted'),
           backgroundColor: Colors.green,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Gagal menghapus pelanggan. Cek koneksi database.'),
+          content: Text('Failed to delete customer. Check database connection.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -51,18 +62,23 @@ class _ManageCustomersState extends State<ManageCustomers> {
         ),
         title: const Text(
           'Manage Customers',
-          style: TextStyle(color: Color(0xFFC2410C), fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Color(0xFFC2410C),
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: FutureBuilder<List<dynamic>>(
-        future: ApiService.getCustomers(), // Mengambil data dari tabel customer
+        future: _customersFuture, // Mengambil data dari tabel customer
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFFFF9442)));
+            return const Center(
+              child: CircularProgressIndicator(color: Color(0xFFFF9442)),
+            );
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("Belum ada data pelanggan"));
+            return const Center(child: Text("No customer data yet"));
           }
 
           final customers = snapshot.data!;
@@ -82,9 +98,18 @@ class _ManageCustomersState extends State<ManageCustomers> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Total Pelanggan Terdaftar', style: TextStyle(color: Colors.white70, fontSize: 14)),
-                      Text('${customers.length} Orang', 
-                        style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                      const Text(
+                        'Total Registered Customers',
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                      Text(
+                        '${customers.length} People',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -99,7 +124,7 @@ class _ManageCustomersState extends State<ManageCustomers> {
                     final item = customers[index];
                     return _customerItemCard(
                       item['id'].toString(),
-                      item['customer_name'] ?? 'Tanpa Nama',
+                      item['customer_name'] ?? 'No Name',
                       item['no_telepon'] ?? '-',
                     );
                   },
@@ -127,21 +152,35 @@ class _ManageCustomersState extends State<ManageCustomers> {
         children: [
           CircleAvatar(
             backgroundColor: const Color(0xFFFFCE99),
-            child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?', 
-              style: const TextStyle(color: Color(0xFF562F00), fontWeight: FontWeight.bold)),
+            child: Text(
+              name.isNotEmpty ? name[0].toUpperCase() : '?',
+              style: const TextStyle(
+                color: Color(0xFF562F00),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(phone, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  phone,
+                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                ),
               ],
             ),
           ),
           // Ikon Hapus dengan Konfirmasi AwesomeDialog
-           IconButton(
+          IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
             onPressed: () {
               // Menampilkan Pop-up Kotak Sederhana di Tengah
@@ -149,16 +188,24 @@ class _ManageCustomersState extends State<ManageCustomers> {
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    title: const Text("Hapus Pelanggan"),
-                    content: Text("Yakin ingin menghapus $name?"),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    title: const Text("Delete Customer"),
+                    content: Text("Are you sure you want to delete $name?"),
                     actions: [
                       TextButton(
-                        child: const Text("Batal", style: TextStyle(color: Colors.grey)),
+                        child: const Text(
+                          "Cancel",
+                          style: TextStyle(color: Colors.grey),
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
                       TextButton(
-                        child: const Text("Hapus", style: TextStyle(color: Colors.red)),
+                        child: const Text(
+                          "Delete",
+                          style: TextStyle(color: Colors.red),
+                        ),
                         onPressed: () {
                           Navigator.pop(context); // Tutup dialog
                           _deleteCustomer(id, name); // Jalankan fungsi hapus
@@ -211,7 +258,10 @@ class _ManageCustomersState extends State<ManageCustomers> {
             child: Icon(icon, color: const Color(0xFF562F00)),
           ),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );

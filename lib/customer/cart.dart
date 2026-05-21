@@ -142,7 +142,7 @@ class _CartPageState extends State<CartPage> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
-                                'Keranjang kosong, tambahkan item dulu.',
+                                'Cart is empty, please add items.',
                               ),
                               backgroundColor: Colors.red,
                             ),
@@ -268,7 +268,7 @@ class _CartPageState extends State<CartPage> {
           ),
           SizedBox(height: 10),
           Text(
-            'Keranjang kamu kosong',
+            'Your cart is empty',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Color(0xFF562F00),
@@ -276,7 +276,7 @@ class _CartPageState extends State<CartPage> {
           ),
           SizedBox(height: 4),
           Text(
-            'Tambahkan menu dulu ya.',
+            'Please add some items.',
             style: TextStyle(color: Colors.grey, fontSize: 12),
           ),
         ],

@@ -21,7 +21,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
   Future<void> _prosesLogin() async {
     if (_idController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Harap isi ID dan Password!'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('Please enter ID and Password!'), backgroundColor: Colors.red),
       );
       return;
     }
@@ -40,7 +40,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
 
       if (response['status'] == 'success') {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'] ?? 'Login sukses!'), backgroundColor: Colors.green),
+          SnackBar(content: Text(response['message'] ?? 'Login successful!'), backgroundColor: Colors.green),
         );
         
         // 💾 Simpan session (data login) ke memori HP biar tidak usah hardcode ID "1" lagi
@@ -64,7 +64,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'] ?? 'Login gagal.'), backgroundColor: Colors.red),
+          SnackBar(content: Text(response['message'] ?? 'Login failed.'), backgroundColor: Colors.red),
         );
       }
     } catch (e) {

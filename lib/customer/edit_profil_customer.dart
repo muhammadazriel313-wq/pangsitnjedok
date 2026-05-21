@@ -98,7 +98,7 @@ class _EditAccountPageState extends State<EditAccountPage> {
         Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Gagal: ${response['message']}")),
+          SnackBar(content: Text("Failed: ${response['message']}")),
         );
       }
     } catch (e) {
@@ -178,7 +178,7 @@ class _EditAccountPageState extends State<EditAccountPage> {
                   const SizedBox(height: 16),
                   Text(
                     nameController.text.isEmpty
-                        ? "Nama Customer"
+                        ? "Customer Name"
                         : nameController.text,
                     style: const TextStyle(
                       fontSize: 24,

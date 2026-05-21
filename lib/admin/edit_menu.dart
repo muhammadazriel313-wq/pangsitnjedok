@@ -48,7 +48,7 @@ class _EditMenuState extends State<EditMenu> {
         _stockController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Semua kolom harus diisi!'),
+          content: Text('All fields must be filled!'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -85,7 +85,7 @@ class _EditMenuState extends State<EditMenu> {
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Menu berhasil diperbarui!'),
+          content: Text('Menu updated successfully!'),
           backgroundColor: Colors.green,
         ),
       );
@@ -93,7 +93,7 @@ class _EditMenuState extends State<EditMenu> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Gagal memperbarui menu.'),
+          content: Text('Failed to update menu.'),
           backgroundColor: Colors.red,
         ),
       );

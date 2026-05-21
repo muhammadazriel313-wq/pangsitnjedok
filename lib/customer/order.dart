@@ -270,7 +270,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                   const Text('Status', style: TextStyle(fontSize: 12, color: Color(0xFF554337))),
                   const Spacer(),
                   Text(
-                    status.toUpperCase() == 'PROCESSING' ? 'Sedang Diproses' : 'Menunggu Konfirmasi',
+                    status.toUpperCase() == 'PROCESSING' ? 'Processing' : 'Waiting Confirmation',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                 ],
@@ -314,7 +314,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
             itemsRaw = [];
           }
 
-          String itemsSummary = "Detail pesanan kosong";
+          String itemsSummary = "Order details empty";
           if (itemsRaw.isNotEmpty) {
             itemsSummary = itemsRaw.map((i) => "${i['qty']}x ${i['menu_id'] ?? i['name'] ?? 'Pangsit'}").join(", ");
           }

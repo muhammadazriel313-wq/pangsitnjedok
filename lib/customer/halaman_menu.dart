@@ -168,12 +168,12 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'KATEGORI',
+                    'CATEGORY',
                     style: TextStyle(color: Color(0xFFFF9442), fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _isFoodSelected ? 'Pangsit Spesial' : 'Minuman Segar',
+                    _isFoodSelected ? 'Special Pangsit' : 'Fresh Beverages',
                     style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -191,14 +191,14 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
       child: Row(
         children: [
           _buildTabButton(
-            title: 'Makanan', isActive: _isFoodSelected,
+            title: 'Food', isActive: _isFoodSelected,
             onTap: () {
               setState(() { _isFoodSelected = true; _currentPage = 0; if (_pageController.hasClients) _pageController.jumpToPage(0); });
             },
           ),
           const SizedBox(width: 12),
           _buildTabButton(
-            title: 'Minuman', isActive: !_isFoodSelected,
+            title: 'Beverages', isActive: !_isFoodSelected,
             onTap: () {
               setState(() { _isFoodSelected = false; _currentPage = 0; if (_pageController.hasClients) _pageController.jumpToPage(0); });
             },
@@ -246,7 +246,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     if (filteredList.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(40.0),
-        child: Center(child: Text('Belum ada menu di kategori ini.', style: TextStyle(color: Colors.grey))),
+        child: Center(child: Text('No menu available in this category.', style: TextStyle(color: Colors.grey))),
       );
     }
 
@@ -312,7 +312,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(8)),
-                        child: const Text('HABIS', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                        child: const Text('SOLD OUT', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                       ),
                     ),
                 ],
@@ -346,7 +346,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
                             if (!mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('$title ditambahkan!', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                content: Text('$title added!', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
                                 duration: const Duration(seconds: 1), backgroundColor: const Color(0xFFFF9442),
                                 behavior: SnackBarBehavior.floating, margin: const EdgeInsets.only(bottom: 80, left: 40, right: 40), 
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0,
@@ -378,7 +378,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
             mainAxisSize: MainAxisSize.min,
             children: const [
               Icon(Icons.error_outline, color: Colors.red, size: 48), SizedBox(height: 16),
-              Text('Stok tidak tersedia', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)), textAlign: TextAlign.center),
+              Text('Out of stock', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)), textAlign: TextAlign.center),
             ],
           ),
           actions: [

@@ -77,7 +77,7 @@ class _OrderConfirmationDialogState extends State<OrderConfirmationDialog> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Apakah data pesanan Anda sudah sesuai?',
+            'Is the order correct?',
             textAlign: TextAlign.center,
             style: GoogleFonts.beVietnamPro(
               color: const Color(0xFF887366),
@@ -162,7 +162,7 @@ class _OrderConfirmationDialogState extends State<OrderConfirmationDialog> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
-                                'Gagal mengirim pesanan ke server.',
+                                'Failed to send order to server.',
                               ),
                             ),
                           );
@@ -173,7 +173,7 @@ class _OrderConfirmationDialogState extends State<OrderConfirmationDialog> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
-                              'Terjadi kesalahan koneksi database.',
+                              'Database connection error occurred.',
                             ),
                           ),
                         );

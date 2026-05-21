@@ -75,7 +75,7 @@ class TampilanAwal extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const HalamanLogin()));
                     },
-                    child: const Text('Mulai', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: const Text('Get Started', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 

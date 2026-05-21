@@ -73,7 +73,7 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
     if (selectedStars == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Silakan beri rating bintang terlebih dahulu!'),
+          content: const Text('Please give a star rating first!'),
           backgroundColor: Colors.red[700],
           behavior: SnackBarBehavior.floating,
         ),
@@ -113,13 +113,13 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
         } else {
           // Tampilkan pesan error dari PHP ke layar HP
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal: ${result['message']}')),
+            SnackBar(content: Text('Failed: ${result['message']}')),
           );
         }
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error jaringan: $e')),
+        SnackBar(content: Text('Network error: $e')),
       );
     } finally {
       setState(() => _isSubmitting = false);
@@ -292,7 +292,7 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Pangsit Njedog\nSpesial', style: TextStyle(color: Color(0xFF954A00), fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('Special\nPangsit Njedog', style: TextStyle(color: Color(0xFF954A00), fontSize: 18, fontWeight: FontWeight.bold)),
                 Text('Order #PN-88291', style: TextStyle(color: Color(0xFF554337), fontSize: 14)),
               ],
             ),
