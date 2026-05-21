@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
-import 'dart:io'; 
 
 class ApiService {
   // Alamat URL disesuaikan dengan folder di htdocs kamu
@@ -94,29 +93,32 @@ class ApiService {
     }
   }
 
-  static Future<bool> updateAdminProfil(Map<String, String> data, {Uint8List? imageBytes}) async {
-    try {
-      var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/update_profil.php"));
+ static Future<bool> updateAdminProfil(Map<String, String> data, {Uint8List? imageBytes}) async {
+  try {
+    // Gunakan MultipartRequest untuk upload file
+    var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/update_profil.php"));
 
-      data.forEach((key, value) {
-        request.fields[key] = value;
-      });
+    // Masukkan data teks
+    data.forEach((key, value) {
+      request.fields[key] = value;
+    });
 
-      if (imageBytes != null) {
-        request.files.add(http.MultipartFile.fromBytes(
-          'image', 
-          imageBytes, 
-          filename: 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
-        ));
-      }
-
-      var response = await request.send();
-      return response.statusCode == 200;
-    } catch (e) {
-      print("Error Update Profil: $e");
-      return false;
+    // Masukkan file foto profil jika ada
+    if (imageBytes != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'image', 
+        imageBytes, 
+        filename: 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      ));
     }
+
+    var response = await request.send();
+    return response.statusCode == 200;
+  } catch (e) {
+    print("Error Update Profil: $e");
+    return false;
   }
+}
 
   // ============================================================
   // FUNGSI profit ADMIN
@@ -140,9 +142,8 @@ class ApiService {
     }
   }
 
-  // ============================================================
   // MANAGE CUSTOMER
-  // ============================================================
+  
   static Future<List<dynamic>> getCustomers() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/manage_customer.php'));
@@ -174,56 +175,6 @@ class ApiService {
     }
   }
 
-  // ============================================================
-  // ✅ FUNGSI GET PROFIL CUSTOMER 
-  // ============================================================
-  static Future<Map<String, dynamic>> getProfile(String id) async {
-    try {
-      final response = await http.get(Uri.parse("$baseUrl/get_profil.php?id=$id"));
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        return {"status": "error", "message": "Gagal terhubung ke server"};
-      }
-    } catch (e) {
-      return {"status": "error", "message": e.toString()};
-    }
-  }
-
-  // ============================================================
-  // ✅ FUNGSI UPDATE PROFIL CUSTOMER 
-  // ============================================================
-  static Future<Map<String, dynamic>> updateProfileCustomer(String id, String name, String phone, {Uint8List? imageBytes}) async {
-    try {
-      var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/ganti_profil.php"));
-
-      request.fields['id'] = id;
-      request.fields['name'] = name;
-      request.fields['no_telepon'] = phone;
-
-      if (imageBytes != null) {
-        request.files.add(http.MultipartFile.fromBytes(
-          'image', 
-          imageBytes,
-          filename: 'profile_customer_${DateTime.now().millisecondsSinceEpoch}.jpg',
-        ));
-      }
-
-      var response = await request.send();
-      var responseData = await response.stream.bytesToString();
-      print("RAW RESPONSE DARI SERVER: $responseData"); 
-
-      if (response.statusCode == 200) {
-        return json.decode(responseData);
-      } else {
-        return {"status": "error", "message": "Server Error: ${response.statusCode}"};
-      }
-    } catch (e) {
-      return {"status": "error", "message": "Exception: $e"};
-    }
-  }
-
   static Future<Map<String, dynamic>> getDashboardStats() async {
     try {
       final response = await http.get(Uri.parse("$baseUrl/dashboard_stastic.php"));
@@ -237,18 +188,21 @@ class ApiService {
       return {};
     }
   }
+
   
-  // ============================================================
   // FUNGSI MENU CRUD (ADD, UPDATE, DELETE)
-  // ============================================================
+
+  // 1. ADD MENU (VERSI BARU YANG BISA UPLOAD FOTO)
   static Future<bool> addMenu(Map<String, dynamic> data, {Uint8List? imageBytes, String? fileName}) async {
     try {
       var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/add_menu.php"));
 
+      // Masukkan data teks
       data.forEach((key, value) {
         request.fields[key] = value.toString();
       });
 
+      // Masukkan file foto (jika user memilih foto)
       if (imageBytes != null && fileName != null) {
         var multipartFile = http.MultipartFile.fromBytes(
           'image', 
@@ -272,14 +226,17 @@ class ApiService {
     }
   }
 
+  // 2. UPDATE MENU
   static Future<bool> updateMenu(Map<String, String> data, {Uint8List? imageBytes}) async {
     try {
       var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/update_menu.php"));
 
+      // Masukkan data teks (id, title, price, dll)
       data.forEach((key, value) {
         request.fields[key] = value;
       });
 
+      // Masukkan file foto (jika admin memilih foto baru di galeri)
       if (imageBytes != null) {
         var multipartFile = http.MultipartFile.fromBytes(
           'image', 
@@ -291,6 +248,7 @@ class ApiService {
 
       var response = await request.send();
       
+      // Cek apakah berhasil
       if (response.statusCode == 200) {
         return true;
       }
@@ -301,6 +259,7 @@ class ApiService {
     }
   }
 
+  // 3. DELETE MENU
   static Future<bool> deleteMenu(String id) async {
     try {
       final response = await http.post(
@@ -314,7 +273,7 @@ class ApiService {
   }
 
   // ============================================================
-  // FUNGSI LOGIN & REGISTRASI
+  // FUNGSI LOGIN
   // ============================================================
   static Future<Map<String, dynamic>> login(String identifier, String password, String role) async {
     try {
@@ -323,7 +282,7 @@ class ApiService {
         body: {
           "identifier": identifier,
           "password": password,
-          "role": role,
+          "role": role, // 'admin' atau 'customer'
         },
       );
 
@@ -337,6 +296,9 @@ class ApiService {
     }
   }
 
+  // ============================================================
+  // FUNGSI REGISTRASI CUSTOMER (Baru Ditambahkan)
+  // ============================================================
   static Future<Map<String, dynamic>> register(String name, String phone, String password) async {
     try {
       final response = await http.post(
@@ -355,41 +317,6 @@ class ApiService {
       }
     } catch (e) {
       return {'status': 'error', 'message': 'Terjadi kesalahan sistem: $e'};
-    }
-  } // ✅ KURUNG KURAWAL INI TADI KETINGGALAN!
-
-  // ============================================================
-  // FUNGSI FAVORIT (GET & TOGGLE)
-  // ============================================================
-  static Future<List<dynamic>> getFavorites(String customerId) async {
-    try {
-      final response = await http.get(Uri.parse("$baseUrl/get_favorites.php?customer_id=$customerId"));
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      }
-      return [];
-    } catch (e) {
-      print("Error get favorites: $e");
-      return [];
-    }
-  }
-
-  static Future<bool> toggleFavorite(String customerId, String menuId) async {
-    try {
-      final response = await http.post(
-        Uri.parse("$baseUrl/toggle_favorite.php"),
-        body: {
-          "customer_id": customerId,
-          "menu_id": menuId,
-        },
-      );
-      if (response.statusCode == 200) {
-        return true;
-      }
-      return false;
-    } catch (e) {
-      print("Error toggle favorite: $e");
-      return false;
     }
   }
 }

@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-// ✅ IMPORT SHAREDPREFERENCES UNTUK BRANKAS HP
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:aplikasipangsitnjedok/customer/dashboard_menu.dart';
 import 'halaman_register.dart'; 
-import '../admin/dashboard_admin.dart'; 
-import '../core/network/api_services.dart';
+import 'service/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HalamanLogin extends StatefulWidget {
   const HalamanLogin({super.key});
@@ -25,7 +21,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
   Future<void> _prosesLogin() async {
     if (_idController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Harap isi ID dan Password!'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('Please enter ID and Password!'), backgroundColor: Colors.red),
       );
       return;
     }
@@ -33,43 +29,42 @@ class _HalamanLoginState extends State<HalamanLogin> {
     setState(() => _isLoading = true);
 
     try {
-      // ✅ Memanggil fungsi login dari ApiService
+      // Memanggil fungsi login dari ApiService
       final response = await ApiService.login(
         _idController.text,
         _passwordController.text,
         isCustomerSelected ? 'customer' : 'admin', 
       );
-
       if (!mounted) return; 
       setState(() => _isLoading = false);
 
       if (response['status'] == 'success') {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message']), backgroundColor: Colors.green),
+          SnackBar(content: Text(response['message'] ?? 'Login successful!'), backgroundColor: Colors.green),
         );
         
-        // 🚀 KODINGAN RAHASIA: NYIMPEN ID KE DALAM BRANKAS HP! 🚀
-        // Mengecek apakah data 'id' dikirim dari server PHP
-        if (response['data'] != null && response['data']['id'] != null) {
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          // Menyimpan ID dengan kunci 'id'
-          await prefs.setString('id', response['data']['id'].toString());
+        // 💾 Simpan session (data login) ke memori HP biar tidak usah hardcode ID "1" lagi
+        final prefs = await SharedPreferences.getInstance();
+        final userData = response['data'];
+        if (userData != null) {
+          if (isCustomerSelected) {
+            await prefs.setString('customer_id', userData['id'].toString());
+            await prefs.setString('customer_name', userData['name'].toString());
+            await prefs.setString('customer_phone', _idController.text);
+          } else {
+            await prefs.setString('admin_id', userData['id'].toString());
+            await prefs.setString('admin_name', userData['name'].toString());
+          }
         }
-
+        
         if (isCustomerSelected) {
-          Navigator.pushReplacement(
-            context, 
-            MaterialPageRoute(builder: (context) => const DashboardPage()),
-          );
+          Navigator.pushReplacementNamed(context, '/home_customer');
         } else {
-          Navigator.pushReplacement(
-            context, 
-            MaterialPageRoute(builder: (context) => const DashboardAdmin()),
-          );
+          Navigator.pushReplacementNamed(context, '/dashboard_admin');
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'] ?? 'Login gagal.'), backgroundColor: Colors.red),
+          SnackBar(content: Text(response['message'] ?? 'Login failed.'), backgroundColor: Colors.red),
         );
       }
     } catch (e) {
@@ -104,7 +99,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
               width: 180, 
               height: 180,
               alignment: Alignment.center,
-              child: Image.asset('assets/images/logopangsitnjedok.png'),
+              child: Image.asset('assets/images/logopangsitnjedok1.png'),
             ),
             
             const SizedBox(height: 32),

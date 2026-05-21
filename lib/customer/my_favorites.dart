@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:aplikasipangsitnjedok/core/network/api_services.dart'; 
+import '../service/api_service.dart'; 
 // Import navigasi
 import 'profil_customer.dart'; 
 import 'dashboard_menu.dart'; 
 import 'halaman_menu.dart';   
 import 'cart.dart';
-import 'package:aplikasipangsitnjedok/customer/order.dart';
+import 'order.dart';
 
 class FavoritePage extends StatefulWidget {
   const FavoritePage({super.key});
@@ -35,7 +35,7 @@ class _FavoritePageState extends State<FavoritePage> {
 
   Future<void> _loadUserProfile() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    userId = prefs.getString('id') ?? "1"; 
+    userId = prefs.getString('id') ?? prefs.getString('customer_id') ?? "1"; 
     var response = await ApiService.getProfile(userId);
     if (response['status'] == 'success' && mounted) {
       setState(() {
@@ -48,9 +48,9 @@ class _FavoritePageState extends State<FavoritePage> {
     setState(() => _isLoading = true);
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      userId = prefs.getString('id') ?? "1"; 
+      userId = prefs.getString('id') ?? prefs.getString('customer_id') ?? "1"; 
 
-      List<dynamic> rawData = await ApiService.getFavorites(userId);
+      List<dynamic> rawData = await ApiService.getFavorites(int.parse(userId));
       
       if (mounted) {
         setState(() {
@@ -63,8 +63,8 @@ class _FavoritePageState extends State<FavoritePage> {
                 'tagColor': const Color(0xFFFFCF9A),
                 'tagTextColor': const Color(0xFF954A00),
                 'info': item['category'] ?? 'Food',
-                'infoIcon': item['category'] == 'Drink' ? Icons.local_cafe_outlined : Icons.restaurant_outlined,
-                'image': item['image_url'], 
+                'infoIcon': item['category']?.toString().toLowerCase() == 'drink' || item['category']?.toString().toLowerCase() == 'beverage' ? Icons.local_cafe_outlined : Icons.restaurant_outlined,
+                'image': item['image_url'] ?? '', 
               }).toList();
           _isLoading = false;
         });
@@ -74,9 +74,20 @@ class _FavoritePageState extends State<FavoritePage> {
     }
   }
 
+  // ✅ DIPERBAIKI: Parameter 'remove' ditambahkan & Optimistic UI agar cepat hilang saat diklik
   void _toggleFavorite(int menuId) async {
-    bool success = await ApiService.toggleFavorite(userId, menuId.toString());
-    if (success) _fetchFavorites(); 
+    setState(() {
+      menuItems.removeWhere((item) => item['id'] == menuId);
+    });
+
+    bool success = await ApiService.toggleFavorite(userId, menuId.toString(), "remove");
+    
+    if (!success) {
+      _fetchFavorites(); // Kalau gagal hapus di database, panggil ulang datanya
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal menghapus favorit!'), backgroundColor: Colors.red));
+      }
+    } 
   }
 
   void _addToCart(int index) {
@@ -103,8 +114,10 @@ class _FavoritePageState extends State<FavoritePage> {
 
   List<Map<String, dynamic>> get filteredItems {
     if (selectedCategory == 'All Items') return menuItems;
-    if (selectedCategory == 'Food') return menuItems.where((item) => item['info'] == 'Food').toList();
-    if (selectedCategory == 'Drink' || selectedCategory == 'Beverages') return menuItems.where((item) => item['info'] == 'Drink').toList();
+    if (selectedCategory == 'Food') return menuItems.where((item) => item['info'].toString().toLowerCase() == 'food').toList();
+    if (selectedCategory == 'Drink' || selectedCategory == 'Beverages') {
+      return menuItems.where((item) => item['info'].toString().toLowerCase() == 'drink' || item['info'].toString().toLowerCase() == 'beverage').toList();
+    }
     return menuItems;
   }
 
@@ -117,7 +130,6 @@ class _FavoritePageState extends State<FavoritePage> {
       bottomNavigationBar: _buildBottomNavigationBar(context),
       body: Column(
         children: [
-          // APP BAR SESUAI GAMBAR (Search dihapus, tinggal Foto Profil)
           Container(
             padding: const EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 12),
             child: Row(
@@ -135,11 +147,10 @@ class _FavoritePageState extends State<FavoritePage> {
                 ),
                 Row(
                   children: [
-                    // ✅ Ikon Search sudah hilang dari sini
                     CircleAvatar(
                       radius: 16,
                       backgroundColor: Colors.grey.shade300,
-                      backgroundImage: profileImageUrl != null && profileImageUrl!.isNotEmpty
+                      backgroundImage: profileImageUrl != null && profileImageUrl!.isNotEmpty && profileImageUrl!.startsWith('http')
                           ? NetworkImage(profileImageUrl!) as ImageProvider
                           : const AssetImage('assets/images/nipis.jpeg'),
                     ),
@@ -227,12 +238,17 @@ class _FavoritePageState extends State<FavoritePage> {
     );
   }
 
+  // ✅ DIPERBAIKI: Logika gambar sudah dikaitkan ke API agar muncul
   Widget _buildMenuCard(Map<String, dynamic> item, int index) {
     Widget imageWidget;
-    if (item['image'] != null && item['image'].toString().startsWith('http')) {
-      imageWidget = Image.network(item['image'], fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.restaurant, size: 64, color: Color(0xFF954A00)));
+    String imgPath = item['image'] ?? '';
+
+    if (imgPath.startsWith('http')) {
+      imageWidget = Image.network(imgPath, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.restaurant, size: 64, color: Color(0xFF954A00)));
+    } else if (imgPath.isNotEmpty) {
+      imageWidget = Image.network("${ApiService.baseUrl}/uploads/$imgPath", fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.restaurant, size: 64, color: Color(0xFF954A00)));
     } else {
-      imageWidget = Image.asset(item['image'] ?? 'assets/images/esbuahleci.jpg', fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.restaurant, size: 64, color: Color(0xFF954A00)));
+      imageWidget = const Icon(Icons.image_not_supported, size: 64, color: Color(0xFF954A00));
     }
 
     return Container(
@@ -377,7 +393,7 @@ class _FavoritePageState extends State<FavoritePage> {
             _buildNavItem(Icons.restaurant_menu, 'Menu', false, () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen()))),
             const SizedBox(width: 48), 
             _buildNavItem(Icons.receipt_long_outlined, 'Order', false, () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MyOrdersPage()))),
-            _buildNavItem(Icons.person, 'Profil', true, () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ProfilePage()))),
+            _buildNavItem(Icons.person, 'Profil', false, () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ProfilePage()))),
           ],
         ),
       ),

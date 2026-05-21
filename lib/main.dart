@@ -11,6 +11,7 @@ import 'customer/halaman_menu.dart';
 import 'customer/cart.dart';
 import 'customer/order.dart';
 import 'customer/profil_customer.dart';
+import 'customer/my_favorites.dart'; // ✅ TAMBAHAN: Import halaman My Favorites
 
 // --- IMPORT SISI ADMIN (Jalur Folder lib/admin/) ---
 import 'admin/cart_order_stastistic_admin.dart';
@@ -54,6 +55,7 @@ class PangsitNjedokApp extends StatelessWidget {
         '/cart': (context) => const CartPage(),
         '/order_customer': (context) => const MyOrdersPage(),
         '/profil_customer': (context) => const ProfilePage(),
+        '/my_favorites': (context) => const FavoritePage(), // ✅ TAMBAHAN: Route Favorites
 
         // Rute Admin
         '/dashboard_admin': (context) => const DashboardAdmin(),
