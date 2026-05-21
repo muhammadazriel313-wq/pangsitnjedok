@@ -3,11 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-// ✅ IMPORT SEMUA HALAMAN BIAR NAVIGASI NYAMBUNG
 import 'dashboard_menu.dart';
 import 'halaman_menu.dart';
 import 'cart.dart';
 import 'profil_customer.dart';
+import '../service/api_service.dart';
 
 class MyOrdersPage extends StatefulWidget {
   const MyOrdersPage({super.key});
@@ -29,15 +29,16 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     _fetchOrders();
   }
 
-  // ✅ FUNGSI TARIK DATA PESANAN DARI DATABASE XAMPP
+  // ✅ DIPERBAIKI: Logika narik API Order Customer
   Future<void> _fetchOrders() async {
     setState(() => _isLoading = true);
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String userId = prefs.getString('id') ?? "1"; 
-
+      String customerId = prefs.getString('id') ?? "1";
+      
+      // Manggil API buat pesanan customer spesifik
       final response = await http.get(
-        Uri.parse("http://localhost/pangsit_njedok_api/get_customer_orders.php?customer_id=$userId")
+        Uri.parse("${ApiService.baseUrl}/get_orders.php?customer_id=$customerId")
       );
 
       if (response.statusCode == 200) {
@@ -66,7 +67,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: GestureDetector(
-          onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardPage())),
+          onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardPage())),
           child: const Padding(
             padding: EdgeInsets.all(12.0),
             child: Icon(Icons.arrow_back, color: Color(0xFF954A00)),
@@ -146,21 +147,19 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     return Column(
       children: [
         ...activeOrders.map((order) {
-          // Logika Penyesuaian Status Database dengan Tampilan UI
           String uiStatus = order['status'] == 'Menunggu' ? 'Waiting\nConfirmation' : 'Processing';
           Color uiColor = order['status'] == 'Menunggu' ? const Color(0xFF7B572C) : const Color(0xFFFF9442);
           
-          // Logika Teks Bawah (Bottom Info)
           Widget bottomInfo = order['status'] == 'Menunggu'
-              ? const Row(
+              ? Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: const [
                     Icon(Icons.info_outline, size: 18, color: Color(0xFF954A00)), SizedBox(width: 12),
                     Expanded(child: Text('Pesananmu sedang direview oleh Chef kami. Sabar ya komandan!', style: TextStyle(fontSize: 11, color: Color(0xFF554337), height: 1.5))),
                   ],
                 )
-              : const Row(
-                  children: [
+              : Row(
+                  children: const [
                     Icon(Icons.access_time, size: 16, color: Color(0xFF554337)), SizedBox(width: 8),
                     Text('Est. Completion', style: TextStyle(fontSize: 12, color: Color(0xFF554337))), Spacer(),
                     Text('Sedang Dimasak 🍳', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFFF9442))),
@@ -170,11 +169,11 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           return Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: _buildActiveOrderCard(
-              queueNumber: order['id']?.toString() ?? 'A-00', // Pakai ID Order sebagai antrian
+              queueNumber: order['id']?.toString() ?? 'A-00', 
               status: uiStatus, 
               statusColor: uiColor,
               itemName: order['items'] ?? 'Paket Pangsit Njedok', 
-              itemImage: 'assets/images/esbuahleci.jpg', // Default image sementara
+              itemImage: 'assets/images/esbuahleci.jpeg', 
               price: 'Rp ${order['total_price'] ?? '0'}',
               paymentStatus: order['payment_method'] == 'cash' ? 'PAY AT CASHIER' : 'PAID', 
               details: order['order_type'] == 'dine_in' ? 'Makan di Tempat' : 'Bungkus',
@@ -191,8 +190,8 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
 
   Widget _buildHistoryContent() {
     if (historyOrders.isEmpty) {
-      return const Column(
-        children: [
+      return Column(
+        children: const [
           SizedBox(height: 60),
           Icon(Icons.history, size: 60, color: Colors.grey),
           SizedBox(height: 16),
@@ -204,15 +203,32 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     return Column(
       children: [
         ...historyOrders.map((order) {
-          bool isCancelled = order['status'] == 'Dibatalkan';
+          final status = (order['status'] ?? '').toString().toUpperCase();
+          final isCancelled = status == 'BATAL' || status == 'CANCELLED';
+          final labelColor = isCancelled ? Colors.red.shade100 : const Color(0xFFFFCF9A);
+
+          List<dynamic> itemsRaw = [];
+          try {
+            itemsRaw = json.decode(order['items_raw']);
+          } catch (e) {
+            itemsRaw = [];
+          }
+
+          String itemsSummary = "Detail pesanan kosong";
+          if (itemsRaw.isNotEmpty) {
+            itemsSummary = itemsRaw.map((i) => "${i['qty']}x ${i['menu_id'] ?? i['name'] ?? 'Pangsit'}").join(", ");
+          } else {
+            itemsSummary = order['items'] ?? 'Menu Pangsit Njedok';
+          }
+
           return Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: _buildHistoryCard(
               '#${order['id']}', 
-              order['status'].toString().toUpperCase(), 
+              status, 
               'Rp ${order['total_price']}', 
-              order['items'] ?? 'Menu Pangsit Njedok', 
-              isCancelled ? Colors.red.shade100 : const Color(0xFFFFCF9A),
+              itemsSummary, 
+              labelColor,
               isCancelled: isCancelled,
             ),
           );
@@ -226,6 +242,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
     );
   }
 
+  // ✅ DIPERBAIKI: Struktur Card Active Order dirapikan agar tidak tumpang tindih
   Widget _buildActiveOrderCard({
     required String queueNumber, required String status, required Color statusColor,
     required String itemName, required String itemImage, required String price,
@@ -256,6 +273,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           ),
           const SizedBox(height: 20),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
@@ -337,7 +355,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
             children: [
               const Text('Craving\nMore?', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900, height: 1)),
               const SizedBox(height: 10),
-              Text('Add a side of Fried Siomay while you wait for your main course.', style: TextStyle(color: Colors.white70, fontSize: 13)),
+              const Text('Add a side of Fried Siomay while you wait for your main course.', style: TextStyle(color: Colors.white70, fontSize: 13)),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen())),
@@ -360,11 +378,17 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(Icons.home_outlined, 'Home', context.widget is DashboardPage, () { if (context.widget is! DashboardPage) Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardPage())); }),
-            _buildNavItem(Icons.restaurant_menu, 'Menu', context.widget is MenuFoodScreen, () { if (context.widget is! MenuFoodScreen) Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen())); }),
+            _buildNavItem(Icons.home_outlined, 'Home', context.widget is DashboardPage, () { 
+              if (context.widget is! DashboardPage) Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardPage())); 
+            }),
+            _buildNavItem(Icons.restaurant_menu, 'Menu', context.widget is MenuFoodScreen, () { 
+              if (context.widget is! MenuFoodScreen) Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen())); 
+            }),
             const SizedBox(width: 48), 
             _buildNavItem(Icons.receipt_long_outlined, 'Order', true, () {}),
-            _buildNavItem(Icons.person_outline, 'Profil', context.widget is ProfilePage, () { if (context.widget is! ProfilePage) Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ProfilePage())); }),
+            _buildNavItem(Icons.person_outline, 'Profil', context.widget is ProfilePage, () { 
+              if (context.widget is! ProfilePage) Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ProfilePage())); 
+            }),
           ],
         ),
       ),

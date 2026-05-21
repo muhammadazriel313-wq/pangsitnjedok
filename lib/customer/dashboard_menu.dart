@@ -172,8 +172,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildPromoBanner() {
     List<String> bannerImages = _isFoodSelected 
-        ? ['assets/images/ptulangrangu.jpeg', 'assets/images/wontonmentai.jpeg'] 
-        : ['assets/images/esbuahleci.jpeg', 'assets/images/lemontea.jpeg']; 
+        ? ['assets/images/fotoslide2.jpg', 'assets/images/fotoslide3.jpg'] 
+        : ['assets/images/minumslide1.jpg', 'assets/images/minumslide2.jpg']; 
 
     return Container(
       height: 180, width: double.infinity,
@@ -251,13 +251,13 @@ class _DashboardPageState extends State<DashboardPage> {
     return Row(
       children: [
         Expanded(
-          child: _categoryButton(Icons.restaurant_menu, 'Makanan', _isFoodSelected, () {
+          child: _categoryButton(Icons.restaurant_menu, 'Food', _isFoodSelected, () {
             setState(() { _isFoodSelected = true; _currentPage = 0; if (_pageController.hasClients) _pageController.jumpToPage(0); });
           }),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _categoryButton(Icons.local_bar_outlined, 'Minuman', !_isFoodSelected, () {
+          child: _categoryButton(Icons.local_bar_outlined, 'Beverages', !_isFoodSelected, () {
             setState(() { _isFoodSelected = false; _currentPage = 0; if (_pageController.hasClients) _pageController.jumpToPage(0); });
           }),
         ),

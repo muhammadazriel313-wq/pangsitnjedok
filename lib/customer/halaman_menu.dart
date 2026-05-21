@@ -1,36 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; 
-import 'package:http/http.dart' as http; // ✅ TAMBAHAN BUAT PANGGIL API FAVORITE
+import 'package:http/http.dart' as http; 
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart'; // ✅ UNTUK TARIK ID CUSTOMER
+import 'package:shared_preferences/shared_preferences.dart'; 
 
 import 'dashboard_menu.dart'; 
 import '../service/api_service.dart';
-// ✅ IMPORT HALAMAN DARI NOVIA
 import 'cart.dart'; 
 import 'order.dart';
 import 'profil_customer.dart';
-
-void main() {
-  runApp(const PangsitApp());
-}
-
-class PangsitApp extends StatelessWidget {
-  const PangsitApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Menu Food',
-      theme: ThemeData(
-        fontFamily: 'Inter',
-        scaffoldBackgroundColor: const Color(0xFFF8F7F5),
-      ),
-      home: const MenuFoodScreen(),
-    );
-  }
-}
 
 class MenuFoodScreen extends StatefulWidget {
   const MenuFoodScreen({super.key});
@@ -44,21 +22,19 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
   List<dynamic> _allMenus = []; 
   bool _isLoading = true; 
 
-  // ✅ LIST UNTUK NYIMPEN ID MENU YANG DI-FAVORITKAN
   List<int> _favoriteMenuIds = [];
 
   final PageController _pageController = PageController();
   int _currentPage = 0;
   Timer? _carouselTimer;
 
-  // ✅ VARIABEL UNTUK JUMLAH KERANJANG
   int _cartItemCount = 0;
 
   @override
   void initState() {
     super.initState();
     _fetchMenuData(); 
-    _fetchFavorites(); // ✅ TARIK DATA FAVORITE SAAT HALAMAN DIBUKA
+    _fetchFavorites(); 
 
     _carouselTimer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
       if (_currentPage < 2) { 
@@ -76,7 +52,6 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     });
   }
 
-  // ✅ FUNGSI BACA DATA MENU UTAMA
   Future<void> _fetchMenuData() async {
     try {
       final data = await ApiService.getMenus(); 
@@ -90,11 +65,10 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     }
   }
 
-  // ✅ FUNGSI BACA DAFTAR FAVORITE CUSTOMER DARI DATABASE
   Future<void> _fetchFavorites() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String customerId = prefs.getString('id') ?? "1"; // Default ke user ID 1 kalau belum ada
+      String customerId = prefs.getString('id') ?? "1"; 
 
       final response = await http.get(
         Uri.parse("http://localhost/pangsit_njedok_api/get_favorites.php?customer_id=$customerId")
@@ -103,7 +77,6 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
         setState(() {
-          // Ambil semua ID menu dan simpan ke dalam list _favoriteMenuIds
           _favoriteMenuIds = data.map<int>((item) => int.parse(item['id'].toString())).toList();
         });
       }
@@ -112,15 +85,12 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     }
   }
 
-  // ✅ FUNGSI KLIK TOMBOL FAVORITE (SIMPAN / HAPUS)
   Future<void> _toggleFavorite(int menuId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String customerId = prefs.getString('id') ?? "1"; 
     
-    // Cek apakah menu sudah ada di favorit atau belum
     bool isAlreadyFavorite = _favoriteMenuIds.contains(menuId);
 
-    // Langsung ubah UI biar keliatan responsif (Optimistic UI)
     setState(() {
       if (isAlreadyFavorite) {
         _favoriteMenuIds.remove(menuId);
@@ -130,7 +100,6 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     });
 
     try {
-      // ✅ PASTIKAN KAMU PUNYA FILE toggle_favorite.php DI XAMPP
       final response = await http.post(
         Uri.parse("http://localhost/pangsit_njedok_api/toggle_favorite.php"),
         body: {
@@ -140,13 +109,12 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
         }
       );
 
-      // Kalau ternyata gagal di sisi server, kembalikan UI-nya ke awal
       if (response.statusCode != 200) {
         setState(() {
           if (isAlreadyFavorite) {
-            _favoriteMenuIds.add(menuId); // Balikin lagi kalau gagal ngapus
+            _favoriteMenuIds.add(menuId); 
           } else {
-            _favoriteMenuIds.remove(menuId); // Hapus lagi kalau gagal nambah
+            _favoriteMenuIds.remove(menuId); 
           }
         });
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal mengubah favorit!')));
@@ -193,13 +161,13 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     List<String> bannerImages = _isFoodSelected 
         ? [
             'assets/images/pangsittulangrangu.jpg', 
-            'assets/images/osengpangsit.jpg',
+            'assets/images/pangsitgoreng.jpg',
             'assets/images/wontonmentai.jpg'
           ] 
         : [
-            'assets/images/esbuahleci.jpg', 
-            'assets/images/lemontea.jpg',
-            'assets/images/nipis.jpeg'
+            'assets/images/esyakultleci.jpg', 
+            'assets/images/esframbos.jpg',
+            'assets/images/eslemontea.jpg'
           ]; 
 
     return Container(
@@ -217,7 +185,11 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
               controller: _pageController,
               itemCount: bannerImages.length,
               onPageChanged: (index) { setState(() { _currentPage = index; }); },
-              itemBuilder: (context, index) { return Image.asset(bannerImages[index], fit: BoxFit.cover, width: double.infinity); },
+              itemBuilder: (context, index) { 
+                return Image.asset(bannerImages[index], fit: BoxFit.cover, width: double.infinity,
+                  errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey),
+                ); 
+              },
             ),
             Container(
               decoration: BoxDecoration(
@@ -335,13 +307,15 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     String imageUrl = item['image_url'] ?? ''; 
     int stock = int.tryParse(item['stock']?.toString() ?? '0') ?? 0;
     
-    // ✅ CEK APAKAH MENU INI ADA DI DAFTAR FAVORIT
     bool isFav = _favoriteMenuIds.contains(id);
-
     Widget imageWidget;
+    
     if (imageUrl.isNotEmpty) {
+      // ✅ DIPERBAIKI: Sintaks Image.network sudah aman
       imageWidget = Image.network(
-        "http://localhost/pangsit_njedok_api/uploads/$imageUrl", width: double.infinity, fit: BoxFit.cover,
+        "${ApiService.baseUrl}/uploads/$imageUrl", 
+        width: double.infinity, 
+        fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => const Icon(Icons.fastfood, size: 50, color: Colors.grey),
       );
     } else {
@@ -369,7 +343,6 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
                     child: Container(width: double.infinity, color: Colors.grey.shade100, child: imageWidget),
                   ),
                   
-                  // ✅ TOMBOL FAVORITE DINAMIS DENGAN DATABASE
                   Positioned(
                     top: 8, right: 8,
                     child: GestureDetector(
@@ -378,14 +351,14 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(color: Colors.black.withOpacity(0.4), shape: BoxShape.circle),
                         child: Icon(
-                          isFav ? Icons.favorite : Icons.favorite_border, // Ganti Ikon kalau di-favoritkan
+                          isFav ? Icons.favorite : Icons.favorite_border, 
                           color: isFav ? Colors.redAccent : Colors.white, 
                           size: 16
                         ),
                       ),
                     ),
                   ),
-                  
+
                   if (stock <= 0)
                     Positioned(
                       bottom: 8, left: 8,
@@ -471,7 +444,6 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     );
   }
 
-  // ✅ KABEL BOTTOM NAV BAR DIJAHIT SEMUA
   Widget _buildBottomNavigationBar(BuildContext context) {
     return BottomAppBar(
       color: Colors.white, shape: const CircularNotchedRectangle(), notchMargin: 8.0, elevation: 10,
@@ -482,14 +454,10 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
           children: [
             _buildNavItem(Icons.home_outlined, 'Home', context.widget is DashboardPage, () {
               if (context.widget is! DashboardPage) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardPage()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardPage()));
               }
             }),
-            _buildNavItem(Icons.restaurant_menu, 'Menu', context.widget is MenuFoodScreen, () {
-              if (context.widget is! MenuFoodScreen) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen()));
-              }
-            }),
+            _buildNavItem(Icons.restaurant_menu, 'Menu', true, () {}),
             const SizedBox(width: 48), 
             _buildNavItem(Icons.receipt_long_outlined, 'Order', false, () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const MyOrdersPage())); 
@@ -527,7 +495,6 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
         Container(
           decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)]),
           child: FloatingActionButton(
-            // ✅ KABEL MENUJU KERANJANG NOVIA (CartPage)
             onPressed: () {
               Navigator.push(
                 context,

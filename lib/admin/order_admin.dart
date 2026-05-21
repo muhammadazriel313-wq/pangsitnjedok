@@ -312,7 +312,7 @@ class _OrderManagementState extends State<OrderManagement> {
                                   'items': itemsRaw
                                       .map(
                                         (i) => {
-                                          'name': '${i['qty']}x ${i['name']}',
+                                          'name': '${i['qty']}x ${i['menu_id'] ?? i['name'] ?? 'Pangsit'}',
                                           'price': 'Rp ${i['price']}',
                                         },
                                       )
