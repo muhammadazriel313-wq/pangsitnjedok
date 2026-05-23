@@ -249,12 +249,13 @@ class _ProfilePageState extends State<ProfilePage> {
       onTap: () async {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.clear();
-        if (mounted)
+        if (mounted) {
           Navigator.pushNamedAndRemoveUntil(
             context,
             '/login',
             (route) => false,
           );
+        }
       },
       child: Container(
         width: double.infinity,

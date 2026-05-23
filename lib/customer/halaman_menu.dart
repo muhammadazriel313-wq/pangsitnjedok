@@ -1,8 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'dart:async'; 
-import 'package:http/http.dart' as http; 
-import 'dart:convert';
+import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart'; 
 
 import 'dashboard_menu.dart'; 
@@ -71,16 +69,10 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String customerId = prefs.getString('id') ?? "1"; 
 
-      final response = await http.get(
-        Uri.parse("http://localhost/pangsit_njedok_api/get_favorites.php?customer_id=$customerId")
-      );
-
-      if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        setState(() {
-          _favoriteMenuIds = data.map<int>((item) => int.parse(item['id'].toString())).toList();
-        });
-      }
+      final data = await ApiService.getFavorites(int.parse(customerId));
+      setState(() {
+        _favoriteMenuIds = data.map<int>((item) => int.parse(item['id'].toString())).toList();
+      });
     } catch (e) {
       debugPrint("Error ambil daftar favorite: $e");
     }
@@ -101,16 +93,9 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     });
 
     try {
-      final response = await http.post(
-        Uri.parse("http://localhost/pangsit_njedok_api/toggle_favorite.php"),
-        body: {
-          "customer_id": customerId,
-          "menu_id": menuId.toString(),
-          "action": isAlreadyFavorite ? "remove" : "add"
-        }
-      );
+      bool success = await ApiService.toggleFavorite(customerId, menuId.toString(), isAlreadyFavorite ? "remove" : "add");
 
-      if (response.statusCode != 200) {
+      if (!success) {
         setState(() {
           if (isAlreadyFavorite) {
             _favoriteMenuIds.add(menuId); 

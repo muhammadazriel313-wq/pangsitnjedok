@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'reviews.dart'; 
+import '../service/api_service.dart';
 
 class RatingViewsPage extends StatefulWidget {
   const RatingViewsPage({super.key});
@@ -32,7 +33,7 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
     try {
       // ✅ URL SUDAH BENAR
       final response = await http.get(
-        Uri.parse("http://localhost/pangsit_njedok_api/get_reviews.php?t=${DateTime.now().millisecondsSinceEpoch}"), 
+        Uri.parse("${ApiService.baseUrl}/get_reviews.php?t=${DateTime.now().millisecondsSinceEpoch}"), 
       );
 
       if (response.statusCode == 200) {

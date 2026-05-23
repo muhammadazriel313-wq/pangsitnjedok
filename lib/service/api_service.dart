@@ -405,8 +405,8 @@ class ApiService {
     }
   } // Batas penutup fungsi submitOrder
 
-  // Tambahkan fungsi ini di dalam class ApiService (sebelum kurung penutup terakhir)
-  static Future<bool> toggleFavorite(String customerId, String menuId, String action) async {
+  // Tambahkan fungsi ini di dalam class ApiService (sebelum kurung penutup terakhir)      
+static Future<bool> toggleFavorite(String customerId, String menuId, String action) async {
     try {
       final response = await http.post(
         Uri.parse("$baseUrl/toggle_favorite.php"),
@@ -420,7 +420,8 @@ class ApiService {
       debugPrint("Response toggle_favorite: ${response.statusCode} - ${response.body}");
       
       if (response.statusCode == 200) {
-        if (response.body.trim().isEmpty) return true;
+        // Jika response kosong, anggap gagal (karena seharusnya backend merespon JSON)
+        if (response.body.trim().isEmpty) return false; 
         
         try {
           final data = json.decode(response.body);
@@ -431,10 +432,11 @@ class ApiService {
               return false; // Backend secara eksplisit bilang gagal
             }
           }
-          return true; // Jika sukses tanpa format JSON tertentu
+          return false; // Diubah ke false: Jika format JSON aneh dan tidak ada 'success'
         } catch (e) {
-          // Jika backend tidak return JSON tapi status 200
-          return true;
+          // Diubah ke false: Jika backend return teks error PHP, bukan JSON
+          debugPrint("Gagal decode JSON (Mungkin error PHP): $e");
+          return false; 
         }
       }
       return false; // Status code selain 200 (misal 404/500)

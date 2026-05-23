@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'rating_views.dart'; 
 // ✅ IMPORT SUDAH DIALAHKAN KE DASHBOARD MENU
 import 'dashboard_menu.dart'; 
+import '../service/api_service.dart';
 
 class ReviewsApp extends StatefulWidget {
   const ReviewsApp({super.key});
@@ -95,7 +96,7 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
       };
 
       final response = await http.post(
-        Uri.parse("http://localhost/pangsit_njedok_api/submit_review.php"),
+        Uri.parse("${ApiService.baseUrl}/submit_review.php"),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",

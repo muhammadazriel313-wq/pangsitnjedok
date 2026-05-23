@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../service/api_service.dart'; 
+import '../service/cart_service.dart'; // ✅ Ditambahkan: Mengimpor CartService
 import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
-// Import navigasi
- 
- 
-   
 import 'cart.dart';
-
 
 class FavoritePage extends StatefulWidget {
   const FavoritePage({super.key});
@@ -19,12 +15,10 @@ class FavoritePage extends StatefulWidget {
 class _FavoritePageState extends State<FavoritePage> {
   String selectedCategory = 'All Items';
   String userId = ""; 
-  Map<int, int> cartItems = {};
-  int cartCount = 0;
+  int cartCount = 0; // ✅ Cukup pakai cartCount, menghapus Map lokal
   bool _isLoading = true;
   String? profileImageUrl; 
 
-  // ✅ 'Drink' dihapus, sisa Food dan Beverages
   final List<String> categories = ['All Items', 'Food', 'Beverages'];
   List<Map<String, dynamic>> menuItems = [];
 
@@ -33,6 +27,16 @@ class _FavoritePageState extends State<FavoritePage> {
     super.initState();
     _fetchFavorites();
     _loadUserProfile();
+    _updateCartCount(); // ✅ Sinkronisasi jumlah keranjang saat halaman dibuka
+  }
+
+  Future<void> _updateCartCount() async {
+    int count = await CartService.getCartCount();
+    if (mounted) {
+      setState(() {
+        cartCount = count;
+      });
+    }
   }
 
   Future<void> _loadUserProfile() async {
@@ -66,12 +70,13 @@ class _FavoritePageState extends State<FavoritePage> {
                 'tagTextColor': const Color(0xFF954A00),
                 'info': item['category'] ?? 'Food',
                 'infoIcon': item['category']?.toString().toLowerCase() == 'drink' || item['category']?.toString().toLowerCase() == 'beverage' ? Icons.local_cafe_outlined : Icons.restaurant_outlined,
-                'image': item['image_url'] ?? '', 
+                'image': item['image'] ?? item['image_url'] ?? '',
               }).toList();
           _isLoading = false;
         });
       }
     } catch (e) {
+      debugPrint("Error fetching favorites: $e");
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -91,18 +96,27 @@ class _FavoritePageState extends State<FavoritePage> {
     } 
   }
 
-  void _addToCart(int index) {
-    setState(() {
-      cartItems[index] = (cartItems[index] ?? 0) + 1;
-      cartCount = cartItems.values.fold(0, (a, b) => a + b);
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${menuItems[index]['name']} added to cart!'),
-        backgroundColor: const Color(0xFF954A00),
-        duration: const Duration(milliseconds: 800),
-      ),
-    );
+  // ✅ DIPERBAIKI: Langsung mengirim item (untuk mencegah error salah pencet saat di-filter)
+  void _addToCart(Map<String, dynamic> item) async {
+    // Harga saat ini berbentuk 'Rp 15000', kita perlu mengekstrak angkanya saja
+    String priceString = item['price'].toString().replaceAll(RegExp(r'[^0-9]'), '');
+    int priceValue = int.tryParse(priceString) ?? 0;
+
+    // Simpan ke SharedPreferences secara permanen menggunakan CartService
+    await CartService.addToCart(item['name'], priceValue, item['info']);
+    
+    // Perbarui total angka merah di tombol melayang (FAB)
+    await _updateCartCount();
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${item['name']} added to cart!'),
+          backgroundColor: const Color(0xFF954A00),
+          duration: const Duration(milliseconds: 800),
+        ),
+      );
+    }
   }
 
   void _placeOrder() {
@@ -110,10 +124,12 @@ class _FavoritePageState extends State<FavoritePage> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cart is still empty!'), backgroundColor: Colors.red));
       return;
     }
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const CartPage()));
+    // ✅ Mengupdate jumlah cart jika pengguna kembali dari halaman Cart
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const CartPage())).then((_) {
+      _updateCartCount();
+    });
   }
 
-  // ✅ LOGIKA FILTER DIUPDATE (Menu "drink" dari API akan otomatis masuk ke tab Beverages)
   List<Map<String, dynamic>> get filteredItems {
     if (selectedCategory == 'All Items') return menuItems;
     if (selectedCategory == 'Food') {
@@ -230,7 +246,8 @@ class _FavoritePageState extends State<FavoritePage> {
                               child: Center(child: Text("No favorite menu in this category yet.", style: TextStyle(color: Color(0xFF94A3B8), fontSize: 16))),
                             )
                           else
-                            ...filteredItems.asMap().entries.map((entry) => _buildMenuCard(entry.value, entry.key)),
+                            // ✅ Passing data menu seutuhnya
+                            ...filteredItems.map((item) => _buildMenuCard(item)),
                           
                           if (cartCount > 0) ...[
                             const SizedBox(height: 16),
@@ -248,7 +265,8 @@ class _FavoritePageState extends State<FavoritePage> {
     );
   }
 
-  Widget _buildMenuCard(Map<String, dynamic> item, int index) {
+  // ✅ Hapus indeks, gunakan Map item
+  Widget _buildMenuCard(Map<String, dynamic> item) {
     Widget imageWidget;
     String imgPath = item['image'] ?? '';
 
@@ -322,7 +340,8 @@ class _FavoritePageState extends State<FavoritePage> {
                       ],
                     ),
                     GestureDetector(
-                      onTap: () => _addToCart(index),
+                      // ✅ Dipanggil langsung dengan membawa data item
+                      onTap: () => _addToCart(item),
                       child: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
