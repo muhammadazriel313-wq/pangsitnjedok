@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'dart:async'; 
 import 'package:http/http.dart' as http; 
@@ -60,7 +61,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
         _isLoading = false; 
       });
     } catch (e) {
-      print("Error ambil menu: $e");
+      debugPrint("Error ambil menu: $e");
       setState(() { _isLoading = false; });
     }
   }
@@ -81,7 +82,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
         });
       }
     } catch (e) {
-      print("Error ambil daftar favorite: $e");
+      debugPrint("Error ambil daftar favorite: $e");
     }
   }
 
@@ -117,10 +118,10 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
             _favoriteMenuIds.remove(menuId); 
           }
         });
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal mengubah favorit!')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal mengubah favorit!')));
       }
     } catch (e) {
-      print("Error toggle favorite: $e");
+      debugPrint("Error toggle favorite: $e");
     }
   }
 
@@ -175,7 +176,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5))],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
@@ -195,7 +196,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter, end: Alignment.topCenter,
-                  colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                  colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
                 ),
               ),
             ),
@@ -256,7 +257,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
             color: isActive ? const Color(0xFFFF9442) : Colors.transparent,
             border: isActive ? null : Border.all(color: const Color(0xFFCBD5E1)),
             borderRadius: BorderRadius.circular(30),
-            boxShadow: isActive ? [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
+            boxShadow: isActive ? [BoxShadow(color: const Color(0xFFFF9442).withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
           ),
           alignment: Alignment.center,
           child: Text(
@@ -324,14 +325,14 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
 
     return GestureDetector(
       onTap: () {
-        if (stock <= 0) { _showOutOfStockDialog(context); } else { print("Buka detail menu $title"); }
+        if (stock <= 0) { _showOutOfStockDialog(context); } else { debugPrint("Buka detail menu $title"); }
       },
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white, borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 4))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 4))],
         ),
-        foregroundDecoration: stock <= 0 ? BoxDecoration(color: Colors.white.withOpacity(0.5), borderRadius: BorderRadius.circular(20)) : null,
+        foregroundDecoration: stock <= 0 ? BoxDecoration(color: Colors.white.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(20)) : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -349,7 +350,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
                       onTap: () => _toggleFavorite(id),
                       child: Container(
                         padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(color: Colors.black.withOpacity(0.4), shape: BoxShape.circle),
+                        decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.4), shape: BoxShape.circle),
                         child: Icon(
                           isFav ? Icons.favorite : Icons.favorite_border, 
                           color: isFav ? Colors.redAccent : Colors.white, 
@@ -493,7 +494,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
       clipBehavior: Clip.none, 
       children: [
         Container(
-          decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)]),
+          decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withValues(alpha: 0.4), blurRadius: 12, spreadRadius: 2)]),
           child: FloatingActionButton(
             onPressed: () {
               Navigator.push(

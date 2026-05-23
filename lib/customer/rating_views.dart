@@ -190,7 +190,7 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
                 else if (filteredReviews.isEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 40),
-                    child: Text('Belum ada ulasan untuk $_selectedFilter.', style: const TextStyle(color: Colors.grey)),
+                    child: Text('No reviews yet for $_selectedFilter.', style: const TextStyle(color: Colors.grey)),
                   )
                 else
                   ...filteredReviews.map((item) {
@@ -202,7 +202,7 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: ReviewCard(
-                        name: item['name'] ?? 'Pecinta Pangsit',
+                        name: item['name'] ?? 'Wonton Lover',
                         tag: item['customer_tag'] ?? 'MEMBER',
                         date: _formatDate(item['created_at'] ?? DateTime.now().toString()), 
                         rating: int.tryParse(item['rating'].toString()) ?? 5,
@@ -233,7 +233,7 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
                 minimumSize: const Size(double.infinity, 60),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                 elevation: 8,
-                shadowColor: const Color(0xFFFF9442).withOpacity(0.4), 
+                shadowColor: const Color(0xFFFF9442).withValues(alpha: 0.4), 
               ),
             ),
           ),
@@ -314,7 +314,7 @@ class ReviewCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,7 +372,7 @@ class ReviewCard extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 8),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.network(url, width: 80, height: 80, fit: BoxFit.cover, errorBuilder: (_,__,___) => Container(width: 80, height: 80, color: Colors.grey[200], child: const Icon(Icons.image, color: Colors.grey))),
+                    child: Image.network(url, width: 80, height: 80, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => Container(width: 80, height: 80, color: Colors.grey[200], child: const Icon(Icons.image, color: Colors.grey))),
                   ),
                 )).toList(),
               ),

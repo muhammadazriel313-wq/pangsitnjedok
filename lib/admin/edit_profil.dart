@@ -1,6 +1,4 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '/service/api_service.dart'; 
 
 class EditProfil extends StatefulWidget {
@@ -14,13 +12,8 @@ class EditProfil extends StatefulWidget {
 class _EditProfilState extends State<EditProfil> {
   late TextEditingController _nameController;
   late TextEditingController _usernameController;
-  late TextEditingController _passwordController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
-
-  bool _isPasswordHidden = true; 
-  Uint8List? _imageBytes; // Menampung bytes gambar yang baru dipilih[cite: 14]
-  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -28,19 +21,8 @@ class _EditProfilState extends State<EditProfil> {
     // Inisialisasi controller dengan data awal dari halaman profil[cite: 14]
     _nameController = TextEditingController(text: widget.initialData['name']);
     _usernameController = TextEditingController(text: widget.initialData['username']);
-    // Password dikosongkan secara default agar tidak terupdate jika tidak diisi
-    _passwordController = TextEditingController(text: ''); 
     _phoneController = TextEditingController(text: widget.initialData['phone']);
     _emailController = TextEditingController(text: widget.initialData['email']);
-  }
-
-  // Fungsi untuk memilih gambar dari galeri[cite: 14]
-  Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      final bytes = await pickedFile.readAsBytes();
-      setState(() => _imageBytes = bytes);
-    }
   }
 
   // Fungsi untuk menyimpan perubahan ke database[cite: 14, 16]
@@ -56,15 +38,13 @@ class _EditProfilState extends State<EditProfil> {
     Map<String, String> updatedData = {
       'name': _nameController.text,
       'username': _usernameController.text,
-      'password': _passwordController.text,
       'phone': _phoneController.text,
       'email': _emailController.text,
     };
     
     // Panggil API update dengan menyertakan bytes gambar[cite: 14, 16]
     bool isSuccess = await ApiService.updateAdminProfil(
-      updatedData, 
-      imageBytes: _imageBytes
+      updatedData
     );
 
     if (!mounted) return;
@@ -74,11 +54,11 @@ class _EditProfilState extends State<EditProfil> {
       // Kembali ke halaman profil dengan sinyal sukses agar data di-refresh[cite: 14]
       Navigator.pop(context, true); 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profil Berhasil Diperbarui!'), backgroundColor: Colors.green),
+        const SnackBar(content: Text('Profile Updated Successfully!'), backgroundColor: Colors.green),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal menyimpan. Cek koneksi XAMPP!'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('Failed to save. Check XAMPP connection!'), backgroundColor: Colors.red),
       );
     }
   }
@@ -101,7 +81,8 @@ class _EditProfilState extends State<EditProfil> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            _buildAvatarSection(),
+            const SizedBox(height: 16),
+            const Icon(Icons.account_circle, size: 100, color: Colors.grey),
             const SizedBox(height: 32),
             _buildFormSection(),
           ],
@@ -110,45 +91,7 @@ class _EditProfilState extends State<EditProfil> {
     );
   }
 
-  // UI Bagian Foto Profil (Sesuai saran: mendukung NetworkImage untuk sinkronisasi)[cite: 14]
-  Widget _buildAvatarSection() {
-    String? currentImageUrl = widget.initialData['image_url'];
 
-    return GestureDetector(
-      onTap: _pickImage,
-      child: Stack(
-        alignment: Alignment.bottomRight,
-        children: [
-          Container(
-            width: 128, height: 128,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFFF9644), width: 4),
-            ),
-            child: ClipOval(
-              child: _imageBytes != null
-                  ? Image.memory(_imageBytes!, fit: BoxFit.cover) // Gambar baru dipilih
-                  : (currentImageUrl != null && currentImageUrl.isNotEmpty)
-                      ? Image.network(
-                          "${ApiService.baseUrl}/uploads/$currentImageUrl", // Gambar dari database[cite: 5]
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Image.asset(
-                            "assets/images/Dimas oi oi.jpeg", 
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : Image.asset("assets/images/Dimas oi oi.jpeg", fit: BoxFit.cover), // Gambar default
-            ),
-          ),
-          const CircleAvatar(
-            backgroundColor: Color(0xFFFF9644), 
-            radius: 18, 
-            child: Icon(Icons.camera_alt, color: Colors.white, size: 20)
-          ),
-        ],
-      ),
-    );
-  }
 
   // Form Input Admin[cite: 14]
   Widget _buildFormSection() {
@@ -168,15 +111,6 @@ class _EditProfilState extends State<EditProfil> {
           _buildLabel('Username'),
           _buildTextField(controller: _usernameController, hint: 'Username'),
           const SizedBox(height: 16),
-          _buildLabel('Password'),
-          _buildTextField(
-            controller: _passwordController, 
-            hint: 'Kosongkan jika tidak ingin ganti', 
-            isPassword: true, 
-            isObscure: _isPasswordHidden, 
-            onToggle: () => setState(() => _isPasswordHidden = !_isPasswordHidden)
-          ),
-          const SizedBox(height: 16),
           _buildLabel('Phone Number'),
           _buildTextField(controller: _phoneController, hint: 'Phone Number', isNumber: true),
           const SizedBox(height: 16),
@@ -190,7 +124,7 @@ class _EditProfilState extends State<EditProfil> {
               minimumSize: const Size(double.infinity, 50),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
             ),
-            child: const Text('Simpan Perubahan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

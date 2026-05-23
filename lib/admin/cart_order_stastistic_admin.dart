@@ -56,7 +56,6 @@ class _DashboardAdminState extends State<DashboardAdmin> {
           future:
               ApiService.getDashboardData(), // Header cukup load 1x saja biar efisien
           builder: (context, snapshot) {
-            final String? imageUrl = snapshot.data?['image_url'];
             final String adminName = snapshot.data?['name'] ?? 'Admin';
 
             return Row(
@@ -74,21 +73,10 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                           color: const Color(0xFFFF9442),
                         ),
                       ),
-                      child: ClipOval(
-                        child: (imageUrl != null && imageUrl.isNotEmpty)
-                            ? Image.network(
-                                "${ApiService.baseUrl}/uploads/$imageUrl",
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Image.asset(
-                                      "assets/images/Dimas oi oi.jpeg",
-                                      fit: BoxFit.cover,
-                                    ),
-                              )
-                            : Image.asset(
-                                "assets/images/Dimas oi oi.jpeg",
-                                fit: BoxFit.cover,
-                              ),
+                      child: const Icon(
+                        Icons.account_circle,
+                        color: Colors.grey,
+                        size: 40,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -270,7 +258,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                 } else if (snapshot.hasError) {
                   return Center(
                     child: Text(
-                      "Error Database:\n${snapshot.error}",
+                      "Database Error:\n${snapshot.error}",
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.red),
                     ),
@@ -410,7 +398,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                     ),
                   );
                 }
-                return const Center(child: Text("Tidak ada data."));
+                return const Center(child: Text("No data."));
               },
             ),
           ),
@@ -507,7 +495,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 77),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: const Color(0xFF562F00), size: 20),

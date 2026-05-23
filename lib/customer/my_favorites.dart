@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../service/api_service.dart'; 
-
+import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
 // Import navigasi
-import 'profil_customer.dart'; 
-import 'dashboard_menu.dart'; 
-import 'halaman_menu.dart';   
+ 
+ 
+   
 import 'cart.dart';
-import 'order.dart';
+
 
 class FavoritePage extends StatefulWidget {
   const FavoritePage({super.key});
@@ -60,8 +60,8 @@ class _FavoritePageState extends State<FavoritePage> {
                 'id': int.parse(item['id'].toString()),
                 'name': item['title'],
                 'price': 'Rp ${item['price']}',
-                'description': 'Pilihan favorit lezat dari dapur kami.',
-                'tag': (item['is_best_seller'] == 1 || item['is_best_seller'] == '1') ? 'BEST SELLER' : null,
+                'description': 'Delicious favorite choices from our kitchen.',
+                'tag': (item['is_best_seller'] == 1 || item['is_best_seller'] == '1' || item['is_best_seller'] == true) ? 'BEST SELLER' : null,
                 'tagColor': const Color(0xFFFFCF9A),
                 'tagTextColor': const Color(0xFF954A00),
                 'info': item['category'] ?? 'Food',
@@ -86,7 +86,7 @@ class _FavoritePageState extends State<FavoritePage> {
     if (!success) {
       _fetchFavorites(); 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal menghapus favorit!'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to remove favorite!'), backgroundColor: Colors.red));
       }
     } 
   }
@@ -98,7 +98,7 @@ class _FavoritePageState extends State<FavoritePage> {
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${menuItems[index]['name']} masuk keranjang!'),
+        content: Text('${menuItems[index]['name']} added to cart!'),
         backgroundColor: const Color(0xFF954A00),
         duration: const Duration(milliseconds: 800),
       ),
@@ -107,7 +107,7 @@ class _FavoritePageState extends State<FavoritePage> {
 
   void _placeOrder() {
     if (cartCount == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Keranjang masih kosong!'), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cart is still empty!'), backgroundColor: Colors.red));
       return;
     }
     Navigator.push(context, MaterialPageRoute(builder: (context) => const CartPage()));
@@ -117,12 +117,15 @@ class _FavoritePageState extends State<FavoritePage> {
   List<Map<String, dynamic>> get filteredItems {
     if (selectedCategory == 'All Items') return menuItems;
     if (selectedCategory == 'Food') {
-      return menuItems.where((item) => item['info'].toString().toLowerCase() == 'food').toList();
+      return menuItems.where((item) {
+        String info = item['info'].toString().toLowerCase();
+        return info == 'food' || info == 'makanan';
+      }).toList();
     }
     if (selectedCategory == 'Beverages') {
       return menuItems.where((item) {
         String info = item['info'].toString().toLowerCase();
-        return info == 'drink' || info == 'beverage' || info == 'beverages';
+        return info == 'drink' || info == 'beverage' || info == 'beverages' || info == 'minuman';
       }).toList();
     }
     return menuItems;
@@ -134,7 +137,7 @@ class _FavoritePageState extends State<FavoritePage> {
       backgroundColor: const Color(0xFFFCFAEE),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: _buildFab(context),
-      bottomNavigationBar: _buildBottomNavigationBar(context),
+      bottomNavigationBar: buildBottomNavbar(context, '/my_favorites'),
       body: Column(
         children: [
           Container(
@@ -224,7 +227,7 @@ class _FavoritePageState extends State<FavoritePage> {
                           if (filteredItems.isEmpty)
                             const Padding(
                               padding: EdgeInsets.only(top: 40, bottom: 40),
-                              child: Center(child: Text("Belum ada menu favorit di kategori ini.", style: TextStyle(color: Color(0xFF94A3B8), fontSize: 16))),
+                              child: Center(child: Text("No favorite menu in this category yet.", style: TextStyle(color: Color(0xFF94A3B8), fontSize: 16))),
                             )
                           else
                             ...filteredItems.asMap().entries.map((entry) => _buildMenuCard(entry.value, entry.key)),
@@ -250,9 +253,9 @@ class _FavoritePageState extends State<FavoritePage> {
     String imgPath = item['image'] ?? '';
 
     if (imgPath.startsWith('http')) {
-      imageWidget = Image.network(imgPath, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.restaurant, size: 64, color: Color(0xFF954A00)));
+      imageWidget = Image.network(imgPath, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => const Icon(Icons.restaurant, size: 64, color: Color(0xFF954A00)));
     } else if (imgPath.isNotEmpty) {
-      imageWidget = Image.network("${ApiService.baseUrl}/uploads/$imgPath", fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.restaurant, size: 64, color: Color(0xFF954A00)));
+      imageWidget = Image.network("${ApiService.baseUrl}/uploads/$imgPath", fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => const Icon(Icons.restaurant, size: 64, color: Color(0xFF954A00)));
     } else {
       imageWidget = const Icon(Icons.image_not_supported, size: 64, color: Color(0xFF954A00));
     }
@@ -263,7 +266,7 @@ class _FavoritePageState extends State<FavoritePage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,7 +380,7 @@ class _FavoritePageState extends State<FavoritePage> {
               decoration: BoxDecoration(
                 color: const Color(0xFFFF9442),
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))],
+                boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 5))],
               ),
               child: const Text('Place Order Now', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
             ),
@@ -387,45 +390,9 @@ class _FavoritePageState extends State<FavoritePage> {
     );
   }
 
-  Widget _buildBottomNavigationBar(BuildContext context) {
-    return BottomAppBar(
-      color: Colors.white, shape: const CircularNotchedRectangle(), notchMargin: 8.0, elevation: 10,
-      child: SizedBox(
-        height: 60,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.home_outlined, 'Home', false, () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardPage()))),
-            _buildNavItem(Icons.restaurant_menu, 'Menu', false, () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen()))),
-            const SizedBox(width: 48), 
-            _buildNavItem(Icons.receipt_long_outlined, 'Order', false, () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MyOrdersPage()))),
-            _buildNavItem(Icons.person, 'Profil', false, () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ProfilePage()))),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, bool isActive, VoidCallback onTap) {
-    return InkWell( 
-      onTap: onTap, borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min, 
-          children: [
-            Icon(icon, color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8)), 
-            const SizedBox(height: 4), 
-            Text(label, style: TextStyle(color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8), fontSize: 10, fontWeight: isActive ? FontWeight.bold : FontWeight.w500))
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildFab(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)]),
+      decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withValues(alpha: 0.4), blurRadius: 12, spreadRadius: 2)]),
       child: FloatingActionButton(
         onPressed: _placeOrder,
         backgroundColor: const Color(0xFFFF9442), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50), side: const BorderSide(color: Colors.white, width: 4)),

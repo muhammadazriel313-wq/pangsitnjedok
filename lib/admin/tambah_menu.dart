@@ -49,9 +49,8 @@ class _TambahMenuState extends State<TambahMenu> {
     if (_nameController.text.trim().isEmpty || 
         _priceController.text.trim().isEmpty || 
         _stockController.text.trim().isEmpty) {
-      // Jika ada yang kosong, tampilkan pesan peringatan warna oranye di bawah layar
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Semua kolom harus diisi!'), backgroundColor: Colors.orange),
+        const SnackBar(content: Text('All fields must be filled!'), backgroundColor: Colors.orange),
       );
       return; // Stop fungsi di sini, jangan lanjut simpan
     }
@@ -92,14 +91,14 @@ class _TambahMenuState extends State<TambahMenu> {
     // 6. Respon Sukses / Gagal
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Menu berhasil ditambahkan!'), backgroundColor: Colors.green),
+        const SnackBar(content: Text('Menu added successfully!'), backgroundColor: Colors.green),
       );
       // Kembali ke halaman sebelumnya (Menu Management) sambil membawa nilai 'true' 
       // supaya halaman sebelumnya langsung melakukan refresh daftar menu secara otomatis.
       Navigator.pop(context, true); 
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal menambahkan menu.'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('Failed to add menu.'), backgroundColor: Colors.red),
       );
     }
   }
@@ -303,8 +302,7 @@ class _TambahMenuState extends State<TambahMenu> {
                               borderRadius: BorderRadius.circular(30),
                               boxShadow: const [BoxShadow(color: Color(0x3F000000), blurRadius: 20.0, offset: Offset(0, 10.0), spreadRadius: -10.0)],
                             ),
-                            alignment: Alignment.center,
-                            child: const Text('Simpan Menu', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+                            child: const Text('Save Menu', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
                           ),
                         ),
                       ],

@@ -29,7 +29,6 @@ class _DashboardAdminState extends State<DashboardAdmin> {
       future: ApiService.getDashboardData(), // Mengambil data profil dari API[cite: 15]
       builder: (context, snapshot) {
         // Ambil data dari snapshot jika tersedia
-        final String? imageUrl = snapshot.data?['image_url']; 
         final String adminName = snapshot.data?['name'] ?? 'Admin';
 
         return Row(
@@ -42,18 +41,13 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                   height: 44,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(width: 2, color: const Color(0xFFFF9442)),
+                    border: Border.all(
+                      width: 2,
+                      color: const Color(0xFFFF9442),
+                    ),
+                    color: Colors.white,
                   ),
-                  child: ClipOval(
-                    child: (imageUrl != null && imageUrl.isNotEmpty)
-                        ? Image.network(
-                            "${ApiService.baseUrl}/uploads/$imageUrl", // Foto dari database
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => 
-                                Image.asset("assets/images/Dimas oi oi.jpeg", fit: BoxFit.cover),
-                          )
-                        : Image.asset("assets/images/Dimas oi oi.jpeg", fit: BoxFit.cover),
-                  ),
+                  child: const Icon(Icons.account_circle, color: Colors.grey, size: 40),
                 ),
                 const SizedBox(width: 16),
                 Column(
@@ -191,7 +185,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator(color: Color(0xFFFF9644)));
                 } else if (snapshot.hasError) {
-                  return Center(child: Text("Error Database:\n${snapshot.error}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)));
+                  return Center(child: Text("Database Error:\n${snapshot.error}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)));
                 } else if (snapshot.hasData) {
                   final data = snapshot.data!;
                   final revenue = data['revenue'] ?? 'Rp 0';
@@ -249,7 +243,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: isPortrait ? portraitContent : landscapeContent),
                   );
                 }
-                return const Center(child: Text("Tidak ada data."));
+                return const Center(child: Text("No data available."));
               },
             ),
           ),
@@ -284,7 +278,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
       decoration: BoxDecoration(color: const Color(0xFFFFCE99), borderRadius: BorderRadius.circular(20), boxShadow: const [BoxShadow(color: Color(0x0C000000), blurRadius: 2, offset: Offset(0, 1))]),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), shape: BoxShape.circle), child: Icon(icon, color: const Color(0xFF562F00), size: 20)),
+          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 77), shape: BoxShape.circle), child: Icon(icon, color: const Color(0xFF562F00), size: 20)),
           Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: const Color(0xFF562F00), borderRadius: BorderRadius.circular(20)), child: Text(badgeLabel, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'Inter'))),
         ]),
         const SizedBox(height: 20),

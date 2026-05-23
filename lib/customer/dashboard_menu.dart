@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'dart:async'; 
-import 'package:shared_preferences/shared_preferences.dart'; 
+import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'halaman_menu.dart'; 
+
 import '../service/api_service.dart';
-import 'cart.dart'; 
+import 'cart.dart';
 import 'order.dart';
-import 'profil_customer.dart';
-import 'my_favorites.dart'; 
+
+import 'my_favorites.dart';
+import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -18,15 +19,15 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   bool _isFoodSelected = true;
-  
+
   // --- VARIABEL PROFIL DINAMIS ---
   String _userId = "1";
-  String _customerName = "Customer"; 
+  String _customerName = "Customer";
   String _customerPhoto = "";
 
   // --- VARIABEL API & FAVORIT ---
   List<dynamic> _allMenus = [];
-  Set<int> _favoriteMenuIds = {}; 
+  Set<int> _favoriteMenuIds = {};
   bool _isLoading = true;
 
   // --- VARIABEL SLIDER & KERANJANG ---
@@ -38,13 +39,13 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    _loadUserProfile(); 
+    _loadUserProfile();
 
     _carouselTimer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
-      if (_currentPage < 1) { 
+      if (_currentPage < 1) {
         _currentPage++;
       } else {
-        _currentPage = 0; 
+        _currentPage = 0;
       }
       if (_pageController.hasClients) {
         _pageController.animateToPage(
@@ -59,11 +60,11 @@ class _DashboardPageState extends State<DashboardPage> {
   // ✅ BACA PROFIL SEKALIGUS TARIK DATA MENU & FAVORIT
   Future<void> _loadUserProfile() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    _userId = prefs.getString('id') ?? prefs.getString('customer_id') ?? "1"; 
+    _userId = prefs.getString('id') ?? prefs.getString('customer_id') ?? "1";
 
     setState(() {
       _customerName = prefs.getString('name') ?? "Customer";
-      _customerPhoto = prefs.getString('photo') ?? ""; 
+      _customerPhoto = prefs.getString('photo') ?? "";
     });
 
     try {
@@ -77,19 +78,21 @@ class _DashboardPageState extends State<DashboardPage> {
         }
       }
     } catch (e) {
-      print("Error loading profile: $e");
+      // debugPrint("Error loading profile: $e");
     }
 
-    _fetchDashboardData(); 
+    _fetchDashboardData();
   }
 
   Future<void> _fetchDashboardData() async {
     try {
       final menus = await ApiService.getMenus();
-      
+
       // ✅ DIPERBAIKI: Menggunakan int.parse agar tidak error merah!
       final favs = await ApiService.getFavorites(int.parse(_userId));
-      Set<int> favIds = favs.map<int>((f) => int.parse(f['id'].toString())).toSet();
+      Set<int> favIds = favs
+          .map<int>((f) => int.parse(f['id'].toString()))
+          .toSet();
 
       setState(() {
         _allMenus = menus;
@@ -97,8 +100,10 @@ class _DashboardPageState extends State<DashboardPage> {
         _isLoading = false;
       });
     } catch (e) {
-      print("Error Dashboard: $e");
-      setState(() { _isLoading = false; });
+      // debugPrint("Error Dashboard: $e");
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -118,36 +123,52 @@ class _DashboardPageState extends State<DashboardPage> {
 
     try {
       // Pastikan fungsi toggleFavorite sudah ada di api_service.dart kamu!
-      bool success = await ApiService.toggleFavorite(_userId, menuId.toString(), action);
-      
+      bool success = await ApiService.toggleFavorite(
+        _userId,
+        menuId.toString(),
+        action,
+      );
+
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(isCurrentlyFav ? 'Removed from Favorites' : 'Added to Favorites', textAlign: TextAlign.center),
+              content: Text(
+                isCurrentlyFav
+                    ? 'Removed from Favorites'
+                    : 'Added to Favorites',
+                textAlign: TextAlign.center,
+              ),
               backgroundColor: isCurrentlyFav ? Colors.red : Colors.green,
               duration: const Duration(seconds: 1),
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            )
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
           );
         } else {
           // Kalau gagal ke database, batalkan perubahan warna
           setState(() {
-            if (isCurrentlyFav) _favoriteMenuIds.add(menuId);
-            else _favoriteMenuIds.remove(menuId);
+            if (isCurrentlyFav) {
+              _favoriteMenuIds.add(menuId);
+            } else {
+              _favoriteMenuIds.remove(menuId);
+            }
           });
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to update favorites')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to update favorites')),
+          );
         }
       }
     } catch (e) {
-      print("Toggle Favorite Error: $e");
+      // debugPrint("Toggle Favorite Error: $e");
     }
   }
 
   @override
   void dispose() {
-    _carouselTimer?.cancel(); 
+    _carouselTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -157,25 +178,29 @@ class _DashboardPageState extends State<DashboardPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFFCFAEE),
       body: SafeArea(
-        child: RefreshIndicator( 
+        child: RefreshIndicator(
           onRefresh: _fetchDashboardData,
-          child: SingleChildScrollView( 
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeader(),
-                const SizedBox(height: 24), 
-                _buildPromoBanner(), 
                 const SizedBox(height: 24),
-                _buildCategories(), 
+                _buildPromoBanner(),
+                const SizedBox(height: 24),
+                _buildCategories(),
                 const SizedBox(height: 24),
                 const Text(
-                  'Recommendations', 
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                  'Recommendations',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                  ),
                 ),
                 const SizedBox(height: 16),
-                _buildPopularItems(), 
+                _buildPopularItems(),
               ],
             ),
           ),
@@ -183,7 +208,7 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       floatingActionButton: _buildFab(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _buildBottomNavigationBar(context), 
+      bottomNavigationBar: buildBottomNavbar(context, '/home_customer'),
     );
   }
 
@@ -195,16 +220,22 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             // ✅ LOGIKA FOTO PROFIL
             Container(
-              width: 48, height: 48,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFFF9442), width: 2), 
+                border: Border.all(color: const Color(0xFFFF9442), width: 2),
                 image: DecorationImage(
-                  image: _customerPhoto.isNotEmpty && _customerPhoto.startsWith('http')
+                  image:
+                      _customerPhoto.isNotEmpty &&
+                          _customerPhoto.startsWith('http')
                       ? NetworkImage(_customerPhoto) as ImageProvider
                       : _customerPhoto.isNotEmpty
-                          ? NetworkImage("${ApiService.baseUrl}/uploads/$_customerPhoto") as ImageProvider
-                          : const AssetImage("assets/images/user.jpeg"), 
+                      ? NetworkImage(
+                              "${ApiService.baseUrl}/uploads/$_customerPhoto",
+                            )
+                            as ImageProvider
+                      : const AssetImage("assets/images/user.jpeg"),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -213,10 +244,17 @@ class _DashboardPageState extends State<DashboardPage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Welcome,', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)), 
+                const Text(
+                  'Welcome,',
+                  style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                ),
                 Text(
                   _customerName, // ✅ NAMA SESUAI USER LOGIN
-                  style: const TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)
+                  style: const TextStyle(
+                    color: Color(0xFF0F172A),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -224,31 +262,42 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
         GestureDetector(
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const FavoritePage()));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const FavoritePage()),
+            );
           },
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white, shape: BoxShape.circle,
+              color: Colors.white,
+              shape: BoxShape.circle,
               border: Border.all(color: Colors.grey.shade200),
             ),
             child: const Icon(Icons.favorite, color: Colors.redAccent),
           ),
-        )
+        ),
       ],
     );
   }
 
   Widget _buildPromoBanner() {
-    List<String> bannerImages = _isFoodSelected 
-        ? ['assets/images/fotoslide2.jpg', 'assets/images/fotoslide3.jpg'] 
-        : ['assets/images/minumslide1.jpg', 'assets/images/minumslide2.jpg']; 
+    List<String> bannerImages = _isFoodSelected
+        ? ['assets/images/fotoslide2.jpg', 'assets/images/fotoslide3.jpg']
+        : ['assets/images/minumslide1.jpg', 'assets/images/minumslide2.jpg'];
 
     return Container(
-      height: 180, width: double.infinity,
+      height: 180,
+      width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(26), // 0.1 * 255 ≈ 26
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
@@ -257,16 +306,28 @@ class _DashboardPageState extends State<DashboardPage> {
             PageView.builder(
               controller: _pageController,
               itemCount: bannerImages.length,
-              onPageChanged: (index) { setState(() { _currentPage = index; }); },
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                });
+              },
               itemBuilder: (context, index) {
-                return Image.asset(bannerImages[index], fit: BoxFit.cover, width: double.infinity);
+                return Image.asset(
+                  bannerImages[index],
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                );
               },
             ),
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.black.withOpacity(0.8), Colors.transparent],
-                  begin: Alignment.centerLeft, end: Alignment.centerRight,
+                  colors: [
+                    Colors.black.withAlpha(204),
+                    Colors.transparent,
+                  ], // 0.8 * 255 ≈ 204
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
                 ),
               ),
             ),
@@ -277,33 +338,69 @@ class _DashboardPageState extends State<DashboardPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(color: const Color(0xFFFF9442), borderRadius: BorderRadius.circular(20)),
-                    child: const Text('SPECIAL OFFER', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)), 
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF9442),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'SPECIAL OFFER',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    _isFoodSelected ? 'Newest Flavors' : 'Ultimate Freshness', 
-                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                    _isFoodSelected ? 'Newest Flavors' : 'Ultimate Freshness',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _isFoodSelected ? 'Perfectly spicy, purely satisfying!' : 'Perfectly fresh, purely satisfying!', 
+                    _isFoodSelected
+                        ? 'Perfectly spicy, purely satisfying!'
+                        : 'Perfectly fresh, purely satisfying!',
                     style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   const Spacer(),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const MyOrdersPage()));
-                    }, 
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyOrdersPage(),
+                        ),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white, foregroundColor: const Color(0xFF0F172A),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF0F172A),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       elevation: 0,
                     ),
-                    child: const Text('Order Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)), 
-                  )
+                    child: const Text(
+                      'Order Now',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -317,42 +414,85 @@ class _DashboardPageState extends State<DashboardPage> {
     return Row(
       children: [
         Expanded(
-          child: _categoryButton(Icons.restaurant_menu, 'Food', _isFoodSelected, () {
-            setState(() { _isFoodSelected = true; _currentPage = 0; if (_pageController.hasClients) _pageController.jumpToPage(0); });
-          }),
+          child: _categoryButton(
+            Icons.restaurant_menu,
+            'Food',
+            _isFoodSelected,
+            () {
+              setState(() {
+                _isFoodSelected = true;
+                _currentPage = 0;
+                if (_pageController.hasClients) _pageController.jumpToPage(0);
+              });
+            },
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _categoryButton(Icons.local_bar_outlined, 'Beverages', !_isFoodSelected, () {
-            setState(() { _isFoodSelected = false; _currentPage = 0; if (_pageController.hasClients) _pageController.jumpToPage(0); });
-          }),
+          child: _categoryButton(
+            Icons.local_bar_outlined,
+            'Beverages',
+            !_isFoodSelected,
+            () {
+              setState(() {
+                _isFoodSelected = false;
+                _currentPage = 0;
+                if (_pageController.hasClients) _pageController.jumpToPage(0);
+              });
+            },
+          ),
         ),
       ],
     );
   }
 
-  Widget _categoryButton(IconData icon, String title, bool active, VoidCallback onTap) {
+  Widget _categoryButton(
+    IconData icon,
+    String title,
+    bool active,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(30),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: active ? const Color(0xFFFFF4EC) : Colors.white, 
+          color: active ? const Color(0xFFFFF4EC) : Colors.white,
           borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: active ? const Color(0xFFFFCE99) : const Color(0xFFE2E8F0)),
+          border: Border.all(
+            color: active ? const Color(0xFFFFCE99) : const Color(0xFFE2E8F0),
+          ),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center, 
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(color: active ? const Color(0xFFFF9442) : const Color(0xFFF1F5F9), shape: BoxShape.circle),
-              child: Icon(icon, color: active ? Colors.white : Colors.grey, size: 18),
+              decoration: BoxDecoration(
+                color: active
+                    ? const Color(0xFFFF9442)
+                    : const Color(0xFFF1F5F9),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: active ? Colors.white : Colors.grey,
+                size: 18,
+              ),
             ),
-            const SizedBox(width: 8), 
-            Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: active ? const Color(0xFF0F172A) : const Color(0xFF64748B))),
-          ]
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: active
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFF64748B),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -360,25 +500,34 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildPopularItems() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFFFF9442)));
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFFFF9442)),
+      );
     }
 
     final filtered = _allMenus.where((item) {
       String cat = item['category']?.toString().toLowerCase() ?? 'food';
-      return _isFoodSelected ? cat == 'food' : (cat == 'drink' || cat == 'beverages');
+      return _isFoodSelected
+          ? cat == 'food'
+          : (cat == 'drink' || cat == 'beverages');
     }).toList();
 
     if (filtered.isEmpty) {
-      return const Center(child: Text("No recommendations yet.", style: TextStyle(color: Colors.grey))); 
+      return const Center(
+        child: Text(
+          "No recommendations yet.",
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
     }
 
     final displayItems = filtered.take(4).toList();
 
     return GridView.builder(
-      shrinkWrap: true, 
-      physics: const NeverScrollableScrollPhysics(), 
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, 
+        crossAxisCount: 2,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
         childAspectRatio: 0.75, // Menyeimbangkan bentuk kotak
@@ -396,64 +545,106 @@ class _DashboardPageState extends State<DashboardPage> {
     String price = item['price']?.toString() ?? '0';
     String img = item['image_url'] ?? '';
     int stock = int.tryParse(item['stock']?.toString() ?? '0') ?? 0;
-    
+
     // Cek apakah menu ini dilove oleh user
-    bool isLiked = _favoriteMenuIds.contains(menuId); 
+    bool isLiked = _favoriteMenuIds.contains(menuId);
 
     return GestureDetector(
       onTap: () {
         if (stock <= 0) {
           _showOutOfStockDialog(context);
         } else {
-          print("Open detail: $title");
+          // debugPrint("Open detail: $title");
         }
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(24),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(color: Colors.grey.shade100),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        foregroundDecoration: stock <= 0 
-            ? BoxDecoration(color: Colors.white.withOpacity(0.5), borderRadius: BorderRadius.circular(24)) 
+        foregroundDecoration: stock <= 0
+            ? BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(24),
+              )
             : null,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, 
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ✅ DIPERBAIKI: Menggunakan Expanded supaya gambar mengisi ruang kosong & teks tetap padat di bawah
             Expanded(
               child: Stack(
-                fit: StackFit.expand, 
+                fit: StackFit.expand,
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)), 
-                    child: img.isNotEmpty 
-                      ? Image.network("${ApiService.baseUrl}/uploads/$img", fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.fastfood, size: 50))
-                      : const Center(child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey)),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(24),
+                    ),
+                    child: img.isNotEmpty
+                        ? Image.network(
+                            "${ApiService.baseUrl}/uploads/$img",
+                            fit: BoxFit.cover,
+                            errorBuilder: (c, e, s) =>
+                                const Icon(Icons.fastfood, size: 50),
+                          )
+                        : const Center(
+                            child: Icon(
+                              Icons.image_not_supported,
+                              size: 50,
+                              color: Colors.grey,
+                            ),
+                          ),
                   ),
                   // ✅ LOGIKA KLIK ICON LOVE
                   Positioned(
-                    top: 8, right: 8,
+                    top: 8,
+                    right: 8,
                     child: GestureDetector(
-                      onTap: () => _toggleFavorite(menuId), 
+                      onTap: () => _toggleFavorite(menuId),
                       child: Container(
                         padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.9), shape: BoxShape.circle),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          shape: BoxShape.circle,
+                        ),
                         child: Icon(
-                          isLiked ? Icons.favorite : Icons.favorite_border, 
-                          size: 18, 
-                          color: isLiked ? Colors.red : const Color(0xFF64748B)
+                          isLiked ? Icons.favorite : Icons.favorite_border,
+                          size: 18,
+                          color: isLiked ? Colors.red : const Color(0xFF64748B),
                         ),
                       ),
                     ),
                   ),
                   if (stock <= 0)
                     Positioned(
-                      bottom: 8, left: 8,
+                      bottom: 8,
+                      left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(8)),
-                        child: const Text('SOLD OUT', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)), 
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'SOLD OUT',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                 ],
@@ -464,32 +655,65 @@ class _DashboardPageState extends State<DashboardPage> {
               padding: const EdgeInsets.all(12.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min, // Membungkus konten teks seminimal mungkin
+                mainAxisSize: MainAxisSize
+                    .min, // Membungkus konten teks seminimal mungkin
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A)), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 8), 
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Color(0xFF0F172A),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Rp $price", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFFF9442))),
+                      Text(
+                        "Rp $price",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: Color(0xFFFF9442),
+                        ),
+                      ),
                       GestureDetector(
                         onTap: () {
                           if (stock > 0) {
-                            setState(() { _cartItemCount++; });
+                            setState(() {
+                              _cartItemCount++;
+                            });
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('$title added to cart!', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)), 
+                                content: Text(
+                                  '$title added to cart!',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 duration: const Duration(seconds: 1),
                                 backgroundColor: const Color(0xFFFF9442),
-                                behavior: SnackBarBehavior.floating, 
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                               ),
                             );
                           } else {
                             _showOutOfStockDialog(context);
                           }
                         },
-                        child: Icon(Icons.add_circle, color: stock <= 0 ? Colors.grey : const Color(0xFFFF9442), size: 28),
+                        child: Icon(
+                          Icons.add_circle,
+                          color: stock <= 0
+                              ? Colors.grey
+                              : const Color(0xFFFF9442),
+                          size: 28,
+                        ),
                       ),
                     ],
                   ),
@@ -507,16 +731,22 @@ class _DashboardPageState extends State<DashboardPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
           contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
           content: Column(
-            mainAxisSize: MainAxisSize.min, 
+            mainAxisSize: MainAxisSize.min,
             children: const [
-              Icon(Icons.error_outline, color: Colors.red, size: 48), 
+              Icon(Icons.error_outline, color: Colors.red, size: 48),
               SizedBox(height: 16),
               Text(
-                'Out of Stock', 
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                'Out of Stock',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F172A),
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -524,66 +754,28 @@ class _DashboardPageState extends State<DashboardPage> {
           actions: [
             Center(
               child: ElevatedButton(
-                onPressed: () { Navigator.of(context).pop(); },
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFF9442),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  minimumSize: const Size(120, 40), 
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  minimumSize: const Size(120, 40),
                 ),
-                child: const Text('OK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ],
         );
       },
-    );
-  }
-
-  Widget _buildBottomNavigationBar(BuildContext context) {
-    return BottomAppBar(
-      color: Colors.white, shape: const CircularNotchedRectangle(), notchMargin: 8.0, elevation: 10,
-      child: SizedBox(
-        height: 60,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.home_outlined, 'Home', context.widget is DashboardPage, () {
-              if (context.widget is! DashboardPage) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardPage()));
-              }
-            }),
-            _buildNavItem(Icons.restaurant_menu, 'Menu', context.widget is MenuFoodScreen, () {
-              if (context.widget is! MenuFoodScreen) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MenuFoodScreen()));
-              }
-            }),
-            const SizedBox(width: 48), 
-            _buildNavItem(Icons.receipt_long_outlined, 'Order', false, () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const MyOrdersPage())); 
-            }),
-            _buildNavItem(Icons.person_outline, 'Profile', false, () { 
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage())); 
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, bool isActive, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap, borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8)),
-            const SizedBox(height: 4),
-            Text(label, style: TextStyle(color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8), fontSize: 10, fontWeight: isActive ? FontWeight.bold : FontWeight.w500)),
-          ],
-        ),
-      ),
     );
   }
 
@@ -594,27 +786,50 @@ class _DashboardPageState extends State<DashboardPage> {
         Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)]
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFFF9442).withValues(alpha: 0.4),
+                blurRadius: 12,
+                spreadRadius: 2,
+              ),
+            ],
           ),
           child: FloatingActionButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const CartPage()));
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartPage()),
+              );
             },
             backgroundColor: const Color(0xFFFF9442),
-            elevation: 0, 
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50), side: const BorderSide(color: Colors.white, width: 4)),
-            child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(50),
+              side: const BorderSide(color: Colors.white, width: 4),
+            ),
+            child: const Icon(
+              Icons.shopping_cart_outlined,
+              color: Colors.white,
+            ),
           ),
         ),
         if (_cartItemCount > 0)
           Positioned(
-            right: -2, top: -2,
+            right: -2,
+            top: -2,
             child: Container(
               padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
+              decoration: const BoxDecoration(
+                color: Color(0xFFEF4444),
+                shape: BoxShape.circle,
+              ),
               child: Text(
-                '$_cartItemCount', 
-                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                '$_cartItemCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),

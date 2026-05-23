@@ -33,7 +33,7 @@ class _MenuManagementState extends State<MenuManagement> {
                 }
                 if (snapshot.hasError) return Center(child: Text("Error: ${snapshot.error}"));
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                   return const Center(child: Text("Database menu masih kosong"));
+                   return const Center(child: Text("Menu database is still empty"));
                 }
 
                 final allData = snapshot.data!;
@@ -62,7 +62,7 @@ class _MenuManagementState extends State<MenuManagement> {
                       if (activeData.isEmpty)
                         Container(
                           height: 200, alignment: Alignment.center,
-                          child: Text("Belum ada menu di kategori ini", style: TextStyle(color: Colors.grey[500], fontSize: 16)),
+                          child: Text("No menu in this category", style: TextStyle(color: Colors.grey[500], fontSize: 16)),
                         )
                       else
                         GridView.builder(
@@ -80,10 +80,10 @@ class _MenuManagementState extends State<MenuManagement> {
                             
                             final item = {
                               'id': dbItem['id'] ?? 0,
-                              'title': dbItem['title']?.toString() ?? 'Tanpa Nama',
+                              'title': dbItem['title']?.toString() ?? 'No Name',
                               'price': 'Rp ${dbItem['price'] ?? 0}',
                               'stock': (dbItem['stock'] ?? 0).toString(),
-                              'category': dbItem['category']?.toString() ?? 'Lainnya',
+                              'category': dbItem['category']?.toString() ?? 'Other',
                               'color': (int.tryParse(dbItem['stock']?.toString() ?? '0') ?? 0) < 10 ? Colors.red : Colors.green,
                               // Pastikan img tidak pernah null
                               'img': rawImg.isEmpty ? 'placeholder.png' : rawImg,
@@ -175,21 +175,15 @@ class _MenuManagementState extends State<MenuManagement> {
       child: FutureBuilder<Map<String, dynamic>?>(
         future: ApiService.getAdminProfil(),
         builder: (context, snapshot) {
-          final String? imageUrl = snapshot.data?['image_url'];
-          final String adminName = snapshot.data?['name'] ?? 'Admin';
           return Row(
             children: [
               Container(
                 width: 44, height: 44,
-                decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(width: 2, color: const Color(0xFFFF9442))),
-                child: ClipOval(
-                  child: (imageUrl != null && imageUrl.isNotEmpty)
-                      ? Image.network("${ApiService.baseUrl}/uploads/$imageUrl", fit: BoxFit.cover, errorBuilder: (c, e, s) => Image.asset("assets/images/Dimas oi oi.jpeg", fit: BoxFit.cover))
-                      : Image.asset("assets/images/Dimas oi oi.jpeg", fit: BoxFit.cover),
-                ),
+                decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(width: 2, color: const Color(0xFFFF9442)), color: Colors.white),
+                child: const Icon(Icons.account_circle, color: Colors.grey, size: 40),
               ),
               const SizedBox(width: 16),
-              Text('Welcome, $adminName', style: const TextStyle(fontWeight: FontWeight.w700)),
+              const Text('Welcome Admin', style: TextStyle(fontWeight: FontWeight.w700)),
             ],
           );
         },
@@ -204,8 +198,8 @@ class _MenuManagementState extends State<MenuManagement> {
           const Icon(Icons.delete_outline, color: Color(0xFFEF4444), size: 48), const SizedBox(height: 16),
           Text('Delete ${item['title']}?', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 24),
           Row(children: [
-            Expanded(child: GestureDetector(onTap: () => Navigator.pop(context), child: _buildDialogBtn('Batal', Colors.white, Colors.black, isBorder: true))), const SizedBox(width: 12),
-            Expanded(child: GestureDetector(onTap: () async { await ApiService.deleteMenu(item['id'].toString()); Navigator.pop(context); _refreshData(); }, child: _buildDialogBtn('Delete', const Color(0xFFEF4444), Colors.white))),
+            Expanded(child: GestureDetector(onTap: () => Navigator.pop(context), child: _buildDialogBtn('Cancel', Colors.white, Colors.black, isBorder: true))), const SizedBox(width: 12),
+            Expanded(child: GestureDetector(onTap: () async { await ApiService.deleteMenu(item['id'].toString()); if (!context.mounted) return; Navigator.pop(context); _refreshData(); }, child: _buildDialogBtn('Delete', const Color(0xFFEF4444), Colors.white))),
           ])
         ]),
       ));

@@ -1,5 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
-import 'dart:typed_data'; 
+ 
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -131,7 +132,7 @@ class ApiService {
           }
         }
       } catch (e) {
-        print("Error update status ($endpoint): $e");
+        debugPrint("Error update status ($endpoint): $e");
       }
     }
     return false;
@@ -225,7 +226,7 @@ class ApiService {
 
       return true;
     } catch (e) {
-      print('Error reduce stock: $e');
+      debugPrint('Error reduce stock: $e');
       return false;
     }
   }
@@ -240,7 +241,7 @@ class ApiService {
       }
       return null;
     } catch (e) {
-      print("Error Profil: $e");
+      debugPrint("Error Profil: $e");
       return null;
     }
   }
@@ -261,7 +262,7 @@ class ApiService {
       var response = await request.send();
       return response.statusCode == 200;
     } catch (e) {
-      print("Error Update Profil: $e");
+      debugPrint("Error Update Profil: $e");
       return false;
     }
   }
@@ -305,7 +306,7 @@ class ApiService {
       }
       return false;
     } catch (e) {
-      print("Koneksi Error: $e");
+      debugPrint("Koneksi Error: $e");
       return false;
     }
   }
@@ -315,7 +316,7 @@ class ApiService {
       final response = await http.get(Uri.parse("$baseUrl/dashboard_stastic.php"));
       return response.statusCode == 200 ? json.decode(response.body) : {};
     } catch (e) {
-      print("Error Fetch Dashboard: $e");
+      debugPrint("Error Fetch Dashboard: $e");
       return {};
     }
   }
@@ -331,7 +332,7 @@ class ApiService {
       var response = await request.send();
       return response.statusCode == 200;
     } catch (e) {
-      print("Add Menu Error: $e");
+      debugPrint("Add Menu Error: $e");
       return false;
     }
   }
@@ -346,7 +347,7 @@ class ApiService {
       var response = await request.send();
       return response.statusCode == 200;
     } catch (e) {
-      print("Update Menu Error: $e");
+      debugPrint("Update Menu Error: $e");
       return false;
     }
   }
@@ -368,7 +369,7 @@ class ApiService {
       final response = await http.get(Uri.parse("$baseUrl/get_favorites.php?customer_id=$customerId"));
       return response.statusCode == 200 ? json.decode(response.body) : [];
     } catch (e) {
-      print("Error Get Favorites: $e");
+      debugPrint("Error Get Favorites: $e");
       return [];
     }
   } // Batas penutup fungsi getFavorites
@@ -386,11 +387,11 @@ class ApiService {
         body: jsonEncode(orderData), 
       );
 
-      print("Response PHP Simpan Pesanan: ${response.body}"); 
+      debugPrint("Response PHP Simpan Pesanan: ${response.body}"); 
 
       if (response.statusCode == 200) {
         if (response.body.isEmpty) {
-          print("PHP mengirim balasan kosong!");
+          debugPrint("PHP mengirim balasan kosong!");
           return false;
         }
 
@@ -399,7 +400,7 @@ class ApiService {
       }
       return false;
     } catch (e) {
-      print("Error saat submitOrder: $e");
+      debugPrint("Error saat submitOrder: $e");
       return false;
     }
   } // Batas penutup fungsi submitOrder
@@ -415,9 +416,30 @@ class ApiService {
           "action": action
         },
       );
-      return response.statusCode == 200;
+      
+      debugPrint("Response toggle_favorite: ${response.statusCode} - ${response.body}");
+      
+      if (response.statusCode == 200) {
+        if (response.body.trim().isEmpty) return true;
+        
+        try {
+          final data = json.decode(response.body);
+          if (data is Map) {
+            if (data['success'] == true || data['status'] == 'success') {
+              return true;
+            } else {
+              return false; // Backend secara eksplisit bilang gagal
+            }
+          }
+          return true; // Jika sukses tanpa format JSON tertentu
+        } catch (e) {
+          // Jika backend tidak return JSON tapi status 200
+          return true;
+        }
+      }
+      return false; // Status code selain 200 (misal 404/500)
     } catch (e) {
-      print("Error toggleFavorite: $e");
+      debugPrint("Error toggleFavorite: $e");
       return false;
     }
   }

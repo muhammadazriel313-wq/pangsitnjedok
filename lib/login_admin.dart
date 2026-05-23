@@ -232,7 +232,7 @@ class Frame1000003605 extends StatelessWidget {
                                   ),
                                   child: Center(
                                     child: Text(
-                                      'Masuk',
+                                      'Login',
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 24,
@@ -325,7 +325,7 @@ class Frame1000003605 extends StatelessWidget {
                         left: 90,
                         top: 60,
                         child: Text(
-                          'Daftar Akun Baru',
+                          'Register New Account',
                           style: TextStyle(
                             color: const Color(0xFFF8F8F8),
                             fontSize: 28,

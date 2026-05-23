@@ -42,14 +42,14 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)), // Sudut kotak dibikin tumpul manis
           title: const Text(
-            "Konfirmasi Logout", 
+            "Logout Confirmation", 
             style: TextStyle(color: Color(0xFF562F00), fontWeight: FontWeight.bold)
           ),
-          content: const Text("Apakah Anda yakin ingin keluar dari akun ini?"),
+          content: const Text("Are you sure you want to log out from this account?"),
           actions: [
             // Tombol Batal
             TextButton(
-              child: const Text("Batal", style: TextStyle(color: Colors.grey)),
+              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
               onPressed: () => Navigator.pop(context), // Menutup dialog tanpa logout
             ),
             // Tombol Logout
@@ -110,7 +110,7 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
           
           // KONDISI 2: Terjadi error atau datanya kosong
           if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-            return const Center(child: Text("Gagal memuat profil admin"));
+            return const Center(child: Text("Failed to load admin profile"));
           }
 
           // KONDISI 3: Data sukses didapatkan
@@ -130,22 +130,17 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
                   ),
                   child: Column(
                     children: [
-                      // Lingkaran Foto Profil
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: const Color(0xFFFFEEDD),
-                        // Logika menampilkan gambar:
-                        // Jika ada nama file gambar di database, kita download gambarnya dari server.
-                        // Jika tidak ada (kosong/null), kita tampilkan gambar default dari aset lokal.
-                        backgroundImage: (data['image_url'] != null && data['image_url'].toString().isNotEmpty)
-                            ? NetworkImage("${ApiService.baseUrl}/uploads/${data['image_url']}") 
-                            : const AssetImage("assets/images/Dimas oi oi.jpeg") as ImageProvider, 
+                      // Ikon Profil Default
+                      const Icon(
+                        Icons.account_circle,
+                        size: 100,
+                        color: Colors.grey,
                       ),
                       const SizedBox(height: 16),
-                      // Nama Admin
-                      Text(
-                        data['name'] ?? 'Admin', 
-                        style: const TextStyle(color: Color(0xFF562F00), fontSize: 22, fontWeight: FontWeight.w800),
+                      // Nama Admin diganti Welcome Admin
+                      const Text(
+                        'Welcome Admin', 
+                        style: TextStyle(color: Color(0xFF562F00), fontSize: 22, fontWeight: FontWeight.w800),
                       ),
                       // Username Admin (ditambahkan simbol '@' di depannya)
                       Text(

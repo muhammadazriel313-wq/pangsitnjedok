@@ -63,55 +63,57 @@ class _OrderManagementState extends State<OrderManagement> {
 
   void acceptOrder(String id) async {
     bool success = await ApiService.updateOrderStatus(id, 'PROCESSING');
+    if (!mounted) return;
     if (success) {
       _fetchOrders(); // Memperbarui layar secara instan
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Pesanan $id diterima dan sedang diproses!')),
+        SnackBar(content: Text('Order $id accepted and processing!')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal memperbarui status ke server.')),
+        const SnackBar(content: Text('Failed to update status to server.')),
       );
     }
   }
 
   void completeOrder(String id) async {
     bool success = await ApiService.updateOrderStatus(id, 'COMPLETED');
+    if (!mounted) return;
     if (success) {
       _fetchOrders(); // Memperbarui layar secara instan
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Pesanan $id selesai!')));
+      ).showSnackBar(SnackBar(content: Text('Order $id completed!')));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal menyelesaikan pesanan.')),
+        const SnackBar(content: Text('Failed to complete order.')),
       );
     }
   }
 
   // Fungsi Pop-up Konfirmasi Tolak Pesanan
-  void _showRejectDialog(BuildContext context, String id) {
+  void _showRejectDialog(BuildContext parentContext, String id) {
     showDialog(
-      context: context,
+      context: parentContext,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           title: const Text(
-            'Tolak Pesanan',
+            'Reject Order',
             style: TextStyle(
               color: Color(0xFF562F00),
               fontWeight: FontWeight.bold,
             ),
           ),
-          content: Text('Apakah kamu yakin ingin menolak pesanan $id?'),
+          content: Text('Are you sure you want to reject order $id?'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(dialogContext); // Tutup pop-up
               },
-              child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -122,15 +124,16 @@ class _OrderManagementState extends State<OrderManagement> {
                   id,
                   'CANCELLED',
                 );
+                if (!mounted) return;
                 if (success) {
                   _fetchOrders(); // Langsung refresh layar
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Pesanan $id berhasil ditolak.')),
+                    SnackBar(content: Text('Order $id rejected successfully.')),
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Gagal menolak pesanan server.'),
+                      content: Text('Failed to reject order on server.'),
                     ),
                   );
                 }
@@ -144,7 +147,7 @@ class _OrderManagementState extends State<OrderManagement> {
                 ),
               ),
               child: const Text(
-                'Ya, Tolak',
+                'Yes, Reject',
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -174,7 +177,6 @@ class _OrderManagementState extends State<OrderManagement> {
           future:
               ApiService.getAdminProfil(), // Memanggil data profil admin[cite: 14]
           builder: (context, snapshot) {
-            final String? imageUrl = snapshot.data?['image_url'];
             final String adminName = snapshot.data?['name'] ?? 'Admin';
 
             return Row(
@@ -182,28 +184,16 @@ class _OrderManagementState extends State<OrderManagement> {
                 Container(
                   width: 44,
                   height: 44,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      width: 2,
-                      color: const Color(0xFFFF9442),
+                    border: Border.fromBorderSide(
+                      BorderSide(width: 2, color: Color(0xFFFF9442)),
                     ),
                   ),
-                  child: ClipOval(
-                    child: (imageUrl != null && imageUrl.isNotEmpty)
-                        ? Image.network(
-                            "${ApiService.baseUrl}/uploads/$imageUrl", // Foto dinamis[cite: 14]
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Image.asset(
-                                  "assets/images/Dimas oi oi.jpeg",
-                                  fit: BoxFit.cover,
-                                ),
-                          )
-                        : Image.asset(
-                            "assets/images/Dimas oi oi.jpeg",
-                            fit: BoxFit.cover,
-                          ),
+                  child: const Icon(
+                    Icons.account_circle,
+                    color: Colors.grey,
+                    size: 40,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -312,7 +302,8 @@ class _OrderManagementState extends State<OrderManagement> {
                                   'items': itemsRaw
                                       .map(
                                         (i) => {
-                                          'name': '${i['qty']}x ${i['menu_id'] ?? i['name'] ?? 'Pangsit'}',
+                                          'name':
+                                              '${i['qty']}x ${i['menu_id'] ?? i['name'] ?? 'Pangsit'}',
                                           'price': 'Rp ${i['price']}',
                                         },
                                       )
@@ -335,7 +326,6 @@ class _OrderManagementState extends State<OrderManagement> {
     );
   }
 
-  // (Sisa widget _buildEmptyState, _buildTabButton, _buildOrderCard, _buildBottomNav, _buildNavItem tetap sama seperti desain asli kamu)
   Widget _buildEmptyState() {
     return Container(
       width: double.infinity,

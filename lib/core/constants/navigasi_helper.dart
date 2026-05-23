@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../customer/dashboard_menu.dart';
+import '../../customer/halaman_menu.dart';
+import '../../customer/order.dart';
+import '../../customer/profil_customer.dart';
 // --- FUNGSI UTAMA MEMBANGUN NAVBAR PUSAT ---
 Widget buildBottomNavbar(BuildContext context, String currentRoute) {
   return BottomAppBar(
@@ -64,8 +68,37 @@ Widget _buildNavbarItem(
   return InkWell(
     onTap: () {
       if (!isActive) {
-        // Berpindah rute dengan mulus tanpa menumpuk memori halaman
-        Navigator.pushReplacementNamed(context, route);
+        Widget targetPage;
+        switch (route) {
+          case '/home_customer':
+            targetPage = const DashboardPage();
+            break;
+          case '/dashboard_menu':
+            targetPage = const MenuFoodScreen();
+            break;
+          case '/order_customer':
+            targetPage = const MyOrdersPage();
+            break;
+          case '/profil_customer':
+            targetPage = const ProfilePage();
+            break;
+          default:
+            targetPage = const DashboardPage();
+        }
+
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => targetPage,
+            transitionDuration: const Duration(milliseconds: 300),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+          ),
+        );
       }
     },
     child: Column(

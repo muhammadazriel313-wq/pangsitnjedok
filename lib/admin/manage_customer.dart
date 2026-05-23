@@ -19,18 +19,20 @@ class _ManageCustomersState extends State<ManageCustomers> {
     // Memanggil ApiService yang sudah kita buat sebelumnya
     bool success = await ApiService.deleteCustomer(id);
     
+    if (!mounted) return;
+
     if (success) {
       setState(() {}); // Memicu FutureBuilder untuk refresh data otomatis
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Pelanggan $name telah dihapus'),
+          content: Text('Customer $name has been deleted'),
           backgroundColor: Colors.green,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Gagal menghapus pelanggan. Cek koneksi database.'),
+          content: Text('Failed to delete customer. Check database connection.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -62,7 +64,7 @@ class _ManageCustomersState extends State<ManageCustomers> {
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("Belum ada data pelanggan"));
+            return const Center(child: Text("No customer data yet"));
           }
 
           final customers = snapshot.data!;
@@ -82,8 +84,8 @@ class _ManageCustomersState extends State<ManageCustomers> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Total Pelanggan Terdaftar', style: TextStyle(color: Colors.white70, fontSize: 14)),
-                      Text('${customers.length} Orang', 
+                      const Text('Total Registered Customers', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                      Text('${customers.length} People', 
                         style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
                     ],
                   ),
@@ -99,7 +101,7 @@ class _ManageCustomersState extends State<ManageCustomers> {
                     final item = customers[index];
                     return _customerItemCard(
                       item['id'].toString(),
-                      item['customer_name'] ?? 'Tanpa Nama',
+                      item['customer_name'] ?? 'No Name',
                       item['no_telepon'] ?? '-',
                     );
                   },
@@ -150,15 +152,15 @@ class _ManageCustomersState extends State<ManageCustomers> {
                 builder: (BuildContext context) {
                   return AlertDialog(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    title: const Text("Hapus Pelanggan"),
-                    content: Text("Yakin ingin menghapus $name?"),
+                    title: const Text("Delete Customer"),
+                    content: Text("Are you sure you want to delete $name?"),
                     actions: [
                       TextButton(
-                        child: const Text("Batal", style: TextStyle(color: Colors.grey)),
+                        child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
                         onPressed: () => Navigator.pop(context),
                       ),
                       TextButton(
-                        child: const Text("Hapus", style: TextStyle(color: Colors.red)),
+                        child: const Text("Delete", style: TextStyle(color: Colors.red)),
                         onPressed: () {
                           Navigator.pop(context); // Tutup dialog
                           _deleteCustomer(id, name); // Jalankan fungsi hapus

@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:aplikasipangsitnjedok/core/network/api_services_profile.dart'; 
 import 'package:image_picker/image_picker.dart';
-import 'dart:typed_data';
+
 
 class EditAccountPage extends StatefulWidget {
   const EditAccountPage({super.key});
@@ -67,14 +68,14 @@ class _EditAccountPageState extends State<EditAccountPage> {
 
       if (response['status'] == 'success') {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Profil Berhasil Diupdate!")));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Profile Updated Successfully!")));
           Navigator.pop(context, true);
         }
       } else {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal: ${response['message']}")));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed: ${response['message']}")));
       }
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error: $e");
     } finally {
       if (mounted) setState(() => isLoading = false); 
     }

@@ -72,9 +72,9 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
 
   Future<void> _submitReview() async {
     if (selectedStars == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Silakan beri rating bintang terlebih dahulu!'),
+          content: const Text('Please give a star rating first!'),
           backgroundColor: Colors.red[700],
           behavior: SnackBarBehavior.floating,
         ),
@@ -108,14 +108,14 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
         if (result['status'] == 'success') {
           _showSuccessDialog();
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal: ${result['message']}')),
+          if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed: ${result['message']}')),
           );
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error jaringan: $e')),
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Network error: $e')),
       );
     } finally {
       setState(() => _isSubmitting = false);
@@ -236,7 +236,7 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
       decoration: ShapeDecoration(
         color: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        shadows: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 12, offset: const Offset(0, 4))],
+        shadows: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: Row(
         children: [
@@ -245,7 +245,7 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
             decoration: BoxDecoration(color: const Color(0xFFF0EEE2), borderRadius: BorderRadius.circular(16)),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.asset('assets/images/ptulangrangu.jpeg', fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.fastfood, color: Colors.grey)),
+              child: Image.asset('assets/images/ptulangrangu.jpeg', fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => const Icon(Icons.fastfood, color: Colors.grey)),
             ),
           ),
           const SizedBox(width: 16),

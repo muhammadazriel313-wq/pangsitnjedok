@@ -21,7 +21,7 @@ class _HalamanRegisterState extends State<HalamanRegister> {
   Future<void> _prosesRegister() async {
     if (_nameController.text.isEmpty || _phoneController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Semua kolom harus diisi!'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('All fields must be filled!'), backgroundColor: Colors.red),
       );
       return;
     }
@@ -47,14 +47,14 @@ class _HalamanRegisterState extends State<HalamanRegister> {
         Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'] ?? 'Registrasi gagal.'), backgroundColor: Colors.red),
+          SnackBar(content: Text(response['message'] ?? 'Registration failed.'), backgroundColor: Colors.red),
         );
       }
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error koneksi: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Connection error: $e'), backgroundColor: Colors.red),
       );
     }
   }

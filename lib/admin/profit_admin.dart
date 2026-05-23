@@ -5,14 +5,14 @@ import 'package:http/http.dart' as http;
 import 'package:aplikasipangsitnjedok/service/api_service.dart';
 import 'package:aplikasipangsitnjedok/service/pdf_service.dart';
 
-class profitAdmin extends StatefulWidget {
-  const profitAdmin({super.key});
+class ProfitAdmin extends StatefulWidget {
+  const ProfitAdmin({super.key});
 
   @override
-  State<profitAdmin> createState() => _profitAdminState();
+  State<ProfitAdmin> createState() => _ProfitAdminState();
 }
 
-class _profitAdminState extends State<profitAdmin> {
+class _ProfitAdminState extends State<ProfitAdmin> {
   DateTime _selectedDate = DateTime.now();
 
   void _navigateTo(String route) {
@@ -61,8 +61,6 @@ class _profitAdminState extends State<profitAdmin> {
       child: FutureBuilder<Map<String, dynamic>>(
         future: ApiService.getDashboardData(),
         builder: (context, snapshot) {
-          final String? imageUrl = snapshot.data?['image_url'];
-          final String adminName = snapshot.data?['name'] ?? 'Admin';
 
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -79,23 +77,9 @@ class _profitAdminState extends State<profitAdmin> {
                           width: 2,
                           color: const Color(0xFFFF9442),
                         ),
+                        color: Colors.white,
                       ),
-                      child: ClipOval(
-                        child: (imageUrl != null && imageUrl.isNotEmpty)
-                            ? Image.network(
-                                "${ApiService.baseUrl}/uploads/$imageUrl",
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Image.asset(
-                                  "assets/images/Dimas oi oi.jpeg",
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : Image.asset(
-                                "assets/images/Dimas oi oi.jpeg",
-                                fit: BoxFit.cover,
-                              ),
-                      ),
+                      child: const Icon(Icons.account_circle, color: Colors.grey, size: 40),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -103,9 +87,9 @@ class _profitAdminState extends State<profitAdmin> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            'Welcome, $adminName',
-                            style: const TextStyle(
+                          const Text(
+                            'Welcome Admin',
+                            style: TextStyle(
                               color: Color(0xFF562F00),
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -195,7 +179,7 @@ class _profitAdminState extends State<profitAdmin> {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Gagal membuat PDF: $e'),
+                                      content: Text('Failed to generate PDF: $e'),
                                       backgroundColor: Colors.red,
                                     ),
                                   );
@@ -249,7 +233,7 @@ class _profitAdminState extends State<profitAdmin> {
                           padding: EdgeInsets.symmetric(vertical: 20),
                           child: Center(
                             child: Text(
-                              "Belum ada menu yang terjual di hari ini.",
+                              "No menu sold today.",
                               style: TextStyle(
                                   color: Colors.grey,
                                   fontStyle: FontStyle.italic),
@@ -288,7 +272,7 @@ class _profitAdminState extends State<profitAdmin> {
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFC2410C).withOpacity(0.3),
+              color: const Color(0xFFC2410C).withValues(alpha: 0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -425,7 +409,7 @@ class _profitAdminState extends State<profitAdmin> {
                       color: Color(0xFF562F00)),
                 ),
                 Text(
-                  '$sold porsi terjual',
+                  '$sold portions sold',
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
                 ),
               ],
