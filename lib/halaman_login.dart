@@ -79,183 +79,290 @@ class _HalamanLoginState extends State<HalamanLogin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFDF1),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF562F00)),
-          onPressed: () => Navigator.pop(context), 
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFFFFDF1),
+              Color(0xFFFFE8D6),
+            ],
+          ),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-        child: Column(
-          children: [
-            const Text('Pangsit Njedok', style: TextStyle(color: Color(0xFF562F00), fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            
-            Container(
-              width: 180, 
-              height: 180,
-              alignment: Alignment.center,
-              child: Image.asset('assets/images/logopangsitnjedok1.png'),
-            ),
-            
-            const SizedBox(height: 32),
-            const Text('Welcome Back!', style: TextStyle(color: Color(0xFF562F00), fontSize: 28, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text(
-              isCustomerSelected ? 'Delicious dumplings are just a tap away.' : 'Administrator', 
-              style: const TextStyle(color: Color(0xB2562F00), fontSize: 16), 
-              textAlign: TextAlign.center
-            ),
-            const SizedBox(height: 32),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            child: Column(
+              children: [
+                // Modern Image/Logo Container
+                Container(
+                  width: 150, 
+                  height: 150,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFF9442).withValues(alpha: 0.2),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      )
+                    ]
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(75),
+                    child: Image.asset('assets/images/logopangsitnjedok1.png', fit: BoxFit.cover),
+                  ),
+                ),
+                
+                const SizedBox(height: 32),
+                const Text(
+                  'Welcome Back!', 
+                  style: TextStyle(
+                    color: Color(0xFF4A2B12), 
+                    fontSize: 32, 
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  )
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  isCustomerSelected ? 'Log in to continue your delicious journey.' : 'Administrator Access', 
+                  style: const TextStyle(color: Color(0xFF8B6B52), fontSize: 16, fontWeight: FontWeight.w500), 
+                  textAlign: TextAlign.center
+                ),
+                const SizedBox(height: 36),
 
-            // Toggle Customer/Admin
-            Container(
-              height: 48,
-              decoration: BoxDecoration(color: const Color(0x19FF9644), borderRadius: BorderRadius.circular(24)),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          isCustomerSelected = true;
-                          _idController.clear();
-                          _passwordController.clear();
-                        });
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isCustomerSelected ? const Color(0xFFFF9644) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(24),
+                // Elegant Toggle Customer/Admin
+                Container(
+                  height: 54,
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white, 
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      )
+                    ]
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isCustomerSelected = true;
+                              _idController.clear();
+                              _passwordController.clear();
+                            });
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            decoration: BoxDecoration(
+                              color: isCustomerSelected ? const Color(0xFFFF9442) : Colors.transparent,
+                              borderRadius: BorderRadius.circular(26),
+                              boxShadow: isCustomerSelected ? [
+                                BoxShadow(
+                                  color: const Color(0xFFFF9442).withValues(alpha: 0.4),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                )
+                              ] : [],
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              'Customer', 
+                              style: TextStyle(
+                                color: isCustomerSelected ? Colors.white : const Color(0xFF8B6B52), 
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              )
+                            ),
+                          ),
                         ),
-                        alignment: Alignment.center,
-                        child: Text('Customer', style: TextStyle(color: isCustomerSelected ? Colors.white : const Color(0xFF562F00), fontWeight: FontWeight.bold)),
                       ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isCustomerSelected = false;
+                              _idController.clear();
+                              _passwordController.clear();
+                            });
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            decoration: BoxDecoration(
+                              color: !isCustomerSelected ? const Color(0xFFFF9442) : Colors.transparent,
+                              borderRadius: BorderRadius.circular(26),
+                              boxShadow: !isCustomerSelected ? [
+                                BoxShadow(
+                                  color: const Color(0xFFFF9442).withValues(alpha: 0.4),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                )
+                              ] : [],
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              'Admin', 
+                              style: TextStyle(
+                                color: !isCustomerSelected ? Colors.white : const Color(0xFF8B6B52), 
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              )
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 40),
+
+                // INPUT Phone Number / Username (Modern Input Field)
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      )
+                    ]
+                  ),
+                  child: TextField(
+                    controller: _idController,
+                    keyboardType: isCustomerSelected ? TextInputType.phone : TextInputType.text,
+                    decoration: InputDecoration(
+                      labelText: isCustomerSelected ? 'Phone Number' : 'Username',
+                      labelStyle: const TextStyle(color: Color(0xFF8B6B52), fontWeight: FontWeight.w500),
+                      hintText: isCustomerSelected ? '+62 812 3456 789' : 'Enter Your Username',
+                      hintStyle: const TextStyle(color: Color(0xFFD1D5DB)),
+                      prefixIcon: Icon(
+                        isCustomerSelected ? Icons.phone_iphone_rounded : Icons.person_rounded, 
+                        color: const Color(0xFFFF9442),
+                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 20),
                     ),
                   ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          isCustomerSelected = false;
-                          _idController.clear();
-                          _passwordController.clear();
-                        });
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: !isCustomerSelected ? const Color(0xFFFF9644) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text('Admin', style: TextStyle(color: !isCustomerSelected ? Colors.white : const Color(0xFF562F00), fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(height: 20),
+
+                // INPUT Password (Modern Input Field)
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      )
+                    ]
+                  ),
+                  child: TextField(
+                    controller: _passwordController,
+                    obscureText: _isPasswordHidden,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      labelStyle: const TextStyle(color: Color(0xFF8B6B52), fontWeight: FontWeight.w500),
+                      hintText: 'Enter password',
+                      hintStyle: const TextStyle(color: Color(0xFFD1D5DB)),
+                      prefixIcon: const Icon(Icons.lock_rounded, color: Color(0xFFFF9442)),
+                      suffixIcon: IconButton(
+                        icon: Icon(_isPasswordHidden ? Icons.visibility_off_rounded : Icons.visibility_rounded, color: const Color(0xFF8B6B52)),
+                        onPressed: () => setState(() => _isPasswordHidden = !_isPasswordHidden),
                       ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 20),
                     ),
                   ),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 32),
-            Align(
-              alignment: Alignment.centerLeft, 
-              child: Text(
-                isCustomerSelected ? 'Login as Customer' : 'Login as Admin', 
-                style: const TextStyle(color: Color(0xFF562F00), fontSize: 18, fontWeight: FontWeight.bold)
-              )
-            ),
-            const SizedBox(height: 16),
-
-            // INPUT Phone Number / Username
-            Align(
-              alignment: Alignment.centerLeft, 
-              child: Text(
-                isCustomerSelected ? 'Phone Number' : 'Username', 
-                style: const TextStyle(color: Color(0xCC562F00), fontWeight: FontWeight.w500)
-              )
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _idController,
-              keyboardType: isCustomerSelected ? TextInputType.phone : TextInputType.text,
-              decoration: InputDecoration(
-                hintText: isCustomerSelected ? '+62 812 3456 789' : 'Enter Your Username',
-                hintStyle: const TextStyle(color: Color(0xFF6B7280)),
-                prefixIcon: Icon(
-                  isCustomerSelected ? Icons.phone_android : Icons.person_outline, 
-                  color: const Color(0xFF6B7280)
                 ),
-                filled: true,
-                fillColor: Colors.white,
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0x33FF9644))),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFFF9644), width: 2)),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // INPUT Password
-            const Align(alignment: Alignment.centerLeft, child: Text('Password', style: TextStyle(color: Color(0xCC562F00), fontWeight: FontWeight.w500))),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _passwordController,
-              obscureText: _isPasswordHidden,
-              decoration: InputDecoration(
-                hintText: isCustomerSelected ? 'Enter password' : 'Create a Password',
-                hintStyle: const TextStyle(color: Color(0xFF6B7280)),
-                prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF6B7280)),
-                suffixIcon: IconButton(
-                  icon: Icon(_isPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: const Color(0xFF554337)),
-                  onPressed: () => setState(() => _isPasswordHidden = !_isPasswordHidden),
-                ),
-                filled: true,
-                fillColor: Colors.white,
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0x33FF9644))),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFFF9644), width: 2)),
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF9644), foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 56), 
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-              ),
-              onPressed: _isLoading ? null : _prosesLogin,
-              child: _isLoading
-                  ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
-                  : const Text('Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ),
-            const SizedBox(height: 24),
-
-            if (isCustomerSelected) ...[
-              const Row(
-                children: [
-                  Expanded(child: Divider(color: Color(0xFFFFCE99))),
-                  Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('OR', style: TextStyle(color: Color(0x66562F00), fontWeight: FontWeight.bold, fontSize: 12))),
-                  Expanded(child: Divider(color: Color(0xFFFFCE99))),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Don’t have an account? ', style: TextStyle(color: Color(0xFF554337))),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const HalamanRegister()));
-                    },
-                    child: const Text('Sign Up', style: TextStyle(color: Color(0xFF954A00), fontWeight: FontWeight.bold)),
+                
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    'Forgot Password?',
+                    style: TextStyle(
+                      color: const Color(0xFFFF9442),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
-                ],
-              ),
-            ]
-          ],
+                ),
+                const SizedBox(height: 32),
+
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    elevation: 10,
+                    shadowColor: const Color(0xFFFF9442).withValues(alpha: 0.5),
+                  ),
+                  onPressed: _isLoading ? null : _prosesLogin,
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFF9442), Color(0xFFFF7200)],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Container(
+                      alignment: Alignment.center,
+                      constraints: const BoxConstraints(minWidth: double.infinity, minHeight: 60),
+                      child: _isLoading
+                          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+                          : const Text('Sign In', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                if (isCustomerSelected) ...[
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: const Color(0xFF4A2B12).withValues(alpha: 0.1), thickness: 1.5)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16), 
+                        child: Text('OR', style: TextStyle(color: const Color(0xFF8B6B52).withValues(alpha: 0.8), fontWeight: FontWeight.bold, fontSize: 14))
+                      ),
+                      Expanded(child: Divider(color: const Color(0xFF4A2B12).withValues(alpha: 0.1), thickness: 1.5)),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Don’t have an account? ', style: TextStyle(color: Color(0xFF8B6B52), fontSize: 15)),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const HalamanRegister()));
+                        },
+                        child: const Text('Sign Up', style: TextStyle(color: Color(0xFFFF7200), fontWeight: FontWeight.w900, fontSize: 15)),
+                      ),
+                    ],
+                  ),
+                ]
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -47,12 +47,27 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateProfile(String id, String name, String phone) async {
+  static Future<Map<String, dynamic>> updateProfile(String id, String name, String phone, {Uint8List? imageBytes}) async {
     try {
-      final response = await http.post(
-        Uri.parse("$baseUrl/ganti_profil.php"), // Menggunakan ganti_profil.php sesuai file yang ada di backend
-        body: {"id": id, "name": name, "no_telepon": phone},
-      );
+      var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/ganti_profil.php"));
+      
+      // Kirim data teks
+      request.fields['id'] = id;
+      request.fields['name'] = name;
+      request.fields['no_telepon'] = phone;
+
+      // Kirim file gambar jika ada
+      if (imageBytes != null) {
+        request.files.add(http.MultipartFile.fromBytes(
+          'image', 
+          imageBytes, 
+          filename: 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        ));
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
       return response.statusCode == 200 ? json.decode(response.body) : {"status": "error", "message": "Gagal Update"};
     } catch (e) {
       return {"status": "error", "message": "Koneksi Error: $e"};

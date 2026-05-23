@@ -1,11 +1,14 @@
-
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:shared_preferences/shared_preferences.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'dashboard_menu.dart'; 
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+
+import 'dashboard_menu.dart';
+import 'detail_menu.dart'; 
 import '../service/api_service.dart';
-import 'cart.dart'; 
+import '../service/cart_service.dart'; // ✅ Import CartService
+import 'cart.dart';
 import 'order.dart';
 import 'profil_customer.dart';
 
@@ -18,8 +21,8 @@ class MenuFoodScreen extends StatefulWidget {
 
 class _MenuFoodScreenState extends State<MenuFoodScreen> {
   bool _isFoodSelected = true;
-  List<dynamic> _allMenus = []; 
-  bool _isLoading = true; 
+  List<dynamic> _allMenus = [];
+  bool _isLoading = true;
 
   List<int> _favoriteMenuIds = [];
 
@@ -32,14 +35,15 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchMenuData(); 
-    _fetchFavorites(); 
+    _fetchMenuData();
+    _fetchFavorites();
+    _updateCartCount();
 
     _carouselTimer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
-      if (_currentPage < 2) { 
+      if (_currentPage < 2) {
         _currentPage++;
       } else {
-        _currentPage = 0; 
+        _currentPage = 0;
       }
       if (_pageController.hasClients) {
         _pageController.animateToPage(
@@ -51,27 +55,40 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     });
   }
 
+  Future<void> _updateCartCount() async {
+    int count = await CartService.getCartCount();
+    if (mounted) {
+      setState(() {
+        _cartItemCount = count;
+      });
+    }
+  }
+
   Future<void> _fetchMenuData() async {
     try {
-      final data = await ApiService.getMenus(); 
+      final data = await ApiService.getMenus();
       setState(() {
-        _allMenus = data; 
-        _isLoading = false; 
+        _allMenus = data;
+        _isLoading = false;
       });
     } catch (e) {
       debugPrint("Error ambil menu: $e");
-      setState(() { _isLoading = false; });
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
   Future<void> _fetchFavorites() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String customerId = prefs.getString('id') ?? "1"; 
+      String customerId = prefs.getString('customer_id') ?? "1";
 
       final data = await ApiService.getFavorites(int.parse(customerId));
       setState(() {
-        _favoriteMenuIds = data.map<int>((item) => int.parse(item['id'].toString())).toList();
+        _favoriteMenuIds = data
+            .map<int>((item) => int.parse(item['id'].toString()))
+            .toList();
       });
     } catch (e) {
       debugPrint("Error ambil daftar favorite: $e");
@@ -80,8 +97,8 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
 
   Future<void> _toggleFavorite(int menuId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String customerId = prefs.getString('id') ?? "1"; 
-    
+    String customerId = prefs.getString('customer_id') ?? "1";
+
     bool isAlreadyFavorite = _favoriteMenuIds.contains(menuId);
 
     setState(() {
@@ -93,17 +110,24 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     });
 
     try {
-      bool success = await ApiService.toggleFavorite(customerId, menuId.toString(), isAlreadyFavorite ? "remove" : "add");
+      bool success = await ApiService.toggleFavorite(
+        customerId,
+        menuId.toString(),
+        isAlreadyFavorite ? "remove" : "add",
+      );
 
       if (!success) {
         setState(() {
           if (isAlreadyFavorite) {
-            _favoriteMenuIds.add(menuId); 
+            _favoriteMenuIds.add(menuId);
           } else {
-            _favoriteMenuIds.remove(menuId); 
+            _favoriteMenuIds.remove(menuId);
           }
         });
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal mengubah favorit!')));
+        if (mounted)
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal mengubah favorit!')),
+          );
       }
     } catch (e) {
       debugPrint("Error toggle favorite: $e");
@@ -112,7 +136,7 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
 
   @override
   void dispose() {
-    _carouselTimer?.cancel(); 
+    _carouselTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -120,22 +144,39 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF8F7F5),
-        elevation: 0,
-        centerTitle: false,
-        title: const Text(
-          'Menu',
-          style: TextStyle(color: Color(0xFF0F172A), fontSize: 24, fontWeight: FontWeight.w800),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFFFFDF1), Color(0xFFFFE8D6)],
+          ),
         ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: 100),
-        children: [
-          _buildBanner(),
-          _buildCategoryTabs(),
-          _buildMenuGrid(), 
-        ],
+        child: SafeArea(
+          child: Column(
+            children: [
+              AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: false,
+                title: const Text(
+                  'Menu',
+                  style: TextStyle(
+                    color: Color(0xFF954A00),
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.only(bottom: 100),
+                  children: [_buildBanner(), _buildCategoryTabs(), _buildMenuGrid()],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
       bottomNavigationBar: _buildBottomNavigationBar(context),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -144,24 +185,30 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
   }
 
   Widget _buildBanner() {
-    List<String> bannerImages = _isFoodSelected 
+    List<String> bannerImages = _isFoodSelected
         ? [
-            'assets/images/pangsittulangrangu.jpg', 
+            'assets/images/pangsittulangrangu.jpg',
             'assets/images/pangsitgoreng.jpg',
-            'assets/images/wontonmentai.jpg'
-          ] 
+            'assets/images/wontonmentai.jpg',
+          ]
         : [
-            'assets/images/esyakultleci.jpg', 
+            'assets/images/esyakultleci.jpg',
             'assets/images/esframbos.jpg',
-            'assets/images/eslemontea.jpg'
-          ]; 
+            'assets/images/eslemontea.jpg',
+          ];
 
     return Container(
-      height: 180, 
+      height: 180,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
@@ -170,18 +217,30 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
             PageView.builder(
               controller: _pageController,
               itemCount: bannerImages.length,
-              onPageChanged: (index) { setState(() { _currentPage = index; }); },
-              itemBuilder: (context, index) { 
-                return Image.asset(bannerImages[index], fit: BoxFit.cover, width: double.infinity,
-                  errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey),
-                ); 
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                });
+              },
+              itemBuilder: (context, index) {
+                return Image.asset(
+                  bannerImages[index],
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  errorBuilder: (context, error, stackTrace) =>
+                      Container(color: Colors.grey),
+                );
               },
             ),
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.bottomCenter, end: Alignment.topCenter,
-                  colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.8),
+                    Colors.transparent,
+                  ],
                 ),
               ),
             ),
@@ -193,12 +252,21 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
                 children: [
                   const Text(
                     'KATEGORI',
-                    style: TextStyle(color: Color(0xFFFF9442), fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5),
+                    style: TextStyle(
+                      color: Color(0xFFFF9442),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     _isFoodSelected ? 'Pangsit Spesial' : 'Minuman Segar',
-                    style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -215,16 +283,28 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
       child: Row(
         children: [
           _buildTabButton(
-            title: 'Makanan', isActive: _isFoodSelected,
+            title: 'Food',
+            isActive: _isFoodSelected,
             onTap: () {
-              setState(() { _isFoodSelected = true; _currentPage = 0; if (_pageController.hasClients) _pageController.jumpToPage(0); });
+              setState(() {
+                _isFoodSelected = true;
+                // _selectedFilter = 'Food'; <--- Bagian ini dihapus
+                _currentPage = 0;
+                if (_pageController.hasClients) _pageController.jumpToPage(0);
+              });
             },
           ),
           const SizedBox(width: 12),
           _buildTabButton(
-            title: 'Minuman', isActive: !_isFoodSelected,
+            title: 'Beverages',
+            isActive: !_isFoodSelected,
             onTap: () {
-              setState(() { _isFoodSelected = false; _currentPage = 0; if (_pageController.hasClients) _pageController.jumpToPage(0); });
+              setState(() {
+                _isFoodSelected = false;
+                // _selectedFilter = 'Beverages'; <--- Bagian ini dihapus
+                _currentPage = 0;
+                if (_pageController.hasClients) _pageController.jumpToPage(0);
+              });
             },
           ),
         ],
@@ -232,7 +312,11 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     );
   }
 
-  Widget _buildTabButton({required String title, required bool isActive, required VoidCallback onTap}) {
+  Widget _buildTabButton({
+    required String title,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -240,14 +324,28 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
           height: 40,
           decoration: BoxDecoration(
             color: isActive ? const Color(0xFFFF9442) : Colors.transparent,
-            border: isActive ? null : Border.all(color: const Color(0xFFCBD5E1)),
+            border: isActive
+                ? null
+                : Border.all(color: const Color(0xFFCBD5E1)),
             borderRadius: BorderRadius.circular(30),
-            boxShadow: isActive ? [BoxShadow(color: const Color(0xFFFF9442).withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFFFF9442).withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : [],
           ),
           alignment: Alignment.center,
           child: Text(
             title,
-            style: TextStyle(color: isActive ? Colors.white : const Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(
+              color: isActive ? Colors.white : const Color(0xFF64748B),
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
           ),
         ),
       ),
@@ -258,7 +356,9 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     if (_isLoading) {
       return const Padding(
         padding: EdgeInsets.all(40.0),
-        child: Center(child: CircularProgressIndicator(color: Color(0xFFFF9442))),
+        child: Center(
+          child: CircularProgressIndicator(color: Color(0xFFFF9442)),
+        ),
       );
     }
 
@@ -270,54 +370,101 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     if (filteredList.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(40.0),
-        child: Center(child: Text('Belum ada menu di kategori ini.', style: TextStyle(color: Colors.grey))),
+        child: Center(
+          child: Text(
+            'Belum ada menu di kategori ini.',
+            style: TextStyle(color: Colors.grey),
+          ),
+        ),
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, mainAxisSpacing: 16, crossAxisSpacing: 16, childAspectRatio: 0.75,
+    return AnimationLimiter(
+      child: GridView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 0.75,
+        ),
+        itemCount: filteredList.length,
+        itemBuilder: (context, index) {
+          return AnimationConfiguration.staggeredGrid(
+            position: index,
+            duration: const Duration(milliseconds: 375),
+            columnCount: 2,
+            child: ScaleAnimation(
+              child: FadeInAnimation(
+                child: _buildMenuCard(filteredList[index]),
+              ),
+            ),
+          );
+        },
       ),
-      itemCount: filteredList.length,
-      itemBuilder: (context, index) { return _buildMenuCard(filteredList[index]); },
     );
   }
 
   Widget _buildMenuCard(dynamic item) {
     int id = int.tryParse(item['id'].toString()) ?? 0;
-    String title = item['title'] ?? 'Nama Menu'; 
-    String price = item['price']?.toString() ?? '0'; 
-    String imageUrl = item['image_url'] ?? ''; 
+    String title = item['title'] ?? 'Nama Menu';
+    String price = item['price']?.toString() ?? '0';
+    String imageUrl = item['image_url'] ?? '';
     int stock = int.tryParse(item['stock']?.toString() ?? '0') ?? 0;
-    
+
     bool isFav = _favoriteMenuIds.contains(id);
     Widget imageWidget;
-    
+
     if (imageUrl.isNotEmpty) {
       // ✅ DIPERBAIKI: Sintaks Image.network sudah aman
       imageWidget = Image.network(
-        "${ApiService.baseUrl}/uploads/$imageUrl", 
-        width: double.infinity, 
+        "${ApiService.baseUrl}/uploads/$imageUrl",
+        width: double.infinity,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Icon(Icons.fastfood, size: 50, color: Colors.grey),
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.fastfood, size: 50, color: Colors.grey),
       );
     } else {
-      imageWidget = const Icon(Icons.image_not_supported, size: 50, color: Colors.grey);
+      imageWidget = const Icon(
+        Icons.image_not_supported,
+        size: 50,
+        color: Colors.grey,
+      );
     }
 
     return GestureDetector(
       onTap: () {
-        if (stock <= 0) { _showOutOfStockDialog(context); } else { debugPrint("Buka detail menu $title"); }
+        if (stock <= 0) {
+          _showOutOfStockDialog(context);
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DetailMenuPage(item: item),
+            ),
+          );
+        }
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 4))],
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        foregroundDecoration: stock <= 0 ? BoxDecoration(color: Colors.white.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(20)) : null,
+        foregroundDecoration: stock <= 0
+            ? BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(20),
+              )
+            : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -325,21 +472,39 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                    child: Container(width: double.infinity, color: Colors.grey.shade100, child: imageWidget),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                    child: Container(
+                      width: double.infinity,
+                      color: Colors.grey.shade100,
+                      child: Hero(
+                        tag: 'menu_image_$id',
+                        child: imageWidget,
+                      ),
+                    ),
                   ),
-                  
+
                   Positioned(
-                    top: 8, right: 8,
+                    top: 8,
+                    right: 8,
                     child: GestureDetector(
                       onTap: () => _toggleFavorite(id),
                       child: Container(
                         padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.4), shape: BoxShape.circle),
-                        child: Icon(
-                          isFav ? Icons.favorite : Icons.favorite_border, 
-                          color: isFav ? Colors.redAccent : Colors.white, 
-                          size: 16
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.4),
+                          shape: BoxShape.circle,
+                        ),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+                          child: Icon(
+                            isFav ? Icons.favorite : Icons.favorite_border,
+                            key: ValueKey<bool>(isFav),
+                            color: isFav ? Colors.redAccent : Colors.white,
+                            size: 16,
+                          ),
                         ),
                       ),
                     ),
@@ -347,11 +512,25 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
 
                   if (stock <= 0)
                     Positioned(
-                      bottom: 8, left: 8,
+                      bottom: 8,
+                      left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(8)),
-                        child: const Text('HABIS', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'HABIS',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                 ],
@@ -364,32 +543,87 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
                 children: [
                   Row(
                     children: const [
-                      Icon(Icons.star, color: Color(0xFFFF9442), size: 14), SizedBox(width: 4),
-                      Text('4.8', style: TextStyle(color: Color(0xFFFF9442), fontSize: 12, fontWeight: FontWeight.bold)), 
+                      Icon(Icons.star, color: Color(0xFFFF9442), size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        '4.8',
+                        style: TextStyle(
+                          color: Color(0xFFFF9442),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.bold, height: 1.2)),
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      height: 1.2,
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Rp $price", style: const TextStyle(color: Color(0xFFFF9442), fontSize: 14, fontWeight: FontWeight.w800)), 
+                      Text(
+                        "Rp $price",
+                        style: const TextStyle(
+                          color: Color(0xFFFF9442),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
                           if (stock > 0) {
-                            setState(() { _cartItemCount++; });
+                            String priceString = price.toString().replaceAll(RegExp(r'[^0-9]'), '');
+                            int priceValue = int.tryParse(priceString) ?? 0;
+                            String category = item['category']?.toString() ?? 'Food';
+                            
+                            await CartService.addToCart(title, priceValue, category);
+                            await _updateCartCount();
+
+                            if (!mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('$title ditambahkan!', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                duration: const Duration(seconds: 1), backgroundColor: const Color(0xFFFF9442),
-                                behavior: SnackBarBehavior.floating, margin: const EdgeInsets.only(bottom: 80, left: 40, right: 40), 
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0,
+                                content: Text(
+                                  '$title ditambahkan!',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                duration: const Duration(seconds: 1),
+                                backgroundColor: const Color(0xFFFF9442),
+                                behavior: SnackBarBehavior.floating,
+                                margin: const EdgeInsets.only(
+                                  bottom: 80,
+                                  left: 40,
+                                  right: 40,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                elevation: 0,
                               ),
                             );
-                          } else { _showOutOfStockDialog(context); }
+                          } else {
+                            _showOutOfStockDialog(context);
+                          }
                         },
-                        child: Icon(Icons.add_circle, color: stock <= 0 ? Colors.grey : const Color(0xFFFF9442), size: 28),
+                        child: Icon(
+                          Icons.add_circle,
+                          color: stock <= 0
+                              ? Colors.grey
+                              : const Color(0xFFFF9442),
+                          size: 28,
+                        ),
                       ),
                     ],
                   ),
@@ -407,21 +641,46 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
           contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: const [
-              Icon(Icons.error_outline, color: Colors.red, size: 48), SizedBox(height: 16),
-              Text('Stok tidak tersedia', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)), textAlign: TextAlign.center),
+              Icon(Icons.error_outline, color: Colors.red, size: 48),
+              SizedBox(height: 16),
+              Text(
+                'Stok tidak tersedia',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F172A),
+                ),
+                textAlign: TextAlign.center,
+              ),
             ],
           ),
           actions: [
             Center(
               child: ElevatedButton(
-                onPressed: () { Navigator.of(context).pop(); },
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF9442), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), minimumSize: const Size(120, 40)),
-                child: const Text('OK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF9442),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  minimumSize: const Size(120, 40),
+                ),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ],
@@ -432,24 +691,41 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
 
   Widget _buildBottomNavigationBar(BuildContext context) {
     return BottomAppBar(
-      color: Colors.white, shape: const CircularNotchedRectangle(), notchMargin: 8.0, elevation: 10,
+      color: Colors.white,
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8.0,
+      elevation: 10,
       child: SizedBox(
         height: 60,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(Icons.home_outlined, 'Home', context.widget is DashboardPage, () {
-              if (context.widget is! DashboardPage) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardPage()));
-              }
-            }),
+            _buildNavItem(
+              Icons.home_outlined,
+              'Home',
+              context.widget is DashboardPage,
+              () {
+                if (context.widget is! DashboardPage) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => DashboardPage()),
+                  );
+                }
+              },
+            ),
             _buildNavItem(Icons.restaurant_menu, 'Menu', true, () {}),
-            const SizedBox(width: 48), 
+            const SizedBox(width: 48),
             _buildNavItem(Icons.receipt_long_outlined, 'Order', false, () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const MyOrdersPage())); 
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MyOrdersPage()),
+              );
             }),
             _buildNavItem(Icons.person_outline, 'Profil', false, () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage())); 
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
             }),
           ],
         ),
@@ -457,17 +733,38 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, bool isActive, VoidCallback onTap) {
-    return InkWell( 
-      onTap: onTap, borderRadius: BorderRadius.circular(10),
+  Widget _buildNavItem(
+    IconData icon,
+    String label,
+    bool isActive,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
         child: Column(
-          mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8)),
+            Icon(
+              icon,
+              color: isActive
+                  ? const Color(0xFFFF9442)
+                  : const Color(0xFF94A3B8),
+            ),
             const SizedBox(height: 4),
-            Text(label, style: TextStyle(color: isActive ? const Color(0xFFFF9442) : const Color(0xFF94A3B8), fontSize: 10, fontWeight: isActive ? FontWeight.bold : FontWeight.w500)),
+            Text(
+              label,
+              style: TextStyle(
+                color: isActive
+                    ? const Color(0xFFFF9442)
+                    : const Color(0xFF94A3B8),
+                fontSize: 10,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
           ],
         ),
       ),
@@ -476,10 +773,19 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
 
   Widget _buildFab() {
     return Stack(
-      clipBehavior: Clip.none, 
+      clipBehavior: Clip.none,
       children: [
         Container(
-          decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withValues(alpha: 0.4), blurRadius: 12, spreadRadius: 2)]),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFFF9442).withValues(alpha: 0.4),
+                blurRadius: 12,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
           child: FloatingActionButton(
             onPressed: () {
               Navigator.push(
@@ -489,17 +795,34 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
             },
             backgroundColor: const Color(0xFFFF9442),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50), side: const BorderSide(color: Colors.white, width: 4)),
-            child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(50),
+              side: const BorderSide(color: Colors.white, width: 4),
+            ),
+            child: const Icon(
+              Icons.shopping_cart_outlined,
+              color: Colors.white,
+            ),
           ),
         ),
         if (_cartItemCount > 0)
           Positioned(
-            right: -2, top: -2,
+            right: -2,
+            top: -2,
             child: Container(
               padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
-              child: Text('$_cartItemCount', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+              decoration: const BoxDecoration(
+                color: Color(0xFFEF4444),
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                '$_cartItemCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
       ],

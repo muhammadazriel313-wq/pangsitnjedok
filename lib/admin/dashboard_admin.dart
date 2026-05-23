@@ -77,26 +77,17 @@ class _DashboardAdminState extends State<DashboardAdmin> {
 
     // --- WIDGET STATISTIK CHART DENGAN DATA DUMMY AESTHETIC ---
     Widget buildChartCard(Map<String, dynamic> apiData) {
-      // 1. DATA DUMMY AESTHETIC (WEEKLY & MONTHLY)
-      final Map<String, dynamic> weeklyStatsDummy = {
-        'Mon': 0.3,
-        'Tue': 0.5,
-        'Wed': 0.4,
-        'Thu': 0.8,
-        'Fri': 0.9,
-        'Sat': 1.0, // Puncak tertinggi di akhir pekan
-        'Sun': 0.7,
+      // Mengambil data real dari API
+      Map<String, dynamic> weeklyStats = apiData['weekly_stats'] ?? {
+        'Mon': 0.1, 'Tue': 0.1, 'Wed': 0.1, 'Thu': 0.1, 'Fri': 0.1, 'Sat': 0.1, 'Sun': 0.1,
       };
 
-      final Map<String, dynamic> monthlyStatsDummy = {
-        'W1': 0.6,
-        'W2': 0.8,
-        'W3': 0.5,
-        'W4': 0.9, // Puncak di akhir bulan
+      Map<String, dynamic> monthlyStats = apiData['monthly_stats'] ?? {
+        'W1': 0.1, 'W2': 0.1, 'W3': 0.1, 'W4': 0.1,
       };
 
-      // 2. Memilih data yang ditampilkan berdasarkan tombol switch
-      final chartData = _isHourly ? weeklyStatsDummy : monthlyStatsDummy;
+      // Memilih data yang ditampilkan berdasarkan tombol switch
+      final chartData = _isHourly ? weeklyStats : monthlyStats;
 
       return Container(
         padding: const EdgeInsets.all(24),

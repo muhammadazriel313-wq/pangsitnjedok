@@ -123,30 +123,38 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // ... (KODE DESAINMU TETAP AMAN DI SINI) ...
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: GestureDetector(
-        onTap: () {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          } else {
-            Navigator.pushReplacementNamed(context, '/dashboard_menu');
-          }
-        },
-        child: const Padding(
-          padding: EdgeInsets.all(12.0), // Berikan sedikit padding agar lebih mudah diklik
-          child: Icon(Icons.arrow_back, color: Color(0xFF954A00)),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFFFFDF1), Color(0xFFFFE8D6)],
+          ),
         ),
-      ),
-        title: const Text(
-          'My Orders',
-          style: TextStyle(color: Color(0xFF1B1C15), fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-      ),
-      body: Column(
-        children: [
+        child: SafeArea(
+          child: Column(
+            children: [
+              AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: GestureDetector(
+                  onTap: () {
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    } else {
+                      Navigator.pushReplacementNamed(context, '/dashboard_menu');
+                    }
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(12.0), // Berikan sedikit padding agar lebih mudah diklik
+                    child: Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF954A00)),
+                  ),
+                ),
+                title: const Text(
+                  'My Orders',
+                  style: TextStyle(color: Color(0xFF954A00), fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+              ),
           const SizedBox(height: 10),
           // --- Tombol Switch Active & History ---
           Padding(
@@ -175,13 +183,31 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           ),
         ],
       ),
+      ),
+      ),
       // --- Bottom Navigation Bar ---
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFFFF9442),
-        shape: const CircleBorder(),
-        onPressed: () => Navigator.pushNamed(context, '/cart'),
-        child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFF9442).withValues(alpha: 0.4),
+              blurRadius: 12,
+              spreadRadius: 2,
+            )
+          ]
+        ),
+        child: FloatingActionButton(
+          backgroundColor: const Color(0xFFFF9442),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+            side: const BorderSide(color: Colors.white, width: 4)
+          ),
+          onPressed: () => Navigator.pushNamed(context, '/cart'),
+          child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+        ),
       ),
       bottomNavigationBar: buildBottomNavbar(context, '/order_customer'),
     );

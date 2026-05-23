@@ -1,20 +1,31 @@
 import 'dart:convert'; 
+import 'package:flutter/foundation.dart'; // Wajib ditambahkan untuk menggunakan Uint8List
 import 'package:http/http.dart' as http; 
  
 class ApiService { 
-  // Ubah localhost menjadi 10.0.2.2 untuk emulator Android
   static const String _baseUrl = "http://localhost/pangsit_njedok_api"; 
   
-  static Future<Map<String, dynamic>> updateProfile(String id, String name, String phone) async {
+  // ✅ Menambahkan parameter {Uint8List? imageBytes} di sini
+  static Future<Map<String, dynamic>> updateProfile(String id, String name, String phone, {Uint8List? imageBytes}) async {
     try {
-      // Gunakan _baseUrl agar lebih rapi dan mudah diubah
-      var url = Uri.parse("$_baseUrl/ganti_profil.php");
+      var request = http.MultipartRequest('POST', Uri.parse("$_baseUrl/ganti_profil.php"));
       
-      var response = await http.post(url, body: {
-        "id": id,
-        "name": name,
-        "no_telepon": phone,
-      });
+      // Mengirim data teks
+      request.fields['id'] = id;
+      request.fields['name'] = name;
+      request.fields['no_telepon'] = phone;
+
+      // ✅ Mengirim file gambar jika ada gambar yang dipilih
+      if (imageBytes != null) {
+        request.files.add(http.MultipartFile.fromBytes(
+          'image', 
+          imageBytes, 
+          filename: 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        ));
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
 
       return jsonDecode(response.body);
     } catch (e) {
@@ -27,7 +38,6 @@ class ApiService {
   // ===================== 
   static Future<Map<String, dynamic>> getProfile(String id) async {
     try {
-      // Gunakan _baseUrl di sini juga
       final response = await http.get(Uri.parse("$_baseUrl/get_profil.php?id=$id"));
 
       if (response.statusCode == 200) {

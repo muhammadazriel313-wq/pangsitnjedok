@@ -70,8 +70,18 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFCFAEE),
-      appBar: AppBar(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFFFFDF1), Color(0xFFFFE8D6)],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -86,69 +96,75 @@ class _ProfilePageState extends State<ProfilePage> {
             fontSize: 18,
           ),
         ),
-      ),
-      body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFFF9442)),
-            )
-          : RefreshIndicator(
-              onRefresh: _loadData,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 32),
-                    _buildProfileHeader(name, phone),
-                    const SizedBox(height: 40),
-
-                    _buildMenuItem(
-                      Icons.person_outline,
-                      'Edit Account',
-                      'Update your details',
-                      onTap: _navigateToEditAccount,
-                    ),
-                    _buildMenuItem(
-                      Icons.assignment_outlined,
-                      'My Orders',
-                      'Track your pangsit',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MyOrdersPage(),
-                        ),
-                      ),
-                    ),
-                    _buildMenuItem(
-                      Icons.favorite_outline,
-                      'My Favorites',
-                      'Your loved items',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FavoritePage(),
-                        ),
-                      ),
-                    ),
-                    _buildMenuItem(
-                      Icons.star_outline,
-                      'Rating & Reviews',
-                      'Rate Us',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RatingViewsPage(),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-                    _buildLogoutButton(),
-                    const SizedBox(height: 100),
-                  ],
-                ),
               ),
-            ),
+              Expanded(
+                child: isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Color(0xFFFF9442)),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _loadData,
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 24),
+                              _buildProfileHeader(name, phone),
+                              const SizedBox(height: 40),
+
+                              _buildMenuItem(
+                                Icons.person_outline,
+                                'Edit Account',
+                                'Update your details',
+                                onTap: _navigateToEditAccount,
+                              ),
+                              _buildMenuItem(
+                                Icons.assignment_outlined,
+                                'My Orders',
+                                'Track your pangsit',
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const MyOrdersPage(),
+                                  ),
+                                ),
+                              ),
+                              _buildMenuItem(
+                                Icons.favorite_outline,
+                                'My Favorites',
+                                'Your loved items',
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const FavoritePage(),
+                                  ),
+                                ),
+                              ),
+                              _buildMenuItem(
+                                Icons.star_outline,
+                                'Rating & Reviews',
+                                'Rate Us',
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const RatingViewsPage(),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 20),
+                              _buildLogoutButton(),
+                              const SizedBox(height: 100),
+                            ],
+                          ),
+                        ),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: _buildFab(context),
       bottomNavigationBar: buildBottomNavbar(context, '/profil_customer'),
@@ -161,21 +177,23 @@ class _ProfilePageState extends State<ProfilePage> {
         Stack(
           children: [
             Container(
-              width: 120,
-              height: 120,
+              width: 130,
+              height: 130,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFFF9644), width: 3),
-                image: DecorationImage(
-                  image:
-                      (profileImageUrl != null &&
-                          profileImageUrl!.isNotEmpty &&
-                          profileImageUrl!.startsWith('http'))
-                      ? NetworkImage(profileImageUrl!)
-                      : const AssetImage('assets/images/nipis.jpeg')
-                            as ImageProvider,
-                  fit: BoxFit.cover,
-                ),
+                border: Border.all(color: const Color(0xFFFF9644), width: 4),
+                boxShadow: [
+                  BoxShadow(color: const Color(0xFFFF9442).withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))
+                ],
+              ),
+              child: ClipOval(
+                child: (profileImageUrl != null && profileImageUrl!.isNotEmpty)
+                    ? Image.network(
+                        profileImageUrl!.startsWith('http') ? profileImageUrl! : "${ApiService.baseUrl}/uploads/$profileImageUrl",
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Image.asset('assets/images/user.jpeg', fit: BoxFit.cover),
+                      )
+                    : Image.asset('assets/images/user.jpeg', fit: BoxFit.cover),
               ),
             ),
           ],
@@ -275,13 +293,30 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildFab(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const CartPage()),
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF9442).withValues(alpha: 0.4),
+            blurRadius: 12,
+            spreadRadius: 2,
+          )
+        ]
       ),
-      backgroundColor: const Color(0xFFFF9442),
-      child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+      child: FloatingActionButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CartPage()),
+        ),
+        backgroundColor: const Color(0xFFFF9442),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(50),
+          side: const BorderSide(color: Colors.white, width: 4)
+        ),
+        child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+      ),
     );
   }
 }

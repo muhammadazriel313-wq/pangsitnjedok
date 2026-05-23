@@ -7,7 +7,11 @@ import '../service/api_service.dart';
 import 'cart.dart';
 import 'order.dart';
 
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+
 import 'my_favorites.dart';
+import 'detail_menu.dart';
+import '../service/cart_service.dart'; // ✅ Import CartService
 import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -40,6 +44,7 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     _loadUserProfile();
+    _updateCartCount();
 
     _carouselTimer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
       if (_currentPage < 1) {
@@ -55,6 +60,15 @@ class _DashboardPageState extends State<DashboardPage> {
         );
       }
     });
+  }
+
+  Future<void> _updateCartCount() async {
+    int count = await CartService.getCartCount();
+    if (mounted) {
+      setState(() {
+        _cartItemCount = count;
+      });
+    }
   }
 
   // ✅ BACA PROFIL SEKALIGUS TARIK DATA MENU & FAVORIT
@@ -176,8 +190,15 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFCFAEE),
-      body: SafeArea(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFFFFDF1), Color(0xFFFFE8D6)],
+          ),
+        ),
+        child: SafeArea(
         child: RefreshIndicator(
           onRefresh: _fetchDashboardData,
           child: SingleChildScrollView(
@@ -205,6 +226,7 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ),
         ),
+        ),
       ),
       floatingActionButton: _buildFab(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -218,26 +240,25 @@ class _DashboardPageState extends State<DashboardPage> {
       children: [
         Row(
           children: [
-            // ✅ LOGIKA FOTO PROFIL
+            // ✅ LOGIKA FOTO PROFIL FIX (Menghindari Putih Polos)
             Container(
-              width: 48,
-              height: 48,
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: const Color(0xFFFF9442), width: 2),
-                image: DecorationImage(
-                  image:
-                      _customerPhoto.isNotEmpty &&
-                          _customerPhoto.startsWith('http')
-                      ? NetworkImage(_customerPhoto) as ImageProvider
-                      : _customerPhoto.isNotEmpty
-                      ? NetworkImage(
-                              "${ApiService.baseUrl}/uploads/$_customerPhoto",
-                            )
-                            as ImageProvider
-                      : const AssetImage("assets/images/user.jpeg"),
-                  fit: BoxFit.cover,
-                ),
+                boxShadow: [
+                  BoxShadow(color: const Color(0xFFFF9442).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))
+                ],
+              ),
+              child: ClipOval(
+                child: _customerPhoto.isNotEmpty
+                    ? Image.network(
+                        _customerPhoto.startsWith('http') ? _customerPhoto : "${ApiService.baseUrl}/uploads/$_customerPhoto",
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Image.asset("assets/images/user.jpeg", fit: BoxFit.cover),
+                      )
+                    : Image.asset("assets/images/user.jpeg", fit: BoxFit.cover),
               ),
             ),
             const SizedBox(width: 12),
@@ -523,19 +544,30 @@ class _DashboardPageState extends State<DashboardPage> {
 
     final displayItems = filtered.take(4).toList();
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.75, // Menyeimbangkan bentuk kotak
+    return AnimationLimiter(
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.75, // Menyeimbangkan bentuk kotak
+        ),
+        itemCount: displayItems.length,
+        itemBuilder: (context, index) {
+          return AnimationConfiguration.staggeredGrid(
+            position: index,
+            duration: const Duration(milliseconds: 375),
+            columnCount: 2,
+            child: ScaleAnimation(
+              child: FadeInAnimation(
+                child: _foodCard(displayItems[index]),
+              ),
+            ),
+          );
+        },
       ),
-      itemCount: displayItems.length,
-      itemBuilder: (context, index) {
-        return _foodCard(displayItems[index]);
-      },
     );
   }
 
@@ -554,7 +586,12 @@ class _DashboardPageState extends State<DashboardPage> {
         if (stock <= 0) {
           _showOutOfStockDialog(context);
         } else {
-          // debugPrint("Open detail: $title");
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DetailMenuPage(item: item),
+            ),
+          );
         }
       },
       child: Container(
@@ -589,20 +626,23 @@ class _DashboardPageState extends State<DashboardPage> {
                       topLeft: Radius.circular(24),
                       topRight: Radius.circular(24),
                     ),
-                    child: img.isNotEmpty
-                        ? Image.network(
-                            "${ApiService.baseUrl}/uploads/$img",
-                            fit: BoxFit.cover,
-                            errorBuilder: (c, e, s) =>
-                                const Icon(Icons.fastfood, size: 50),
-                          )
-                        : const Center(
-                            child: Icon(
-                              Icons.image_not_supported,
-                              size: 50,
-                              color: Colors.grey,
+                    child: Hero(
+                      tag: 'menu_image_$menuId',
+                      child: img.isNotEmpty
+                          ? Image.network(
+                              "${ApiService.baseUrl}/uploads/$img",
+                              fit: BoxFit.cover,
+                              errorBuilder: (c, e, s) =>
+                                  const Icon(Icons.fastfood, size: 50),
+                            )
+                          : const Center(
+                              child: Icon(
+                                Icons.image_not_supported,
+                                size: 50,
+                                color: Colors.grey,
+                              ),
                             ),
-                          ),
+                    ),
                   ),
                   // ✅ LOGIKA KLIK ICON LOVE
                   Positioned(
@@ -616,10 +656,15 @@ class _DashboardPageState extends State<DashboardPage> {
                           color: Colors.white.withValues(alpha: 0.9),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
-                          isLiked ? Icons.favorite : Icons.favorite_border,
-                          size: 18,
-                          color: isLiked ? Colors.red : const Color(0xFF64748B),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+                          child: Icon(
+                            isLiked ? Icons.favorite : Icons.favorite_border,
+                            key: ValueKey<bool>(isLiked),
+                            size: 18,
+                            color: isLiked ? Colors.red : const Color(0xFF64748B),
+                          ),
                         ),
                       ),
                     ),
@@ -681,11 +726,16 @@ class _DashboardPageState extends State<DashboardPage> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
                           if (stock > 0) {
-                            setState(() {
-                              _cartItemCount++;
-                            });
+                            String priceString = price.toString().replaceAll(RegExp(r'[^0-9]'), '');
+                            int priceValue = int.tryParse(priceString) ?? 0;
+                            String category = item['category']?.toString() ?? 'Food';
+                            
+                            await CartService.addToCart(title, priceValue, category);
+                            await _updateCartCount();
+
+                            if (!mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../service/api_service.dart'; 
 import '../service/cart_service.dart'; // ✅ Ditambahkan: Mengimpor CartService
 import 'package:aplikasipangsitnjedok/core/constants/navigasi_helper.dart';
@@ -246,8 +247,18 @@ class _FavoritePageState extends State<FavoritePage> {
                               child: Center(child: Text("No favorite menu in this category yet.", style: TextStyle(color: Color(0xFF94A3B8), fontSize: 16))),
                             )
                           else
-                            // ✅ Passing data menu seutuhnya
-                            ...filteredItems.map((item) => _buildMenuCard(item)),
+                            AnimationLimiter(
+                              child: Column(
+                                children: AnimationConfiguration.toStaggeredList(
+                                  duration: const Duration(milliseconds: 375),
+                                  childAnimationBuilder: (widget) => SlideAnimation(
+                                    verticalOffset: 50.0,
+                                    child: FadeInAnimation(child: widget),
+                                  ),
+                                  children: filteredItems.map((item) => _buildMenuCard(item)).toList(),
+                                ),
+                              ),
+                            ),
                           
                           if (cartCount > 0) ...[
                             const SizedBox(height: 16),
@@ -410,27 +421,29 @@ class _FavoritePageState extends State<FavoritePage> {
   }
 
   Widget _buildFab(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withValues(alpha: 0.4), blurRadius: 12, spreadRadius: 2)]),
-      child: FloatingActionButton(
-        onPressed: _placeOrder,
-        backgroundColor: const Color(0xFFFF9442), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50), side: const BorderSide(color: Colors.white, width: 4)),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            const Icon(Icons.shopping_cart_outlined, color: Colors.white),
-            if (cartCount > 0)
-              Positioned(
-                right: -4, top: -4,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                  child: Text('$cartCount', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                ),
-              )
-          ],
+    return Stack(
+      clipBehavior: Clip.none, 
+      children: [
+        Container(
+          decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: const Color(0xFFFF9442).withValues(alpha: 0.4), blurRadius: 12, spreadRadius: 2)]),
+          child: FloatingActionButton(
+            onPressed: _placeOrder,
+            backgroundColor: const Color(0xFFFF9442),
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50), side: const BorderSide(color: Colors.white, width: 4)),
+            child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+          ),
         ),
-      ),
+        if (cartCount > 0)
+          Positioned(
+            right: -2, top: -2,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
+              child: Text('$cartCount', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+            ),
+          ),
+      ],
     );
   }
 }
