@@ -43,6 +43,12 @@ class _ProfilePageState extends State<ProfilePage> {
             name = response['data']['name'] ?? "User";
             phone = response['data']['no_telepon'] ?? "-";
             profileImageUrl = response['data']['foto_profil'];
+            
+            // Simpan ke SharedPreferences agar Dashboard langsung update
+            prefs.setString('name', name);
+            if (profileImageUrl != null) {
+              prefs.setString('photo', profileImageUrl!);
+            }
           } else {
             name = "User Not Found";
           }
@@ -191,9 +197,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     ? Image.network(
                         profileImageUrl!.startsWith('http') ? profileImageUrl! : "${ApiService.baseUrl}/uploads/$profileImageUrl",
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Image.asset('assets/images/user.jpeg', fit: BoxFit.cover),
+                        errorBuilder: (context, error, stackTrace) => Image.asset('assets/images/user.jpg', fit: BoxFit.cover),
                       )
-                    : Image.asset('assets/images/user.jpeg', fit: BoxFit.cover),
+                    : Image.asset('assets/images/user.jpg', fit: BoxFit.cover),
               ),
             ),
           ],

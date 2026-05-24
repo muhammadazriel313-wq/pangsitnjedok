@@ -142,9 +142,9 @@ class _EditAccountPageState extends State<EditAccountPage> {
                                             ? existingImageUrl! 
                                             : "${ApiService.baseUrl}/uploads/$existingImageUrl",
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => Image.asset('assets/images/user.jpeg', fit: BoxFit.cover),
+                                        errorBuilder: (context, error, stackTrace) => Image.asset('assets/images/user.jpg', fit: BoxFit.cover),
                                       )
-                                    : Image.asset('assets/images/user.jpeg', fit: BoxFit.cover)),
+                                    : Image.asset('assets/images/user.jpg', fit: BoxFit.cover)),
                           ),
                         ),
                         Positioned(

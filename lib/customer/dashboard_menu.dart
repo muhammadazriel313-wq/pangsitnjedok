@@ -256,9 +256,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     ? Image.network(
                         _customerPhoto.startsWith('http') ? _customerPhoto : "${ApiService.baseUrl}/uploads/$_customerPhoto",
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Image.asset("assets/images/user.jpeg", fit: BoxFit.cover),
+                        errorBuilder: (context, error, stackTrace) => Image.asset("assets/images/user.jpg", fit: BoxFit.cover),
                       )
-                    : Image.asset("assets/images/user.jpeg", fit: BoxFit.cover),
+                    : Image.asset("assets/images/user.jpg", fit: BoxFit.cover),
               ),
             ),
             const SizedBox(width: 12),
