@@ -36,7 +36,7 @@ void main() {
       if (printRegex.hasMatch(content)) {
         content = content.replaceAll(printRegex, 'debugPrint(');
         if (!content.contains('import \'package:flutter/foundation.dart\';')) {
-          content = "import 'package:flutter/foundation.dart';\n" + content;
+          content = "import 'package:flutter/foundation.dart';\n$content";
         }
         modified = true;
       }
@@ -46,5 +46,5 @@ void main() {
       file.writeAsStringSync(content);
     }
   }
-  print("Fixes applied.");
+  stdout.write("Fixes applied.\n");
 }

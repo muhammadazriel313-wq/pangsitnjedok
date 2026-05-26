@@ -4,6 +4,15 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
+  // ============================================================
+  // KETERANGAN BELAJAR UNTUK SIDANG (KONSEP API SERVICE):
+  // 1. Class ApiService bertugas sebagai "Jembatan" penghubung antara
+  //    Aplikasi Flutter (Frontend) dengan Database MySQL lewat PHP (Backend).
+  // 2. Future: Tipe data untuk nilai yang akan tersedia di masa depan. 
+  //    Digunakan karena proses ambil data butuh waktu (proses tidak instan).
+  // 3. async / await: async menandakan fungsi ini berjalan di latar belakang (asynchronous),
+  //    dan await digunakan untuk 'menunggu' proses selesai sebelum lanjut ke baris kode berikutnya.
+  // ============================================================
   // 📍 BASE URL (Alamat Server Backend)
   // - Pakai 'http://localhost/pangsit_njedok_api' kalau kamu jalankan di Web atau Simulator iOS.
   // - Pakai 'http://10.0.2.2/pangsit_njedok_api' kalau kamu jalankan di Emulator Android bawaan.
@@ -14,14 +23,22 @@ class ApiService {
   // ⭐ [TAMBAHAN BARU] FUNGSI AUTH & PROFIL CUSTOMER
   // ============================================================
   
+  // PENJELASAN UNTUK SIDANG:
+  // Fungsi login ini mengembalikan Future berisi Map (struktur data Key-Value).
+  // Kita menggunakan metode HTTP POST karena data login (password) bersifat sensitif
+  // dan lebih aman dikirim melalui 'body', bukan melalui URL.
   static Future<Map<String, dynamic>> login(String id, String password, String role) async {
     try {
+      // await akan menghentikan eksekusi baris bawahnya sampai server memberikan respon.
       final response = await http.post(
         Uri.parse("$baseUrl/login.php"),
         body: {"id": id, "password": password, "role": role},
       );
+      // Jika statusCode 200 (berhasil/OK), kita merubah (decode) teks JSON dari server
+      // menjadi objek Map yang bisa dibaca oleh Dart.
       return response.statusCode == 200 ? json.decode(response.body) : {"status": "error", "message": "Gagal Login"};
     } catch (e) {
+      // blok catch berfungsi untuk menangkap error (exception) jika misalnya server mati.
       return {"status": "error", "message": "Koneksi Error: $e"};
     }
   }
@@ -38,6 +55,9 @@ class ApiService {
     }
   }
 
+  // PENJELASAN UNTUK SIDANG:
+  // Kita menggunakan HTTP GET karena hanya untuk 'mengambil' (get) data dari server,
+  // di mana parameter 'id' dikirimkan melalui URL (query string).
   static Future<Map<String, dynamic>> getProfile(String id) async {
     try {
       final response = await http.get(Uri.parse("$baseUrl/get_profil.php?id=$id"));

@@ -3,8 +3,12 @@ import '/service/api_service.dart';
 import 'edit_profil.dart'; // Import halaman Edit Profil supaya bisa berpindah kesana
 import '../halaman_login.dart'; // Import Halaman Login buat keperluan proses Logout
 
-// Ini adalah StatefulWidget untuk halaman profil admin. 
-// Kita pakai StatefulWidget karena halaman ini bisa di-refresh/diupdate datanya setelah mengedit profil.
+// ============================================================
+// KETERANGAN BELAJAR UNTUK SIDANG (PROFIL ADMIN):
+// Halaman Profil ini menggunakan StatefulWidget agar kita bisa
+// me-refresh (menggambar ulang) halaman jika ada perubahan data,
+// misalnya setelah admin sukses mengubah nama atau foto profilnya.
+// ============================================================
 class ProfilReportAdmin extends StatefulWidget {
   const ProfilReportAdmin({super.key});
 
@@ -56,8 +60,11 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
             TextButton(
               child: const Text("Logout", style: TextStyle(color: Colors.red)),
               onPressed: () {
-                // Navigator.pushAndRemoveUntil digunakan untuk pindah ke halaman login
-                // DAN menghapus semua riwayat halaman sebelumnya. Jadi user tidak bisa memencet tombol 'Back' di HP untuk kembali ke profil.
+                // PENJELASAN UNTUK SIDANG:
+                // Navigator.pushAndRemoveUntil digunakan untuk pindah halaman
+                // SEKALIGUS menghapus semua tumpukan halaman sebelumnya (history).
+                // Ini mencegah user menekan tombol 'Back' (kembali) di HP
+                // dan tak sengaja masuk kembali ke dalam aplikasi setelah logout.
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => const HalamanLogin()),

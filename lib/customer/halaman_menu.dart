@@ -124,10 +124,11 @@ class _MenuFoodScreenState extends State<MenuFoodScreen> {
             _favoriteMenuIds.remove(menuId);
           }
         });
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Gagal mengubah favorit!')),
           );
+        }
       }
     } catch (e) {
       debugPrint("Error toggle favorite: $e");

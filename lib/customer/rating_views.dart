@@ -293,7 +293,7 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
   }
 }
 
-class ReviewCard extends StatelessWidget {
+class ReviewCard extends StatefulWidget {
   final String name, tag, date, content;
   final int rating;
   final List<String>? images;
@@ -307,6 +307,28 @@ class ReviewCard extends StatelessWidget {
     this.rating = 5,
     this.images,
   });
+
+  @override
+  State<ReviewCard> createState() => _ReviewCardState();
+}
+
+class _ReviewCardState extends State<ReviewCard> {
+  bool isLiked = false;
+  int likeCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Buat angka jumlah like random (dummy) berdasarkan panjang nama agar terlihat bervariasi
+    likeCount = widget.name.length; 
+  }
+
+  void _toggleLike() {
+    setState(() {
+      isLiked = !isLiked;
+      isLiked ? likeCount++ : likeCount--;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -334,12 +356,12 @@ class ReviewCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(name, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 16, color: const Color(0xFF1B1C15))),
+                      Text(widget.name, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 16, color: const Color(0xFF1B1C15))),
                       const SizedBox(height: 4),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(color: const Color(0xFFFFEDD5), borderRadius: BorderRadius.circular(8)),
-                        child: Text(tag, style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF954A00))),
+                        child: Text(widget.tag, style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF954A00))),
                       ),
                     ],
                   ),
@@ -347,9 +369,8 @@ class ReviewCard extends StatelessWidget {
               ),
               Row(
                 children: [
-                  Text(date, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w600)),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.more_horiz, color: Color(0xFF94A3B8), size: 20),
+                  Text(widget.date, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w600)),
+                  // Titik tiga (more_horiz) telah dihapus sesuai permintaan
                 ],
               ),
             ],
@@ -358,18 +379,18 @@ class ReviewCard extends StatelessWidget {
           Row(
             children: List.generate(5, (index) => Icon(
               Icons.star, size: 18, 
-              color: index < rating ? const Color(0xFFFF9442) : const Color(0xFFEAE8DD),
+              color: index < widget.rating ? const Color(0xFFFF9442) : const Color(0xFFEAE8DD),
             )),
           ),
           const SizedBox(height: 12),
-          Text(content, style: GoogleFonts.beVietnamPro(height: 1.5, color: const Color(0xFF554337), fontSize: 14)),
+          Text(widget.content, style: GoogleFonts.beVietnamPro(height: 1.5, color: const Color(0xFF554337), fontSize: 14)),
           
-          if (images != null && images!.isNotEmpty) ...[
+          if (widget.images != null && widget.images!.isNotEmpty) ...[
             const SizedBox(height: 16),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: images!.map((url) => Padding(
+                children: widget.images!.map((url) => Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
@@ -387,18 +408,46 @@ class ReviewCard extends StatelessWidget {
           
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF6F4E8),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.thumb_up_outlined, size: 16, color: Color(0xFF554337)),
-                    const SizedBox(width: 6),
-                    Text('Helpful?', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF554337))),
-                  ],
+              GestureDetector(
+                onTap: _toggleLike,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isLiked ? const Color(0xFFFF9442) : const Color(0xFFF6F4E8),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: isLiked 
+                      ? [BoxShadow(color: const Color(0xFFFF9442).withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 4))] 
+                      : [],
+                  ),
+                  child: Row(
+                    children: [
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        transitionBuilder: (Widget child, Animation<double> animation) {
+                          return ScaleTransition(scale: animation, child: child);
+                        },
+                        child: Icon(
+                          isLiked ? Icons.thumb_up : Icons.thumb_up_outlined, 
+                          key: ValueKey<bool>(isLiked),
+                          size: 16, 
+                          color: isLiked ? Colors.white : const Color(0xFF554337)
+                        ),
+                      ),
+                      if (likeCount > 0) ...[
+                        const SizedBox(width: 6),
+                        AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 300),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12, 
+                            fontWeight: FontWeight.bold, 
+                            color: isLiked ? Colors.white : const Color(0xFF554337)
+                          ),
+                          child: Text('$likeCount'),
+                        ),
+                      ]
+                    ],
+                  ),
                 ),
               ),
             ],
