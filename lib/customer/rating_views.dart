@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'reviews.dart'; 
 import '../service/api_service.dart';
 
@@ -21,11 +22,22 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
   List<int> _starCounts = [0, 0, 0, 0, 0];
 
   String _selectedFilter = 'All Reviews'; 
+  String _currentUserId = "1";
 
   @override
   void initState() {
     super.initState();
+    _loadUser();
     _fetchReviews();
+  }
+
+  Future<void> _loadUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _currentUserId = prefs.getString('id') ?? prefs.getString('customer_id') ?? "1";
+      });
+    }
   }
 
   Future<void> _fetchReviews() async {
@@ -92,6 +104,40 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
     if (_selectedFilter == '2 Stars') return _reviews.where((r) => int.tryParse(r['rating'].toString()) == 2).toList();
     if (_selectedFilter == '1 Star') return _reviews.where((r) => int.tryParse(r['rating'].toString()) == 1).toList();
     return _reviews;
+  }
+
+  Future<void> _deleteReview(String reviewId, String reviewCustomerId) async {
+    bool confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Hapus Review', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
+        content: Text('Apakah Anda yakin ingin menghapus ulasan ini?', style: GoogleFonts.plusJakartaSans()),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Batal', style: GoogleFonts.plusJakartaSans(color: Colors.grey))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Hapus', style: GoogleFonts.plusJakartaSans(color: Colors.red, fontWeight: FontWeight.bold))),
+        ],
+      ),
+    ) ?? false;
+
+    if (!confirm) return;
+
+    try {
+      final response = await http.post(
+        Uri.parse("${ApiService.baseUrl}/delete_review.php"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"review_id": reviewId, "customer_id": reviewCustomerId}),
+      );
+      if (response.statusCode == 200) {
+        final result = json.decode(response.body);
+        if (result['status'] == 'success') {
+          _fetchReviews();
+        } else {
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'])));
+        }
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
   }
 
   @override
@@ -203,12 +249,17 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: ReviewCard(
+                        reviewId: item['id'].toString(),
+                        reviewCustomerId: item['customer_id'].toString(),
+                        currentUserId: _currentUserId,
                         name: item['name'] ?? 'Wonton Lover',
                         tag: item['customer_tag'] ?? 'MEMBER',
                         date: _formatDate(item['created_at'] ?? DateTime.now().toString()), 
                         rating: int.tryParse(item['rating'].toString()) ?? 5,
                         content: item['content'] ?? '',
                         images: reviewImages,
+                        profileImage: item['foto_profil'],
+                        onDelete: () => _deleteReview(item['id'].toString(), item['customer_id'].toString()),
                       ),
                     );
                   }),
@@ -294,18 +345,26 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
 }
 
 class ReviewCard extends StatefulWidget {
+  final String reviewId, reviewCustomerId, currentUserId;
   final String name, tag, date, content;
   final int rating;
   final List<String>? images;
+  final String? profileImage;
+  final VoidCallback onDelete;
 
   const ReviewCard({
     super.key,
+    required this.reviewId,
+    required this.reviewCustomerId,
+    required this.currentUserId,
     required this.name,
     required this.tag,
     required this.date,
     required this.content,
+    required this.onDelete,
     this.rating = 5,
     this.images,
+    this.profileImage,
   });
 
   @override
@@ -319,8 +378,7 @@ class _ReviewCardState extends State<ReviewCard> {
   @override
   void initState() {
     super.initState();
-    // Buat angka jumlah like random (dummy) berdasarkan panjang nama agar terlihat bervariasi
-    likeCount = widget.name.length; 
+    likeCount = 0; 
   }
 
   void _toggleLike() {
@@ -348,9 +406,11 @@ class _ReviewCardState extends State<ReviewCard> {
             children: [
               Row(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 22, 
-                    backgroundImage: AssetImage('assets/images/nipis.jpeg'), 
+                    backgroundImage: (widget.profileImage != null && widget.profileImage!.isNotEmpty)
+                        ? NetworkImage(widget.profileImage!.startsWith('http') ? widget.profileImage! : "${ApiService.baseUrl}/uploads/${widget.profileImage}") as ImageProvider
+                        : const AssetImage('assets/images/user.jpg'), 
                   ),
                   const SizedBox(width: 12),
                   Column(
@@ -368,9 +428,21 @@ class _ReviewCardState extends State<ReviewCard> {
                 ],
               ),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(widget.date, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w600)),
-                  // Titik tiga (more_horiz) telah dihapus sesuai permintaan
+                  if (widget.currentUserId == widget.reviewCustomerId) ...[
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: widget.onDelete,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(color: const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(8)),
+                        child: const Icon(Icons.delete_outline, color: Colors.red, size: 16),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ],
@@ -390,13 +462,16 @@ class _ReviewCardState extends State<ReviewCard> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: widget.images!.map((url) => Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(url, width: 80, height: 80, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => Container(width: 80, height: 80, color: Colors.grey[200], child: const Icon(Icons.image, color: Colors.grey))),
-                  ),
-                )).toList(),
+                children: widget.images!.map((url) {
+                  String imageUrl = url.startsWith('http') ? url : "${ApiService.baseUrl}/uploads/$url";
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(imageUrl, width: 80, height: 80, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => Container(width: 80, height: 80, color: Colors.grey[200], child: const Icon(Icons.image, color: Colors.grey))),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
           ],
