@@ -39,22 +39,9 @@ class CartItem {
 }
 
 class CartService {
-  static const String storageKey = 'customer_cart_items_v1';
+  static const String storageKey = 'customer_cart_items_v2';
 
-  static final List<CartItem> _defaultCartItems = [
-    CartItem(
-      title: 'Mietiaw Pangsit Njedog',
-      subtitle: 'Extra Spicy',
-      price: 19000,
-      qty: 2,
-    ),
-    CartItem(
-      title: 'Es Buah Segar',
-      subtitle: 'Less Ice',
-      price: 9000,
-      qty: 1,
-    ),
-  ];
+  static final List<CartItem> _defaultCartItems = [];
 
   static Future<List<CartItem>> getCartItems() async {
     final prefs = await SharedPreferences.getInstance();

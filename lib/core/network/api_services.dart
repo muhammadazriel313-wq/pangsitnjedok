@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
 class ApiService {
   // Alamat URL disesuaikan dengan folder di htdocs kamu
@@ -72,7 +72,7 @@ class ApiService {
       }
       return false;
     } catch (e) {
-      print("Error update status: $e");
+      debugPrint("Error update status: $e");
       return false;
     }
   }
@@ -88,7 +88,7 @@ class ApiService {
       }
       return null;
     } catch (e) {
-      print("Error Profil: $e");
+      debugPrint("Error Profil: $e");
       return null;
     }
   }
@@ -115,7 +115,7 @@ class ApiService {
     var response = await request.send();
     return response.statusCode == 200;
   } catch (e) {
-    print("Error Update Profil: $e");
+    debugPrint("Error Update Profil: $e");
     return false;
   }
 }
@@ -170,7 +170,7 @@ class ApiService {
       }
       return false;
     } catch (e) {
-      print("Koneksi Error: $e");
+      debugPrint("Koneksi Error: $e");
       return false;
     }
   }
@@ -184,7 +184,7 @@ class ApiService {
         return {};
       }
     } catch (e) {
-      print("Error Fetch Dashboard: $e");
+      debugPrint("Error Fetch Dashboard: $e");
       return {};
     }
   }
@@ -221,7 +221,7 @@ class ApiService {
       }
       return false;
     } catch (e) {
-      print("Add Menu Error: $e");
+      debugPrint("Add Menu Error: $e");
       return false;
     }
   }
@@ -254,7 +254,7 @@ class ApiService {
       }
       return false;
     } catch (e) {
-      print("Update Menu Error: $e");
+      debugPrint("Update Menu Error: $e");
       return false;
     }
   }

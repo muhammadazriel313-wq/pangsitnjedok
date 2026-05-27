@@ -10,6 +10,9 @@ class EditProfil extends StatefulWidget {
 }
 
 class _EditProfilState extends State<EditProfil> {
+  // PENJELASAN UNTUK SIDANG:
+  // TextEditingController digunakan untuk 'menangkap' dan 'mengubah' teks 
+  // yang ada di dalam kolom input (TextField). Setiap kolom input butuh 1 controller.
   late TextEditingController _nameController;
   late TextEditingController _usernameController;
   late TextEditingController _phoneController;
@@ -27,7 +30,9 @@ class _EditProfilState extends State<EditProfil> {
 
   // Fungsi untuk menyimpan perubahan ke database[cite: 14, 16]
   Future<void> _saveProfile() async {
-    // Tampilkan loading dialog agar user tidak melakukan interaksi ganda[cite: 14]
+    // PENJELASAN UNTUK SIDANG:
+    // showDialog di sini digunakan untuk menampilkan animasi loading (CircularProgressIndicator).
+    // barrierDismissible: false artinya user TIDAK BISA menutup loading dengan mengklik luar kotak.
     showDialog(
       context: context,
       barrierDismissible: false,

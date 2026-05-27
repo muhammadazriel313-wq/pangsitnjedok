@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import '/service/api_service.dart'; 
 
+// ============================================================
+// KETERANGAN BELAJAR UNTUK SIDANG (KONSEP WIDGET & STATE):
+// StatefulWidget: Digunakan jika tampilan halaman bisa "berubah"
+// (misal karena ada animasi, tombol yang bisa diklik untuk ubah data grafik, dll).
+// Berbeda dengan StatelessWidget yang tampilannya statis / tetap.
+// ============================================================
 class DashboardAdmin extends StatefulWidget {
   const DashboardAdmin({super.key});
 
@@ -10,6 +16,8 @@ class DashboardAdmin extends StatefulWidget {
 
 class _DashboardAdminState extends State<DashboardAdmin> {
   // --- VARIABEL STATE ---
+  // Variabel yang menyimpan keadaan (state). 
+  // Jika ini diubah menggunakan setState(), maka layar akan di-render ulang (refresh).
   bool _isHourly = true;
 
   @override
@@ -26,9 +34,13 @@ class _DashboardAdminState extends State<DashboardAdmin> {
       border: Border(bottom: BorderSide(width: 1, color: Color(0xFFFFCE99))),
     ),
     child: FutureBuilder<Map<String, dynamic>>(
-      future: ApiService.getDashboardData(), // Mengambil data profil dari API[cite: 15]
+      // PENJELASAN UNTUK SIDANG:
+      // FutureBuilder adalah widget khusus untuk menangani proses asynchronous (seperti ambil data API).
+      // 'future:' memanggil fungsi getDashboardData() di ApiService.
+      future: ApiService.getDashboardData(), 
       builder: (context, snapshot) {
-        // Ambil data dari snapshot jika tersedia
+        // 'snapshot' berisi status dan data dari proses API.
+        // Tanda tanya (?) artinya variabel bisa null jika belum ada data.
         final String adminName = snapshot.data?['name'] ?? 'Admin';
 
         return Row(
@@ -113,6 +125,9 @@ class _DashboardAdminState extends State<DashboardAdmin> {
             Row(
               children: [
                 GestureDetector(
+                  // PENJELASAN UNTUK SIDANG:
+                  // setState() memberitahu Flutter bahwa variabel `_isHourly` berubah,
+                  // sehingga Flutter akan menggambar ulang (rebuild) bagian UI grafik saja.
                   onTap: () => setState(() => _isHourly = true),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),

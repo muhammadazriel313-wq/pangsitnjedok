@@ -5,6 +5,9 @@ import 'rating_views.dart';
 // ✅ IMPORT SUDAH DIALAHKAN KE DASHBOARD MENU
 import 'dashboard_menu.dart'; 
 import '../service/api_service.dart';
+import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ReviewsApp extends StatefulWidget {
   const ReviewsApp({super.key});
@@ -44,6 +47,19 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
     'Portion Size',
     'Value for Money',
   ];
+
+  Uint8List? _selectedImageBytes;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      final bytes = await image.readAsBytes();
+      setState(() {
+        _selectedImageBytes = bytes;
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -88,12 +104,24 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
     try {
       String combinedTags = selectedTags.isEmpty ? "REGULAR" : selectedTags.join(", ");
 
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String userId = prefs.getString('id') ?? prefs.getString('customer_id') ?? "1";
+
+      String? base64Image;
+      if (_selectedImageBytes != null) {
+        base64Image = base64Encode(_selectedImageBytes!);
+      }
+
       final Map<String, dynamic> dataYangDikirim = {
-        "customer_id": "1", 
+        "customer_id": userId, 
         "rating": selectedStars.toString(),
         "tag": combinedTags,
         "content": _reviewController.text,
       };
+
+      if (base64Image != null) {
+        dataYangDikirim["image"] = base64Image;
+      }
 
       final response = await http.post(
         Uri.parse("${ApiService.baseUrl}/submit_review.php"),
@@ -217,6 +245,8 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
                   _buildTagsSection(),
                   const SizedBox(height: 32),
                   _buildTextReviewSection(),
+                  const SizedBox(height: 24),
+                  _buildImagePickerSection(),
                   const SizedBox(height: 32),
                   _isSubmitting 
                     ? const Center(child: CircularProgressIndicator(color: Color(0xFF954A00)))
@@ -314,6 +344,34 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
         fillColor: const Color(0xFFF6F4E8),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
       ),
+    );
+  }
+
+  Widget _buildImagePickerSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Add Photo (Optional)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: _pickImage,
+          child: Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF6F4E8),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFD4CEBD), width: 1),
+            ),
+            child: _selectedImageBytes != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.memory(_selectedImageBytes!, fit: BoxFit.cover),
+                  )
+                : const Icon(Icons.add_a_photo, color: Color(0xFF94A3B8), size: 32),
+          ),
+        ),
+      ],
     );
   }
 

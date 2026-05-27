@@ -57,6 +57,8 @@ class _HalamanLoginState extends State<HalamanLogin> {
           }
         }
         
+        if (!mounted) return;
+        
         if (isCustomerSelected) {
           Navigator.pushReplacementNamed(context, '/home_customer');
         } else {

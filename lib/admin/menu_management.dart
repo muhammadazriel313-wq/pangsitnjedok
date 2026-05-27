@@ -11,6 +11,9 @@ class MenuManagement extends StatefulWidget {
 }
 
 class _MenuManagementState extends State<MenuManagement> {
+  // PENJELASAN UNTUK SIDANG:
+  // Variabel penanda (flag) untuk tab aktif. 
+  // Jika true = Tab Food (makanan) yang tampil, false = Tab Beverages (minuman).
   bool _isFoodTab = true;
 
   void _refreshData() {
@@ -37,6 +40,10 @@ class _MenuManagementState extends State<MenuManagement> {
                 }
 
                 final allData = snapshot.data!;
+                
+                // PENJELASAN UNTUK SIDANG:
+                // Logika Filter (Penyaringan): Kita menyaring data dari server.
+                // Fungsi where() akan membuat daftar baru hanya berisi data yang memenuhi syarat.
                 final activeData = allData.where((item) {
                 String currentCategory = (item['category'] ?? '').toString().toLowerCase().trim();
                 
@@ -65,9 +72,13 @@ class _MenuManagementState extends State<MenuManagement> {
                           child: Text("No menu in this category", style: TextStyle(color: Colors.grey[500], fontSize: 16)),
                         )
                       else
+                        // PENJELASAN UNTUK SIDANG:
+                        // GridView.builder digunakan untuk membuat daftar yang bentuknya kotak-kotak (grid),
+                        // seperti tampilan galeri foto di HP. Sangat efisien karena hanya merender 
+                        // kotak yang terlihat di layar.
                         GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true, // Biar tinggi GridView menyesuaikan dengan isi datanya.
+                          physics: const NeverScrollableScrollPhysics(), // Scroll dimatikan karena sudah dibungkus SingleChildScrollView di luar
                           itemCount: activeData.length,
                           gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                             maxCrossAxisExtent: 250, mainAxisSpacing: 16, crossAxisSpacing: 16, mainAxisExtent: 270, 

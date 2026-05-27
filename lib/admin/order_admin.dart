@@ -18,6 +18,10 @@ class _OrderManagementState extends State<OrderManagement> {
   Timer? _timer;
 
   @override
+  // PENJELASAN UNTUK SIDANG:
+  // initState() adalah fungsi pertama yang dijalankan saat halaman ini dibuka.
+  // Ibarat saat kita bangun tidur, ini hal pertama yang dilakukan sebelum aktivitas lain.
+  // Di sini kita langsung mengambil data pesanan (_fetchOrders).
   void initState() {
     super.initState();
     _fetchOrders();
@@ -49,6 +53,10 @@ class _OrderManagementState extends State<OrderManagement> {
   }
 
   @override
+  // PENJELASAN UNTUK SIDANG:
+  // dispose() dijalankan saat kita keluar/pindah dari halaman ini.
+  // Kita harus mematikan (cancel) hal-hal yang berjalan di latar belakang (seperti Timer),
+  // agar tidak membebani memori HP (mencegah memory leak).
   void dispose() {
     // Matikan timer saat pindah halaman agar tidak terjadi memory leak (error)
     _timer?.cancel();

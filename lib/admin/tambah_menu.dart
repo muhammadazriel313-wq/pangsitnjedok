@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart'; // Library untuk memilih foto dari galeri HP
 import '/service/api_service.dart'; // Library koneksi API backend kita
 
-// Ini adalah StatefulWidget halaman tambah menu baru.
-// Kita pakai StatefulWidget karena ada banyak inputan dinamis seperti teks nama, harga, stok, dan upload foto.
+// ============================================================
+// KETERANGAN BELAJAR UNTUK SIDANG (TAMBAH MENU):
+// Halaman ini mendemonstrasikan pengiriman data yang lebih kompleks,
+// yaitu mengirim teks sekaligus file gambar ke database menggunakan API.
+// ============================================================
 class TambahMenu extends StatefulWidget {
   const TambahMenu({super.key});
 
@@ -30,7 +33,9 @@ class _TambahMenuState extends State<TambahMenu> {
 
   // --- FUNGSI MEMILIH FOTO DARI GALERI ---
   Future<void> _pickImage() async {
-    // Membuka galeri HP dan menunggu admin memilih salah satu foto
+    // PENJELASAN UNTUK SIDANG:
+    // ImagePicker adalah library untuk mengakses hardware HP (kamera/galeri).
+    // Kita menunggu (await) admin memilih satu foto dari galeri.
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       // Jika admin berhasil memilih foto, kita baca fotonya menjadi bentuk bytes (biner data)
