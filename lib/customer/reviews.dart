@@ -173,13 +173,10 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(color: Color(0xFF1B1C15), fontSize: 22, fontFamily: 'Plus Jakarta Sans', fontWeight: FontWeight.w800, height: 1.35),
             ),
-            
             const SizedBox(height: 28),
             GestureDetector(
               onTap: () {
-                Navigator.of(ctx).pop(); // Tutup pop-up dialog
-                
-                // ✅ SEKARANG SUDAH MENGARAH KE DASHBOARD PAGE & MENGHAPUS RIWAYAT HALAMAN SEBELUMNYA
+                Navigator.of(ctx).pop();
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => const DashboardPage()), 
@@ -238,7 +235,6 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 8),
-                  _buildOrderCard(),
                   const SizedBox(height: 32),
                   _buildStarRatingSection(),
                   const SizedBox(height: 32),
@@ -254,39 +250,6 @@ class _WriteAReviewScreenState extends State<WriteAReviewScreen> {
                   const SizedBox(height: 40),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOrderCard() {
-    return Container(
-      width: double.infinity, padding: const EdgeInsets.all(24),
-      decoration: ShapeDecoration(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        shadows: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 4))],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 80, height: 80,
-            decoration: BoxDecoration(color: const Color(0xFFF0EEE2), borderRadius: BorderRadius.circular(16)),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.asset('assets/images/ptulangrangu.jpeg', fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => const Icon(Icons.fastfood, color: Colors.grey)),
-            ),
-          ),
-          const SizedBox(width: 16),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Pangsit Njedog\nSpesial', style: TextStyle(color: Color(0xFF954A00), fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('Order #PN-88291', style: TextStyle(color: Color(0xFF554337), fontSize: 14)),
-              ],
             ),
           ),
         ],
