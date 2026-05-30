@@ -500,27 +500,31 @@ class _OrderManagementState extends State<OrderManagement> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    order['id'],
-                    style: const TextStyle(
-                      color: Color(0xFFFF9644),
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order['id'],
+                      style: const TextStyle(
+                        color: Color(0xFFFF9644),
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  Text(
-                    order['customerName'],
-                    style: const TextStyle(
-                      color: Color(0xFF562F00),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                    Text(
+                      order['customerName'],
+                      style: const TextStyle(
+                        color: Color(0xFF562F00),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -638,7 +642,7 @@ class _OrderManagementState extends State<OrderManagement> {
             route: '/menu',
           ),
           _buildNavItem(
-            "Profit",
+            "Income",
             Icons.bar_chart_outlined,
             isActive: false,
             route: '/profit',

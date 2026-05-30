@@ -127,46 +127,64 @@ class PdfService {
       ),
       child: pw.Column(
         children: [
-          // Header hari
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
-            children: List.generate(7, (index) {
-              final date = DateTime.now().subtract(Duration(days: 6 - index));
-              return pw.Expanded(
-                child: pw.Text(
-                  DateFormat('E').format(date),
-                  style: pw.TextStyle(fontSize: 10),
-                  textAlign: pw.TextAlign.center,
-                ),
-              );
-            }),
+          // Line Chart using CustomPaint to avoid Axis version compatibility issues
+          pw.Container(
+            height: 120,
+            width: double.infinity,
+            child: pw.CustomPaint(
+              painter: (PdfGraphics canvas, PdfPoint size) {
+                if (points.isEmpty) return;
+                
+                final w = size.x;
+                final h = size.y;
+                final stepX = w / (points.length > 1 ? points.length - 1 : 1);
+                
+                // Draw the line
+                canvas.setColor(PdfColors.orange400);
+                canvas.setLineWidth(2.0);
+                
+                for (int i = 0; i < points.length; i++) {
+                  final x = i * stepX;
+                  final y = (points[i] / (maxValue == 0 ? 1 : maxValue)) * h;
+                  if (i == 0) {
+                    canvas.moveTo(x, y);
+                  } else {
+                    final prevX = (i - 1) * stepX;
+                    final prevY = (points[i - 1] / (maxValue == 0 ? 1 : maxValue)) * h;
+                    
+                    final cp1X = prevX + (x - prevX) / 2;
+                    final cp1Y = prevY;
+                    final cp2X = x - (x - prevX) / 2;
+                    final cp2Y = y;
+                    
+                    canvas.curveTo(cp1X, cp1Y, cp2X, cp2Y, x, y);
+                  }
+                }
+                canvas.strokePath();
+                
+                // Draw the points
+                canvas.setColor(PdfColors.orange700);
+                for (int i = 0; i < points.length; i++) {
+                  final x = i * stepX;
+                  final y = (points[i] / (maxValue == 0 ? 1 : maxValue)) * h;
+                  canvas.drawEllipse(x, y, 3, 3);
+                  canvas.fillPath();
+                }
+              },
+            ),
           ),
+          
           pw.SizedBox(height: 10),
           
-          // Bar chart
+          // Header hari (X Axis)
           pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: List.generate(points.length, (index) {
-              final height = (points[index] / maxValue) * 100;
-              return pw.Expanded(
-                child: pw.Column(
-                  children: [
-                    pw.Container(
-                      height: height,
-                      width: 20,
-                      decoration: pw.BoxDecoration(
-                        color: PdfColors.orange400,
-                        borderRadius: pw.BorderRadius.vertical(top: pw.Radius.circular(4)),
-                      ),
-                    ),
-                    pw.SizedBox(height: 5),
-                    pw.Text(
-                      '${(points[index] * 100).toStringAsFixed(0)}%',
-                      style: pw.TextStyle(fontSize: 8),
-                    ),
-                  ],
-                ),
+              final date = DateTime.now().subtract(Duration(days: points.length - 1 - index));
+              return pw.Text(
+                DateFormat('E').format(date),
+                style: pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+                textAlign: pw.TextAlign.center,
               );
             }),
           ),

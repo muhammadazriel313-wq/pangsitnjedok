@@ -16,6 +16,7 @@ class _EditMenuState extends State<EditMenu> {
   late TextEditingController _nameController;
   late TextEditingController _priceController;
   late TextEditingController _stockController;
+  late TextEditingController _descriptionController;
   late bool _isFoodCategory;
 
   Uint8List? _imageBytes;
@@ -35,6 +36,9 @@ class _EditMenuState extends State<EditMenu> {
     );
     _stockController = TextEditingController(
       text: widget.item['stock']?.toString() ?? '0',
+    );
+    _descriptionController = TextEditingController(
+      text: widget.item['description']?.toString() ?? '',
     );
 
     // Mendeteksi apakah kategori sebelumnya Food/Makanan agar tombol aktifnya benar[cite: 16]
@@ -71,6 +75,7 @@ class _EditMenuState extends State<EditMenu> {
       'price': _priceController.text.replaceAll(RegExp(r'[^0-9]'), ''),
       'stock': _stockController.text.replaceAll(RegExp(r'[^0-9]'), ''),
       'category': _isFoodCategory ? 'food' : 'beverages',
+      'description': _descriptionController.text.trim(),
     };
 
     // Panggil API UPDATE beserta file gambarnya[cite: 16]
@@ -320,6 +325,13 @@ class _EditMenuState extends State<EditMenu> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 24),
+                        _buildLabel('DESCRIPTION'),
+                        _buildTextField(
+                          controller: _descriptionController,
+                          hint: "Tell your customers about this dish's ingredients...",
+                          maxLines: 4,
+                        ),
                         const SizedBox(height: 32),
                         GestureDetector(
                           onTap: _updateMenuData,
@@ -339,7 +351,8 @@ class _EditMenuState extends State<EditMenu> {
                             ),
                             alignment: Alignment.center,
                             child: const Text(
-                              'Save',
+                              'Save Menu',
+                              textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -380,6 +393,7 @@ class _EditMenuState extends State<EditMenu> {
     required TextEditingController controller,
     required String hint,
     String? prefix,
+    int maxLines = 1,
     bool isNumber = false,
   }) => Container(
     decoration: BoxDecoration(
@@ -389,6 +403,7 @@ class _EditMenuState extends State<EditMenu> {
     ),
     child: TextField(
       controller: controller,
+      maxLines: maxLines,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
       decoration: InputDecoration(
         hintText: hint,

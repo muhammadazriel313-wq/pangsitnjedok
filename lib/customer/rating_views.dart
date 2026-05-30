@@ -49,7 +49,21 @@ class _RatingViewsPageState extends State<RatingViewsPage> {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> rawData = json.decode(response.body);
+        
+        // --- HAPUS REVIEW KEDUA BUDI SANTOSO ---
+        int budiCount = 0;
+        final List<dynamic> data = [];
+        for (var review in rawData) {
+          String reviewerName = (review['name'] ?? '').toString().toLowerCase();
+          if (reviewerName.contains('budi santoso')) {
+            budiCount++;
+            if (budiCount == 2) {
+              continue; // Lewati (hapus) review kedua dari Budi Santoso
+            }
+          }
+          data.add(review);
+        }
         
         int total = data.length;
         double sum = 0;

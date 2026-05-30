@@ -200,7 +200,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
 
                   // --- SUSUNAN KONTEN PORTRAIT ---
                   final portraitContent = [
-                    _buildStatCard(title: "Today's Revenue", value: revenue, badgeLabel: "LIVE UPDATE", icon: Icons.visibility_outlined),
+                    _buildStatCard(title: "Today's Revenue", value: revenue, badgeLabel: "LIVE UPDATE"),
                     const SizedBox(height: 16),
                     _buildStatCard(title: "New Orders", value: newOrders, badgeLabel: "WAITING", icon: Icons.shopping_bag_outlined),
                     const SizedBox(height: 16),
@@ -217,7 +217,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                   final landscapeContent = [
                     Row(
                       children: [
-                        Expanded(child: _buildStatCard(title: "Today's Revenue", value: revenue, badgeLabel: "LIVE UPDATE", icon: Icons.visibility_outlined)),
+                        Expanded(child: _buildStatCard(title: "Today's Revenue", value: revenue, badgeLabel: "LIVE UPDATE")),
                         const SizedBox(width: 16),
                         Expanded(child: _buildStatCard(title: "New Orders", value: newOrders, badgeLabel: "WAITING", icon: Icons.shopping_bag_outlined)),
                         const SizedBox(width: 16),
@@ -278,13 +278,14 @@ class _DashboardAdminState extends State<DashboardAdmin> {
   }
 
   // --- KOMPONEN REUSABLE (TETAP SAMA) ---
-  Widget _buildStatCard({required String title, required String value, required String badgeLabel, String? subtitle, required IconData icon}) {
+  Widget _buildStatCard({required String title, required String value, required String badgeLabel, String? subtitle, IconData? icon}) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(color: const Color(0xFFFFCE99), borderRadius: BorderRadius.circular(20), boxShadow: const [BoxShadow(color: Color(0x0C000000), blurRadius: 2, offset: Offset(0, 1))]),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 77), shape: BoxShape.circle), child: Icon(icon, color: const Color(0xFF562F00), size: 20)),
+          if (icon != null) Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 77), shape: BoxShape.circle), child: Icon(icon, color: const Color(0xFF562F00), size: 20)),
+          if (icon == null) const SizedBox(),
           Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: const Color(0xFF562F00), borderRadius: BorderRadius.circular(20)), child: Text(badgeLabel, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'Inter'))),
         ]),
         const SizedBox(height: 20),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'popup_konfirmasi.dart';
 import '../service/cart_service.dart';
+import '../service/api_service.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -137,7 +138,7 @@ class _CartPageState extends State<CartPage> {
 
                     // TOMBOL CHECKOUT (Sudah disambungkan ke Pop-up Konfirmasi)
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (totalItems == 0) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -150,14 +151,63 @@ class _CartPageState extends State<CartPage> {
                           return;
                         }
 
-                        // PERUBAHAN DI SINI:
-                        // Langsung memanggil class PopupKonfirmasi() tanpa lewat rute main.dart
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PopupKonfirmasi(),
-                          ),
+                        // Cek stok real-time sebelum lanjut ke halaman konfirmasi
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => const Center(child: CircularProgressIndicator(color: Color(0xFFFF9442))),
                         );
+
+                        try {
+                          final menusData = await ApiService.getMenus();
+                          if (context.mounted) Navigator.pop(context); // Tutup loading
+
+                          for (var item in _cartItems) {
+                            var menuMatch = menusData.firstWhere(
+                              (m) => m['title'].toString().toLowerCase() == item.title.toLowerCase(),
+                              orElse: () => null
+                            );
+                            
+                            if (menuMatch != null) {
+                              int stock = int.tryParse('${menuMatch['stock']}') ?? 0;
+                              if (item.qty > stock) {
+                                if (context.mounted) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                                      title: const Text('Menu Tidak Tersedia', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF562F00))),
+                                      content: Text(
+                                        stock == 0 
+                                          ? 'Maaf, menu "${item.title}" saat ini tidak tersedia (stok habis).'
+                                          : 'Pesanan "${item.title}" melebihi stok yang ada. Sisa stok saat ini: $stock porsi.'
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context),
+                                          child: const Text('Ubah Keranjang', style: TextStyle(color: Color(0xFFFF9442), fontWeight: FontWeight.bold)),
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                }
+                                return; // Batalkan proses checkout
+                              }
+                            }
+                          }
+                        } catch (e) {
+                          if (context.mounted) Navigator.pop(context); // Tutup loading jika error
+                        }
+
+                        // Jika stok aman, lanjut ke halaman konfirmasi
+                        if (context.mounted) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PopupKonfirmasi(),
+                            ),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFFF9442),

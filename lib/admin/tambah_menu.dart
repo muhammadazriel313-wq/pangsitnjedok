@@ -21,6 +21,7 @@ class _TambahMenuState extends State<TambahMenu> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   
   // Penanda kategori: jika true berarti Makanan, jika false berarti Minuman. Bawaannya adalah Makanan (true).
   bool _isFoodCategory = true; 
@@ -79,6 +80,7 @@ class _TambahMenuState extends State<TambahMenu> {
       'price': cleanPrice.isEmpty ? '0' : cleanPrice,
       'stock': cleanStock.isEmpty ? '0' : cleanStock,
       'category': _isFoodCategory ? 'Makanan' : 'Minuman',
+      'description': _descriptionController.text.trim(),
     };
 
     // 5. Panggil API Tambah Menu dari ApiService
@@ -291,6 +293,7 @@ class _TambahMenuState extends State<TambahMenu> {
                         // Input Deskripsi Produk
                         _buildLabel('DESCRIPTION'),
                         _buildTextField(
+                          controller: _descriptionController,
                           hint: "Tell your customers about this dish's ingredients...",
                           maxLines: 4,
                         ),
@@ -307,7 +310,8 @@ class _TambahMenuState extends State<TambahMenu> {
                               borderRadius: BorderRadius.circular(30),
                               boxShadow: const [BoxShadow(color: Color(0x3F000000), blurRadius: 20.0, offset: Offset(0, 10.0), spreadRadius: -10.0)],
                             ),
-                            child: const Text('Save Menu', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+                            alignment: Alignment.center,
+                            child: const Text('Save Menu', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
                           ),
                         ),
                       ],

@@ -189,7 +189,7 @@ class _ManageCustomersState extends State<ManageCustomers> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _navItem("Dashboard", Icons.dashboard_outlined, false, '/dashboard'),
-          _navItem("Orders", Icons.receipt_long_outlined, false, '/orders'),
+          _navItem("Orders", Icons.receipt_long_outlined, false, '/order'),
           _navItem("Menu", Icons.restaurant_menu_outlined, false, '/menu'),
           _navItem("Income", Icons.bar_chart_outlined, false, '/profit'),
           _navItem("Profile", Icons.person_outline, false, '/profil'),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:aplikasipangsitnjedok/service/api_service.dart';
 import 'package:aplikasipangsitnjedok/service/pdf_service.dart';
+import 'package:printing/printing.dart';
 
 class ProfitAdmin extends StatefulWidget {
   const ProfitAdmin({super.key});
@@ -14,6 +16,46 @@ class ProfitAdmin extends StatefulWidget {
 
 class _ProfitAdminState extends State<ProfitAdmin> {
   DateTime _selectedDate = DateTime.now();
+  Timer? _refreshTimer;
+  Map<String, dynamic>? _profitData;
+  Map<String, dynamic>? _dashboardData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+    // Refresh otomatis setiap 10 detik agar realtime
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      if (mounted) _fetchData(isRefresh: true);
+    });
+  }
+
+  Future<void> _fetchData({bool isRefresh = false}) async {
+    if (!isRefresh && mounted) {
+      setState(() => _isLoading = true);
+    }
+    
+    String dateForApi = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    final profitFuture = fetchProfitLokal(dateForApi);
+    final dashboardFuture = ApiService.getDashboardData();
+    
+    final results = await Future.wait([profitFuture, dashboardFuture]);
+    
+    if (mounted) {
+      setState(() {
+        _profitData = results[0];
+        _dashboardData = results[1];
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
 
   void _navigateTo(String route) {
     Navigator.pushReplacementNamed(context, route);
@@ -37,7 +79,10 @@ class _ProfitAdminState extends State<ProfitAdmin> {
       ),
     );
     if (picked != null && picked != _selectedDate) {
-      setState(() => _selectedDate = picked);
+      setState(() {
+        _selectedDate = picked;
+      });
+      _fetchData();
     }
   }
 
@@ -56,61 +101,56 @@ class _ProfitAdminState extends State<ProfitAdmin> {
   }
 
   Widget buildHeader() {
+    final adminName = _dashboardData?['name']?.toString() ?? 'Admin';
     return Container(
       padding: const EdgeInsets.only(top: 40, left: 24, right: 24, bottom: 20),
       decoration: const BoxDecoration(
         color: Color(0xFFFFFDF1),
         border: Border(bottom: BorderSide(width: 1, color: Color(0xFFFFCE99))),
       ),
-      child: FutureBuilder<Map<String, dynamic>>(
-        future: ApiService.getDashboardData(),
-        builder: (context, snapshot) {
-
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          width: 2,
-                          color: const Color(0xFFFF9442),
-                        ),
-                        color: Colors.white,
-                      ),
-                      child: const Icon(Icons.account_circle, color: Colors.grey, size: 40),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      width: 2,
+                      color: const Color(0xFFFF9442),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'Welcome Admin',
-                            style: TextStyle(
-                              color: Color(0xFF562F00),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              fontFamily: 'Inter',
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    color: Colors.white,
+                  ),
+                  child: const Icon(Icons.account_circle, color: Colors.grey, size: 40),
                 ),
-              ),
-            ],
-          );
-        },
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Welcome $adminName',
+                        style: const TextStyle(
+                          color: Color(0xFF562F00),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'Inter',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -125,16 +165,13 @@ class _ProfitAdminState extends State<ProfitAdmin> {
         children: [
           buildHeader(),
           Expanded(
-            child: FutureBuilder<Map<String, dynamic>>(
-              future: fetchProfitLokal(dateForApi),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFFFF9442)),
-                  );
-                }
-
-                final data = snapshot.data ?? {};
+            child: _isLoading 
+              ? const Center(
+                  child: CircularProgressIndicator(color: Color(0xFFFF9442)),
+                )
+              : Builder(
+                  builder: (context) {
+                    final data = _profitData ?? {};
                 final List bestSelling = data['best_selling'] ?? [];
                 final List daysList = data['day_names'] ??
                     ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -168,17 +205,21 @@ class _ProfitAdminState extends State<ProfitAdmin> {
                                 // PENJELASAN UNTUK SIDANG:
                                 // Kita memanggil fungsi generateFinancialReport dari PdfService.
                                 // Data-data seperti tanggal, revenue, profit, dikirimkan ke PDF generator.
-                                await PdfService.generateFinancialReport(
+                                final pdfBytes = await PdfService.generateFinancialReport(
                                   selectedDate: dateForApi,
                                   revenue: data['total_revenue']?.toString() ?? 'Rp 0',
                                   netProfit: data['net_profit']?.toString() ?? 'Rp 0',
                                   chartData: points,
                                   bestSelling: bestSelling,
                                 );
+                                
+                                // Bagikan/Simpan PDF menggunakan package printing
+                                await Printing.sharePdf(bytes: pdfBytes, filename: 'Laporan_Income_$dateForApi.pdf');
+
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('PDF report downloaded successfully!'),
+                                      content: Text('PDF ready to be saved/shared!'),
                                     ),
                                   );
                                 }

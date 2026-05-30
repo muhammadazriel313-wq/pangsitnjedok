@@ -38,7 +38,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
     final isPortrait = orientation == Orientation.portrait;
 
     // --- WIDGET HEADER ---
-    Widget buildHeader() {
+    Widget buildHeader(String adminName) {
       return Container(
         padding: const EdgeInsets.only(
           top: 40,
@@ -52,54 +52,46 @@ class _DashboardAdminState extends State<DashboardAdmin> {
             bottom: BorderSide(width: 1, color: Color(0xFFFFCE99)),
           ),
         ),
-        child: FutureBuilder<Map<String, dynamic>>(
-          future:
-              ApiService.getDashboardData(), // Header cukup load 1x saja biar efisien
-          builder: (context, snapshot) {
-            final String adminName = snapshot.data?['name'] ?? 'Admin';
-
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          width: 2,
-                          color: const Color(0xFFFF9442),
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.account_circle,
-                        color: Colors.grey,
-                        size: 40,
-                      ),
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      width: 2,
+                      color: const Color(0xFFFF9442),
                     ),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Welcome, $adminName',
-                          style: const TextStyle(
-                            color: Color(0xFF562F00),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: 'Inter',
-                          ),
-                        ),
-                      ],
+                  ),
+                  child: const Icon(
+                    Icons.account_circle,
+                    color: Colors.grey,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Welcome, $adminName',
+                      style: const TextStyle(
+                        color: Color(0xFF562F00),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'Inter',
+                      ),
                     ),
                   ],
                 ),
               ],
-            );
-          },
+            ),
+          ],
         ),
       );
     }
@@ -241,31 +233,41 @@ class _DashboardAdminState extends State<DashboardAdmin> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFFDF1),
-      body: Column(
-        children: [
-          buildHeader(),
-          Expanded(
-            // MENGGUNAKAN STREAM BUILDER UNTUK LIVE UPDATE
-            child: StreamBuilder<Map<String, dynamic>>(
-              stream: _liveDataStream,
-              builder: (context, snapshot) {
-                // Hanya munculin loading di awal banget biar gak kedip-kedip saat live update
-                if (snapshot.connectionState == ConnectionState.waiting &&
-                    !snapshot.hasData) {
-                  return const Center(
+      body: StreamBuilder<Map<String, dynamic>>(
+        stream: _liveDataStream,
+        builder: (context, snapshot) {
+          // Hanya munculin loading di awal banget biar gak kedip-kedip saat live update
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
+            return Column(
+              children: [
+                buildHeader('Admin'),
+                const Expanded(
+                  child: Center(
                     child: CircularProgressIndicator(color: Color(0xFFFF9644)),
-                  );
-                } else if (snapshot.hasError) {
-                  return Center(
+                  ),
+                ),
+              ],
+            );
+          } else if (snapshot.hasError) {
+            return Column(
+              children: [
+                buildHeader('Admin'),
+                Expanded(
+                  child: Center(
                     child: Text(
                       "Database Error:\n${snapshot.error}",
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.red),
                     ),
-                  );
-                } else if (snapshot.hasData) {
-                  final data = snapshot.data!;
-                  final revenue = data['revenue'] ?? 'Rp 0';
+                  ),
+                ),
+              ],
+            );
+          } else if (snapshot.hasData) {
+            final data = snapshot.data!;
+            final adminName = data['name']?.toString() ?? 'Admin';
+            final revenue = data['revenue'] ?? 'Rp 0';
                   final newOrders = data['new_orders']?.toString() ?? '0';
                   final lowStock = data['low_stock']?.toString() ?? '0';
 
@@ -275,7 +277,6 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                       title: "Today's Revenue",
                       value: revenue,
                       badgeLabel: "LIVE UPDATE",
-                      icon: Icons.visibility_outlined,
                     ),
                     const SizedBox(height: 16),
                     _buildStatCard(
@@ -324,7 +325,6 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                             title: "Today's Revenue",
                             value: revenue,
                             badgeLabel: "LIVE UPDATE",
-                            icon: Icons.visibility_outlined,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -387,7 +387,11 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                     ),
                   ];
 
-                  return SingleChildScrollView(
+            return Column(
+              children: [
+                buildHeader(adminName),
+                Expanded(
+                  child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
                       vertical: 24,
@@ -396,13 +400,18 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: isPortrait ? portraitContent : landscapeContent,
                     ),
-                  );
-                }
-                return const Center(child: Text("No data."));
-              },
-            ),
-          ),
-        ],
+                  ),
+                ),
+              ],
+            );
+          }
+          return Column(
+            children: [
+              buildHeader('Admin'),
+              const Expanded(child: Center(child: Text("No data."))),
+            ],
+          );
+        },
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
@@ -446,7 +455,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
               route: '/menu',
             ),
             _buildNavItem(
-              "Profit",
+              "Income",
               Icons.bar_chart_outlined,
               isActive: false,
               context: context,
@@ -471,7 +480,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
     required String value,
     required String badgeLabel,
     String? subtitle,
-    required IconData icon,
+    IconData? icon,
   }) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -492,7 +501,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
+              if (icon != null) Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 77),
@@ -500,6 +509,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                 ),
                 child: Icon(icon, color: const Color(0xFF562F00), size: 20),
               ),
+              if (icon == null) const SizedBox(),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,

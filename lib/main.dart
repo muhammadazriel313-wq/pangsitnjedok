@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart'; // Diperlukan untuk kReleaseMode
 import 'package:flutter/material.dart';
+import 'package:device_preview/device_preview.dart'; // Import Device Preview
 
 // --- IMPORT AUTH (Gerbang Masuk) ---
 import 'tampilan_awal.dart';
@@ -20,10 +22,14 @@ import 'admin/profit_admin.dart';
 import 'admin/profil_admin.dart';
 import 'admin/manage_customer.dart';
 
-// --- FUNGSI MAIN CUMA BOLEH SATU ---
+// --- FUNGSI MAIN DIBUNGKUS DEVICE PREVIEW ---
 void main() {
-  // Disamakan dengan nama class di bawah (PangsitNjedokApp)
-  runApp(const PangsitNjedokApp());
+  runApp(
+    DevicePreview(
+      enabled: !kReleaseMode, // Aktif hanya saat mode debug
+      builder: (context) => const PangsitNjedokApp(),
+    ),
+  );
 }
 
 class PangsitNjedokApp extends StatelessWidget {
@@ -32,6 +38,11 @@ class PangsitNjedokApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      // --- KONFIGURASI WAJIB DEVICE PREVIEW ---
+      // (useInheritedMediaType sudah dihapus agar tidak error di Flutter terbaru)
+      locale: DevicePreview.locale(context),
+      builder: DevicePreview.appBuilder,
+
       debugShowCheckedModeBanner: false,
       title: 'Pangsit Njedok',
       theme: ThemeData(

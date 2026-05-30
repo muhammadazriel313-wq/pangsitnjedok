@@ -498,17 +498,26 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Text(id, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(color: labelColor, borderRadius: BorderRadius.circular(4)),
-                    child: Text(status, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                  ),
-                ],
+              Expanded(
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        id, 
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(color: labelColor, borderRadius: BorderRadius.circular(4)),
+                      child: Text(status, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Text(
                 price,
                 style: TextStyle(

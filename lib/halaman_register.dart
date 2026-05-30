@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/network/api_services.dart';
+import 'service/api_service.dart';
 
 class HalamanRegister extends StatefulWidget {
   const HalamanRegister({super.key});

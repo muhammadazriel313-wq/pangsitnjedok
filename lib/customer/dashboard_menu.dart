@@ -5,8 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../service/api_service.dart';
 import 'cart.dart';
-import 'order.dart';
-
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import 'my_favorites.dart';
@@ -238,9 +236,10 @@ class _DashboardPageState extends State<DashboardPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            // ✅ LOGIKA FOTO PROFIL FIX (Menghindari Putih Polos)
+        Expanded(
+          child: Row(
+            children: [
+              // ✅ LOGIKA FOTO PROFIL FIX (Menghindari Putih Polos)
             Container(
               width: 52,
               height: 52,
@@ -262,26 +261,32 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Welcome,',
-                  style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
-                ),
-                Text(
-                  _customerName, // ✅ NAMA SESUAI USER LOGIN
-                  style: const TextStyle(
-                    color: Color(0xFF0F172A),
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Welcome,',
+                    style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
                   ),
-                ),
-              ],
+                  Text(
+                    _customerName, // ✅ NAMA SESUAI USER LOGIN
+                    style: const TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-        GestureDetector(
+      ),
+      const SizedBox(width: 16),
+      GestureDetector(
           onTap: () {
             Navigator.push(
               context,
@@ -384,6 +389,8 @@ class _DashboardPageState extends State<DashboardPage> {
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -391,16 +398,13 @@ class _DashboardPageState extends State<DashboardPage> {
                         ? 'Perfectly spicy, purely satisfying!'
                         : 'Perfectly fresh, purely satisfying!',
                     style: const TextStyle(color: Colors.white70, fontSize: 14),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const Spacer(),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MyOrdersPage(),
-                        ),
-                      );
+                      Navigator.pushNamed(context, '/dashboard_menu');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
@@ -503,14 +507,18 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: active
-                    ? const Color(0xFF0F172A)
-                    : const Color(0xFF64748B),
+            Flexible(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: active
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFF64748B),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -552,7 +560,7 @@ class _DashboardPageState extends State<DashboardPage> {
           crossAxisCount: 2,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: 0.75, // Menyeimbangkan bentuk kotak
+          childAspectRatio: 0.70, // Menyeimbangkan bentuk kotak dan mencegah overflow vertikal
         ),
         itemCount: displayItems.length,
         itemBuilder: (context, index) {
@@ -717,12 +725,16 @@ class _DashboardPageState extends State<DashboardPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        "Rp $price",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: Color(0xFFFF9442),
+                      Flexible(
+                        child: Text(
+                          "Rp $price",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: Color(0xFFFF9442),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       GestureDetector(

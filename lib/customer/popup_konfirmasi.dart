@@ -102,7 +102,7 @@ class _OrderConfirmationDialogState extends State<OrderConfirmationDialog> {
                       // 1. Ambil data keranjang dari SharedPreferences
                       final prefs = await SharedPreferences.getInstance();
                       final String? cartString = prefs.getString(
-                        'customer_cart_items_v1',
+                        'customer_cart_items_v2',
                       );
 
                       List<dynamic> cartItems = [];
@@ -141,12 +141,51 @@ class _OrderConfirmationDialogState extends State<OrderConfirmationDialog> {
                             .toList(),
                       };
 
-                      // 4. Kirim data ke API simpan_pesanan.php
+                      // 4. Cek ketersediaan stok secara real-time dari database
+                      final menusData = await ApiService.getMenus();
+                      for (var item in cartItems) {
+                        int qty = int.tryParse('${item['qty']}') ?? 0;
+                        String title = item['title'] ?? '';
+                        var menuMatch = menusData.firstWhere(
+                          (m) => m['title'].toString().toLowerCase() == title.toLowerCase(),
+                          orElse: () => null
+                        );
+                        
+                        if (menuMatch != null) {
+                          int stock = int.tryParse('${menuMatch['stock']}') ?? 0;
+                          if (qty > stock) {
+                            if (context.mounted) {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                                  title: const Text('Limit Stok', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF562F00))),
+                                  content: Text('Pesanan "$title" melebihi stok. Sisa stok saat ini: $stock porsi.'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Tutup', style: TextStyle(color: Color(0xFFFF9442), fontWeight: FontWeight.bold)),
+                                    )
+                                  ],
+                                ),
+                              );
+                            }
+                            if (mounted) {
+                              setState(() {
+                                _isSubmitting = false;
+                              });
+                            }
+                            return; // Batalkan checkout
+                          }
+                        }
+                      }
+
+                      // 5. Kirim data ke API simpan_pesanan.php
                       bool success = await ApiService.submitOrder(orderData);
 
                       if (success) {
                         // Jika sukses, bersihkan keranjang belanja di lokal HP
-                        await prefs.remove('customer_cart_items_v1');
+                        await prefs.remove('customer_cart_items_v2');
 
                         // Pindah secara aman ke halaman Terima Kasih
                         if (context.mounted) {

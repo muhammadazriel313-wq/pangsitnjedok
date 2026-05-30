@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '/service/api_service.dart'; 
 import 'tambah_menu.dart'; 
 import 'edit_menu.dart';
+import '../customer/detail_menu.dart';
 
 class MenuManagement extends StatefulWidget {
   const MenuManagement({super.key});
@@ -96,10 +97,21 @@ class _MenuManagementState extends State<MenuManagement> {
                               'stock': (dbItem['stock'] ?? 0).toString(),
                               'category': dbItem['category']?.toString() ?? 'Other',
                               'color': (int.tryParse(dbItem['stock']?.toString() ?? '0') ?? 0) < 10 ? Colors.red : Colors.green,
-                              // Pastikan img tidak pernah null
                               'img': rawImg.isEmpty ? 'placeholder.png' : rawImg,
+                              'image_url': rawImg,
+                              'description': dbItem['description']?.toString() ?? '',
                             };
-                            return _buildMenuItemCard(item: item);
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DetailMenuPage(item: item),
+                                  ),
+                                );
+                              },
+                              child: _buildMenuItemCard(item: item),
+                            );
                           },
                         ),
                     ],
@@ -141,7 +153,14 @@ class _MenuManagementState extends State<MenuManagement> {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            child: SizedBox(height: 130, width: double.infinity, child: imageWidget),
+            child: SizedBox(
+              height: 130,
+              width: double.infinity,
+              child: Hero(
+                tag: 'menu_image_${item['id']}',
+                child: imageWidget,
+              ),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(12),

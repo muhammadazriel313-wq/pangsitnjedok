@@ -8,7 +8,6 @@ class DetailMenuPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int id = int.tryParse(item['id'].toString()) ?? 0;
     String title = item['title'] ?? item['name'] ?? 'Detail Menu';
     
     // Format price if it contains 'Rp'
@@ -43,22 +42,9 @@ class DetailMenuPage extends StatelessWidget {
                 pinned: true,
                 elevation: 0,
                 backgroundColor: Colors.white,
-                leading: Container(
-                  margin: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.black),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ),
+                automaticallyImplyLeading: false,
                 flexibleSpace: FlexibleSpaceBar(
-                  background: Hero(
-                    tag: 'menu_image_$id', // Tag ini harus sama dengan yang ada di list!
-                    child: imageWidget,
-                  ),
+                  background: imageWidget,
                 ),
               ),
               SliverToBoxAdapter(
@@ -191,7 +177,9 @@ class DetailMenuPage extends StatelessWidget {
               ),
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFF9442),

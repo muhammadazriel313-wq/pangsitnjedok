@@ -297,12 +297,22 @@ class _HalamanLoginState extends State<HalamanLogin> {
                 const SizedBox(height: 16),
                 Align(
                   alignment: Alignment.centerRight,
-                  child: Text(
-                    'Forgot Password?',
-                    style: TextStyle(
-                      color: const Color(0xFFFF9442),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                  child: GestureDetector(
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Silakan hubungi Admin untuk mereset password Anda.'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Forgot Password?',
+                      style: TextStyle(
+                        color: Color(0xFFFF9442),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ),
