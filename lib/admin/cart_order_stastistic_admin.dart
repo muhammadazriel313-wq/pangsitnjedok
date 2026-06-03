@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:async'; // Tambahkan ini untuk Stream dan real-time update
+import 'dart:async';
 import '/service/api_service.dart';
 
 class DashboardAdmin extends StatefulWidget {
@@ -21,12 +21,9 @@ class _DashboardAdminState extends State<DashboardAdmin> {
     _liveDataStream = _getLiveDashboardData();
   }
 
-  // Fungsi Stream untuk memanggil API secara berkala (real-time polling)
   Stream<Map<String, dynamic>> _getLiveDashboardData() async* {
-    // Ambil data pertama kali langsung agar tidak menunggu delay
     yield await ApiService.getDashboardData();
 
-    // Ambil data setiap 5 detik untuk mendapatkan update dari pelanggan
     yield* Stream.periodic(const Duration(seconds: 5), (_) {
       return ApiService.getDashboardData();
     }).asyncMap((event) async => await event);
@@ -236,7 +233,6 @@ class _DashboardAdminState extends State<DashboardAdmin> {
       body: StreamBuilder<Map<String, dynamic>>(
         stream: _liveDataStream,
         builder: (context, snapshot) {
-          // Hanya munculin loading di awal banget biar gak kedip-kedip saat live update
           if (snapshot.connectionState == ConnectionState.waiting &&
               !snapshot.hasData) {
             return Column(
@@ -474,7 +470,6 @@ class _DashboardAdminState extends State<DashboardAdmin> {
     );
   }
 
-  // --- KOMPONEN REUSABLE (TETAP SAMA DENGAN SEBELUMNYA) ---
   Widget _buildStatCard({
     required String title,
     required String value,

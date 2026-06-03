@@ -1,13 +1,8 @@
 import 'dart:typed_data'; 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; // Library untuk memilih foto dari galeri HP
-import '/service/api_service.dart'; // Library koneksi API backend kita
+import 'package:image_picker/image_picker.dart';
+import '/service/api_service.dart';
 
-// ============================================================
-// KETERANGAN BELAJAR UNTUK SIDANG (TAMBAH MENU):
-// Halaman ini mendemonstrasikan pengiriman data yang lebih kompleks,
-// yaitu mengirim teks sekaligus file gambar ke database menggunakan API.
-// ============================================================
 class TambahMenu extends StatefulWidget {
   const TambahMenu({super.key});
 
@@ -16,53 +11,39 @@ class TambahMenu extends StatefulWidget {
 }
 
 class _TambahMenuState extends State<TambahMenu> {
-  // --- CONTROLLER UNTUK MENANGKAP INPUTAN TEKS ---
-  // Controller ini bertugas membaca apa saja yang diketik oleh admin di layar.
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   
-  // Penanda kategori: jika true berarti Makanan, jika false berarti Minuman. Bawaannya adalah Makanan (true).
   bool _isFoodCategory = true; 
   
-  // Variabel untuk menyimpan data biner foto yang sudah dipilih.
   Uint8List? _imageBytes; 
   
-  // Instansiasi library ImagePicker untuk membuka galeri HP
   final ImagePicker _picker = ImagePicker();
 
-  // --- FUNGSI MEMILIH FOTO DARI GALERI ---
   Future<void> _pickImage() async {
-    // PENJELASAN UNTUK SIDANG:
-    // ImagePicker adalah library untuk mengakses hardware HP (kamera/galeri).
-    // Kita menunggu (await) admin memilih satu foto dari galeri.
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      // Jika admin berhasil memilih foto, kita baca fotonya menjadi bentuk bytes (biner data)
       final bytes = await pickedFile.readAsBytes();
-      // Panggil setState agar Flutter langsung memperbarui tampilan dengan menampilkan foto tersebut di layar
       setState(() {
         _imageBytes = bytes;
       });
     }
   }
 
-  // --- FUNGSI MENYIMPAN MENU BARU KE DATABASE (API) ---
   Future<void> _simpanKeDatabase() async {
     // 1. Validasi Input Kosong
-    // trim() digunakan untuk menghapus spasi kosong di awal dan akhir teks agar admin tidak sekedar mengetik spasi.
     if (_nameController.text.trim().isEmpty || 
         _priceController.text.trim().isEmpty || 
         _stockController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('All fields must be filled!'), backgroundColor: Colors.orange),
       );
-      return; // Stop fungsi di sini, jangan lanjut simpan
+      return;
     }
 
     // 2. Tampilkan Animasi Loading Dialog
-    // Kita munculkan pop-up loading yang tidak bisa ditutup manual (barrierDismissible: false) biar admin tahu proses sedang berjalan.
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -70,11 +51,9 @@ class _TambahMenuState extends State<TambahMenu> {
     );
 
     // 3. Bersihkan Format Angka
-    // Menghapus karakter non-angka (seperti huruf, simbol Rp, titik, atau koma) dari harga dan stok sebelum dikirim ke database
     String cleanPrice = _priceController.text.replaceAll(RegExp(r'[^0-9]'), '');
     String cleanStock = _stockController.text.replaceAll(RegExp(r'[^0-9]'), '');
 
-    // 4. Siapkan Data Menu dalam format Map (Key-Value)
     Map<String, dynamic> dataBaru = {
       'title': _nameController.text.trim(),
       'price': cleanPrice.isEmpty ? '0' : cleanPrice,
@@ -83,25 +62,20 @@ class _TambahMenuState extends State<TambahMenu> {
       'description': _descriptionController.text.trim(),
     };
 
-    // 5. Panggil API Tambah Menu dari ApiService
-    // Kita sekalian kirimkan data biner foto (_imageBytes) beserta nama file sembarangan.
     bool success = await ApiService.addMenu(
       dataBaru,
       imageBytes: _imageBytes, 
       fileName: 'menu_baru.jpg' 
     );
 
-    // Jika halaman sudah ditutup sebelum proses selesai, kita hentikan eksekusi kode selanjutnya
     if (!mounted) return;
-    Navigator.pop(context); // Menutup pop-up loading dialog yang muncul tadi
+    Navigator.pop(context);
 
     // 6. Respon Sukses / Gagal
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Menu added successfully!'), backgroundColor: Colors.green),
       );
-      // Kembali ke halaman sebelumnya (Menu Management) sambil membawa nilai 'true' 
-      // supaya halaman sebelumnya langsung melakukan refresh daftar menu secara otomatis.
       Navigator.pop(context, true); 
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -112,7 +86,6 @@ class _TambahMenuState extends State<TambahMenu> {
 
   @override
   Widget build(BuildContext context) {
-    // --- WIDGET HEADER (BAGIAN ATAS HALAMAN) ---
     Widget buildHeader() {
       return Container(
         padding: const EdgeInsets.only(top: 40, left: 24, right: 24, bottom: 20),
@@ -145,14 +118,13 @@ class _TambahMenuState extends State<TambahMenu> {
       backgroundColor: const Color(0xFFFFFDF1),
       body: Column(
         children: [
-          buildHeader(), // Tampilkan header di paling atas
+          buildHeader(),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- KOTAK UPLOAD / PREVIEW FOTO MENU ---
                   GestureDetector(
                     onTap: _pickImage, // Jika diklik, buka galeri
                     child: Container(
@@ -165,7 +137,6 @@ class _TambahMenuState extends State<TambahMenu> {
                         borderRadius: BorderRadius.circular(32),
                         border: Border.all(color: const Color(0x7FFFEDD5)),
                       ),
-                      // JIKA SUDAH PILIH FOTO: Tampilkan preview fotonya di layar
                       child: _imageBytes != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(32),
@@ -173,7 +144,6 @@ class _TambahMenuState extends State<TambahMenu> {
                                 alignment: Alignment.center,
                                 children: [
                                   Image.memory(_imageBytes!, width: double.infinity, height: 250, fit: BoxFit.cover),
-                                  // Overlay gelap transparan tipis beserta instruksi ubah foto
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                     decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(20)),
@@ -182,7 +152,6 @@ class _TambahMenuState extends State<TambahMenu> {
                                 ],
                               ),
                             )
-                          // JIKA BELUM PILIH FOTO: Tampilkan ikon upload dan teks panduan
                           : Column(
                               children: [
                                 Container(
@@ -206,7 +175,6 @@ class _TambahMenuState extends State<TambahMenu> {
                   ),
                   const SizedBox(height: 32),
 
-                  // --- FORM INPUT DATA MENU ---
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
@@ -223,7 +191,6 @@ class _TambahMenuState extends State<TambahMenu> {
                         _buildTextField(controller: _nameController, hint: 'e.g., Mietiaw Mentai Extra Pedas'),
                         const SizedBox(height: 24),
 
-                        // Input Harga dan Stok Awal bersebelahan
                         Row(
                           children: [
                             Expanded(
@@ -249,7 +216,6 @@ class _TambahMenuState extends State<TambahMenu> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Pilihan Kategori (Makanan / Minuman) berbentuk tombol geser
                         _buildLabel('CATEGORY'),
                         Row(
                           children: [
@@ -299,7 +265,6 @@ class _TambahMenuState extends State<TambahMenu> {
                         ),
                         const SizedBox(height: 32),
 
-                        // Tombol Simpan Menu Besar di Paling Bawah Form
                         GestureDetector(
                           onTap: _simpanKeDatabase, 
                           child: Container(
@@ -326,7 +291,6 @@ class _TambahMenuState extends State<TambahMenu> {
     );
   }
 
-  // --- WIDGET MEMBUAT LABEL TEKS FORM KECIL ---
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -334,7 +298,6 @@ class _TambahMenuState extends State<TambahMenu> {
     );
   }
 
-  // --- WIDGET CUSTOM TEXT FIELD UNTUK FORM INPUT ---
   Widget _buildTextField({TextEditingController? controller, required String hint, String? prefix, int maxLines = 1, bool isNumber = false}) {
     return Container(
       decoration: BoxDecoration(
@@ -343,9 +306,8 @@ class _TambahMenuState extends State<TambahMenu> {
         border: Border.all(color: const Color(0xFFDCC1B2)),
       ),
       child: TextField(
-        controller: controller, // Hubungkan controller agar ketikan admin tertangkap
+        controller: controller,
         maxLines: maxLines,
-        // Jika isNumber adalah true, HP otomatis memunculkan keyboard angka saja
         keyboardType: isNumber ? TextInputType.number : TextInputType.text,
         style: const TextStyle(color: Color(0xFF562F00), fontSize: 16),
         decoration: InputDecoration(

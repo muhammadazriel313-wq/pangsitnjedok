@@ -10,9 +10,6 @@ class EditProfil extends StatefulWidget {
 }
 
 class _EditProfilState extends State<EditProfil> {
-  // PENJELASAN UNTUK SIDANG:
-  // TextEditingController digunakan untuk 'menangkap' dan 'mengubah' teks 
-  // yang ada di dalam kolom input (TextField). Setiap kolom input butuh 1 controller.
   late TextEditingController _nameController;
   late TextEditingController _usernameController;
   late TextEditingController _phoneController;
@@ -21,25 +18,19 @@ class _EditProfilState extends State<EditProfil> {
   @override
   void initState() {
     super.initState();
-    // Inisialisasi controller dengan data awal dari halaman profil[cite: 14]
     _nameController = TextEditingController(text: widget.initialData['name']);
     _usernameController = TextEditingController(text: widget.initialData['username']);
     _phoneController = TextEditingController(text: widget.initialData['phone']);
     _emailController = TextEditingController(text: widget.initialData['email']);
   }
 
-  // Fungsi untuk menyimpan perubahan ke database[cite: 14, 16]
   Future<void> _saveProfile() async {
-    // PENJELASAN UNTUK SIDANG:
-    // showDialog di sini digunakan untuk menampilkan animasi loading (CircularProgressIndicator).
-    // barrierDismissible: false artinya user TIDAK BISA menutup loading dengan mengklik luar kotak.
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator(color: Color(0xFFFF9442))),
     );
 
-    // Siapkan data teks untuk dikirim ke PHP[cite: 14]
     Map<String, String> updatedData = {
       'name': _nameController.text,
       'username': _usernameController.text,
@@ -47,7 +38,6 @@ class _EditProfilState extends State<EditProfil> {
       'email': _emailController.text,
     };
     
-    // Panggil API update dengan menyertakan bytes gambar[cite: 14, 16]
     bool isSuccess = await ApiService.updateAdminProfil(
       updatedData
     );
@@ -56,7 +46,6 @@ class _EditProfilState extends State<EditProfil> {
     Navigator.pop(context); // Tutup Loading dialog
 
     if (isSuccess) {
-      // Kembali ke halaman profil dengan sinyal sukses agar data di-refresh[cite: 14]
       Navigator.pop(context, true); 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profile Updated Successfully!'), backgroundColor: Colors.green),

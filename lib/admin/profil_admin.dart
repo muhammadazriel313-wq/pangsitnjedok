@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
 import '/service/api_service.dart';
-import 'edit_profil.dart'; // Import halaman Edit Profil supaya bisa berpindah kesana
-import '../halaman_login.dart'; // Import Halaman Login buat keperluan proses Logout
+import 'edit_profil.dart';
+import '../halaman_login.dart';
 
-// ============================================================
-// KETERANGAN BELAJAR UNTUK SIDANG (PROFIL ADMIN):
-// Halaman Profil ini menggunakan StatefulWidget agar kita bisa
-// me-refresh (menggambar ulang) halaman jika ada perubahan data,
-// misalnya setelah admin sukses mengubah nama atau foto profilnya.
-// ============================================================
 class ProfilReportAdmin extends StatefulWidget {
   const ProfilReportAdmin({super.key});
 
@@ -17,20 +11,15 @@ class ProfilReportAdmin extends StatefulWidget {
 }
 
 class _ProfilReportAdminState extends State<ProfilReportAdmin> {
-  // Kita buat variabel Future untuk menampung data profil admin yang diambil dari database.
-  // late artinya variabel ini akan diinisialisasi nanti di dalam fungsi initState().
   late Future<Map<String, dynamic>?> _profilFuture;
 
   @override
   void initState() {
     super.initState();
-    // Di sini kita panggil fungsi dari ApiService saat halaman pertama kali dibuka/dibuat
     _profilFuture = ApiService.getAdminProfil(); 
   }
 
   // --- FUNGSI REFRESH DATA ---
-  // Fungsi ini dipanggil setelah kita kembali dari halaman Edit Profil.
-  // setState() akan memberitahu Flutter untuk menggambar ulang layar dengan memanggil ulang data terbaru dari database.
   void _refreshData() {
     setState(() {
       _profilFuture = ApiService.getAdminProfil(); 
@@ -38,13 +27,12 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
   }
 
   // --- POPUP DIALOG LOGOUT ---
-  // Menampilkan kotak dialog peringatan/konfirmasi saat admin mengklik tombol Logout
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)), // Sudut kotak dibikin tumpul manis
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           title: const Text(
             "Logout Confirmation", 
             style: TextStyle(color: Color(0xFF562F00), fontWeight: FontWeight.bold)
@@ -60,11 +48,7 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
             TextButton(
               child: const Text("Logout", style: TextStyle(color: Colors.red)),
               onPressed: () {
-                // PENJELASAN UNTUK SIDANG:
                 // Navigator.pushAndRemoveUntil digunakan untuk pindah halaman
-                // SEKALIGUS menghapus semua tumpukan halaman sebelumnya (history).
-                // Ini mencegah user menekan tombol 'Back' (kembali) di HP
-                // dan tak sengaja masuk kembali ke dalam aplikasi setelah logout.
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => const HalamanLogin()),
@@ -81,12 +65,11 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFDF1), // Background krem soft khas aplikasi kita
+      backgroundColor: const Color(0xFFFFFDF1),
       appBar: AppBar(
         backgroundColor: const Color(0xFFFFF7ED),
-        elevation: 0, // AppBar dibuat rata tanpa bayangan bayang-bayang di bawahnya
+        elevation: 0,
         centerTitle: true,
-        // Tombol Back di pojok kiri atas
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFFC2410C)),
           onPressed: () => Navigator.pushReplacementNamed(context, '/dashboard'), // Kembali ke halaman Dashboard
@@ -96,26 +79,21 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
           style: TextStyle(color: Color(0xFFC2410C), fontSize: 20, fontWeight: FontWeight.bold),
         ),
         actions: [
-          // Tombol Logout di pojok kanan atas
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: Color(0xFFC2410C)),
             onPressed: () => _showLogoutDialog(context),
             tooltip: 'Logout',
           ),
-          const SizedBox(width: 8), // Sedikit jarak dari tepi layar kanan
+          const SizedBox(width: 8),
         ],
       ),
-      // FutureBuilder bertugas memantau pengambilan data dari database (async/Future).
-      // Selagi nunggu data datang, dia bisa menampilkan animasi loading.
       body: FutureBuilder<Map<String, dynamic>?>(
         future: _profilFuture,
         builder: (context, snapshot) {
-          // KONDISI 1: Data masih dalam perjalanan (loading)
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: Color(0xFFFF9442))); // Animasi loading berputar
           }
           
-          // KONDISI 2: Terjadi error atau datanya kosong
           if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
             return const Center(child: Text("Failed to load admin profile"));
           }
@@ -127,7 +105,6 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                // --- KARTU PROFIL UTAMA (FOTO & NAMA) ---
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
@@ -149,7 +126,6 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
                         'Welcome Admin', 
                         style: TextStyle(color: Color(0xFF562F00), fontSize: 22, fontWeight: FontWeight.w800),
                       ),
-                      // Username Admin (ditambahkan simbol '@' di depannya)
                       Text(
                         "@${data['username'] ?? 'admin'}", 
                         style: const TextStyle(color: Color(0xFFFF9442), fontSize: 14, fontWeight: FontWeight.w600),
@@ -159,8 +135,6 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
                       // Tombol Edit Profile
                       ElevatedButton(
                         onPressed: () async {
-                          // Kita pindah ke halaman Edit Profil dengan membawa data profil saat ini
-                          // await Navigator.push artinya kita menunggu sampai user selesai mengedit dan kembali ke halaman ini
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -175,8 +149,6 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
                               ),
                             ),
                           );
-                          // Jika user sukses mengedit profil, halaman EditProfil akan mengembalikan nilai 'true'.
-                          // Jika ya, kita panggil fungsi refresh agar data di layar langsung terupdate dengan data baru.
                           if (result == true) {
                             _refreshData();
                           }
@@ -193,7 +165,6 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
                 ),
                 const SizedBox(height: 24),
                 
-                // --- KARTU INFORMASI DETAIL (NAMA, NO TELP, EMAIL) ---
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
@@ -216,7 +187,6 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
     );
   }
 
-  // --- WIDGET MEMBUAT BARIS DETAIL INFO ---
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       children: [
@@ -233,7 +203,6 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
     );
   }
 
-  // --- MEMBUAT NAVIGATION BAR BAWAH (BOTTOM NAVIGATION BAR) ---
   Widget _buildBottomNav() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
@@ -248,17 +217,15 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
           _buildNavItem("Orders", Icons.receipt_long_outlined, false, '/order'),
           _buildNavItem("Menu", Icons.restaurant_menu_outlined, false, '/menu'),
           _buildNavItem("Income", Icons.bar_chart_outlined, false, '/profit'),
-          _buildNavItem("Profile", Icons.person, true, '/profil'), // Halaman Profile sedang aktif (true)
+          _buildNavItem("Profile", Icons.person, true, '/profil'),
         ],
       ),
     );
   }
 
-  // Membuat item navigasi tunggal di bottom navigation bar
   Widget _buildNavItem(String label, IconData icon, bool isActive, String route) {
     return GestureDetector(
       onTap: () { 
-        // Jika item ini tidak aktif, saat diklik kita pindah halaman ke rute tersebut
         if (!isActive) Navigator.pushReplacementNamed(context, route); 
       },
       child: Column(
@@ -267,7 +234,7 @@ class _ProfilReportAdminState extends State<ProfilReportAdmin> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: isActive ? const Color(0xFFFFCE99) : Colors.transparent, // Latar belakang oranye pastel jika aktif
+              color: isActive ? const Color(0xFFFFCE99) : Colors.transparent,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Icon(icon, color: const Color(0xFF562F00), size: 24),

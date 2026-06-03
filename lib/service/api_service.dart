@@ -4,41 +4,17 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // ============================================================
-  // KETERANGAN BELAJAR UNTUK SIDANG (KONSEP API SERVICE):
-  // 1. Class ApiService bertugas sebagai "Jembatan" penghubung antara
-  //    Aplikasi Flutter (Frontend) dengan Database MySQL lewat PHP (Backend).
-  // 2. Future: Tipe data untuk nilai yang akan tersedia di masa depan. 
-  //    Digunakan karena proses ambil data butuh waktu (proses tidak instan).
-  // 3. async / await: async menandakan fungsi ini berjalan di latar belakang (asynchronous),
-  //    dan await digunakan untuk 'menunggu' proses selesai sebelum lanjut ke baris kode berikutnya.
-  // ============================================================
-  // 📍 BASE URL (Alamat Server Backend)
-  // - Pakai 'http://localhost/pangsit_njedok_api' kalau kamu jalankan di Web atau Simulator iOS.
-  // - Pakai 'http://10.0.2.2/pangsit_njedok_api' kalau kamu jalankan di Emulator Android bawaan.
-  // - Pakai IP HP/Laptop kamu (misal: 'http://192.168.1.5/pangsit_njedok_api') kalau kamu jalankan di HP asli (koneksikan HP & Laptop ke Wi-Fi yang sama).
   static const String baseUrl = "http://localhost/pangsit_njedok_api"; 
 
-  // ============================================================
-  // ⭐ [TAMBAHAN BARU] FUNGSI AUTH & PROFIL CUSTOMER
-  // ============================================================
   
-  // PENJELASAN UNTUK SIDANG:
-  // Fungsi login ini mengembalikan Future berisi Map (struktur data Key-Value).
-  // Kita menggunakan metode HTTP POST karena data login (password) bersifat sensitif
-  // dan lebih aman dikirim melalui 'body', bukan melalui URL.
   static Future<Map<String, dynamic>> login(String id, String password, String role) async {
     try {
-      // await akan menghentikan eksekusi baris bawahnya sampai server memberikan respon.
       final response = await http.post(
         Uri.parse("$baseUrl/login.php"),
         body: {"id": id, "password": password, "role": role},
       );
-      // Jika statusCode 200 (berhasil/OK), kita merubah (decode) teks JSON dari server
-      // menjadi objek Map yang bisa dibaca oleh Dart.
       return response.statusCode == 200 ? json.decode(response.body) : {"status": "error", "message": "Gagal Login"};
     } catch (e) {
-      // blok catch berfungsi untuk menangkap error (exception) jika misalnya server mati.
       return {"status": "error", "message": "Koneksi Error: $e"};
     }
   }
@@ -55,9 +31,6 @@ class ApiService {
     }
   }
 
-  // PENJELASAN UNTUK SIDANG:
-  // Kita menggunakan HTTP GET karena hanya untuk 'mengambil' (get) data dari server,
-  // di mana parameter 'id' dikirimkan melalui URL (query string).
   static Future<Map<String, dynamic>> getProfile(String id) async {
     try {
       final response = await http.get(Uri.parse("$baseUrl/get_profil.php?id=$id"));
@@ -94,9 +67,6 @@ class ApiService {
     }
   }
 
-  // ============================================================
-  // 1. FUNGSI DASHBOARD (Mengambil Ringkasan Data)
-  // ============================================================
   static Future<Map<String, dynamic>> getDashboardData() async {
     try {
       final response = await http.get(Uri.parse("$baseUrl/dashboard.php"));
@@ -110,9 +80,7 @@ class ApiService {
     }
   }
 
-  // ============================================================
   // 3. FUNGSI GET SEMUA MENU
-  // ============================================================
   static Future<List<dynamic>> getMenus() async {
     try {
       final response = await http.get(Uri.parse("$baseUrl/menu_management.php"));
@@ -126,9 +94,7 @@ class ApiService {
     }
   }
 
-  // ============================================================
   // 4. FUNGSI ORDER ADMIN
-  // ============================================================
   static Future<List<dynamic>> getOrders() async {
     try {
       final response = await http.get(Uri.parse("$baseUrl/order_admin.php"));
@@ -265,9 +231,7 @@ class ApiService {
       return false;
     }
   }
-  // ============================================================
   // 5. FUNGSI PROFIL ADMIN
-  // ============================================================
   static Future<Map<String, dynamic>?> getAdminProfil() async {
     try {
       final response = await http.get(Uri.parse("$baseUrl/profil_admin.php"));
@@ -302,9 +266,7 @@ class ApiService {
     }
   }
 
-  // ============================================================
   // 6. FUNGSI PROFIT ADMIN
-  // ============================================================
   static Future<Map<String, dynamic>> getprofitData(String date) async {
     try {
       final response = await http.get(Uri.parse("$baseUrl/profit_admin.php?date=$date"));
@@ -356,7 +318,6 @@ class ApiService {
     }
   }
 
-  // FUNGSI MENU CRUD (ADD, UPDATE, DELETE)
   static Future<bool> addMenu(Map<String, dynamic> data, {Uint8List? imageBytes, String? fileName}) async {
     try {
       var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/add_menu.php"));
@@ -396,9 +357,7 @@ class ApiService {
     }
   }
 
-  // ============================================================
   // 9. FUNGSI GET FAVORIT
-  // ============================================================
   static Future<List<dynamic>> getFavorites(int customerId) async {
     try {
       final response = await http.get(Uri.parse("$baseUrl/get_favorites.php?customer_id=$customerId"));
@@ -407,11 +366,9 @@ class ApiService {
       debugPrint("Error Get Favorites: $e");
       return [];
     }
-  } // Batas penutup fungsi getFavorites
+  }
 
-  // ============================================================
   // FUNGSI SIMPAN PESANAN (CHECKOUT)
-  // ============================================================
   static Future<bool> submitOrder(Map<String, dynamic> orderData) async {
     try {
       final response = await http.post(
@@ -438,9 +395,8 @@ class ApiService {
       debugPrint("Error saat submitOrder: $e");
       return false;
     }
-  } // Batas penutup fungsi submitOrder
+  }
 
-  // Tambahkan fungsi ini di dalam class ApiService (sebelum kurung penutup terakhir)      
 static Future<bool> toggleFavorite(String customerId, String menuId, String action) async {
     try {
       final response = await http.post(
@@ -455,7 +411,6 @@ static Future<bool> toggleFavorite(String customerId, String menuId, String acti
       debugPrint("Response toggle_favorite: ${response.statusCode} - ${response.body}");
       
       if (response.statusCode == 200) {
-        // Jika response kosong, anggap gagal (karena seharusnya backend merespon JSON)
         if (response.body.trim().isEmpty) return false; 
         
         try {
@@ -464,22 +419,21 @@ static Future<bool> toggleFavorite(String customerId, String menuId, String acti
             if (data['success'] == true || data['status'] == 'success') {
               return true;
             } else {
-              return false; // Backend secara eksplisit bilang gagal
+              return false;
             }
           }
-          return false; // Diubah ke false: Jika format JSON aneh dan tidak ada 'success'
+          return false;
         } catch (e) {
-          // Diubah ke false: Jika backend return teks error PHP, bukan JSON
           debugPrint("Gagal decode JSON (Mungkin error PHP): $e");
           return false; 
         }
       }
-      return false; // Status code selain 200 (misal 404/500)
+      return false;
     } catch (e) {
       debugPrint("Error toggleFavorite: $e");
       return false;
     }
   }
 
-} // <--- KURUNG KURAWAL INI HARUS DI PALING BAWAH UNTUK MENUTUP CLASS APISERVICE
+}
 

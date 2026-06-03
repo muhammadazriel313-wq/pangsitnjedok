@@ -12,9 +12,6 @@ class MenuManagement extends StatefulWidget {
 }
 
 class _MenuManagementState extends State<MenuManagement> {
-  // PENJELASAN UNTUK SIDANG:
-  // Variabel penanda (flag) untuk tab aktif. 
-  // Jika true = Tab Food (makanan) yang tampil, false = Tab Beverages (minuman).
   bool _isFoodTab = true;
 
   void _refreshData() {
@@ -42,17 +39,12 @@ class _MenuManagementState extends State<MenuManagement> {
 
                 final allData = snapshot.data!;
                 
-                // PENJELASAN UNTUK SIDANG:
-                // Logika Filter (Penyaringan): Kita menyaring data dari server.
-                // Fungsi where() akan membuat daftar baru hanya berisi data yang memenuhi syarat.
                 final activeData = allData.where((item) {
                 String currentCategory = (item['category'] ?? '').toString().toLowerCase().trim();
                 
                 if (_isFoodTab) {
-                  // Di tab FOOD: Tampilkan jika di database tertulis 'food' ATAU 'makanan'
                   return currentCategory == 'food' || currentCategory == 'makanan';
                 } else {
-                  // Di tab BEVERAGES: Tampilkan jika di database tertulis 'beverages' ATAU 'minuman'
                   return currentCategory == 'beverages' || currentCategory == 'minuman';
                 }
               }).toList();
@@ -73,13 +65,10 @@ class _MenuManagementState extends State<MenuManagement> {
                           child: Text("No menu in this category", style: TextStyle(color: Colors.grey[500], fontSize: 16)),
                         )
                       else
-                        // PENJELASAN UNTUK SIDANG:
-                        // GridView.builder digunakan untuk membuat daftar yang bentuknya kotak-kotak (grid),
-                        // seperti tampilan galeri foto di HP. Sangat efisien karena hanya merender 
                         // kotak yang terlihat di layar.
                         GridView.builder(
-                          shrinkWrap: true, // Biar tinggi GridView menyesuaikan dengan isi datanya.
-                          physics: const NeverScrollableScrollPhysics(), // Scroll dimatikan karena sudah dibungkus SingleChildScrollView di luar
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
                           itemCount: activeData.length,
                           gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                             maxCrossAxisExtent: 250, mainAxisSpacing: 16, crossAxisSpacing: 16, mainAxisExtent: 270, 
@@ -127,14 +116,12 @@ class _MenuManagementState extends State<MenuManagement> {
   }
 
   Widget _buildMenuItemCard({required Map<String, dynamic> item}) {
-    // --- LOGIKA PENDETEKSI GAMBAR (ASSETS ATAU UPLOADS) ---
     String imgStr = item['img'].toString();
     Widget imageWidget;
 
     if (imgStr.startsWith('http')) {
       imageWidget = Image.network(imgStr, fit: BoxFit.cover, errorBuilder: (c,e,s) => _fallbackImage());
     } else if (RegExp(r'^\d+_').hasMatch(imgStr)) {
-      // Jika diawali deretan angka (hasil upload XAMPP)
       imageWidget = Image.network("${ApiService.baseUrl}/uploads/$imgStr", fit: BoxFit.cover, errorBuilder: (c,e,s) => _fallbackImage());
     } else {
       // Jika gambar manual bawaan lokal
@@ -181,7 +168,6 @@ class _MenuManagementState extends State<MenuManagement> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     _buildSmallBtn(Icons.edit_outlined, const Color(0xFFD97706), const Color(0xFFFEF3C7), () {
-                      // Bawa item yang 100% aman (bebas null) ke halaman EditMenu[cite: 13]
                       Navigator.push(context, MaterialPageRoute(builder: (context) => EditMenu(item: Map<String, dynamic>.from(item)))).then((value) { if (value == true) _refreshData(); });
                     }),
                     const SizedBox(width: 8),

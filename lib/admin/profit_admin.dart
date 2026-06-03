@@ -25,7 +25,6 @@ class _ProfitAdminState extends State<ProfitAdmin> {
   void initState() {
     super.initState();
     _fetchData();
-    // Refresh otomatis setiap 10 detik agar realtime
     _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       if (mounted) _fetchData(isRefresh: true);
     });
@@ -62,9 +61,6 @@ class _ProfitAdminState extends State<ProfitAdmin> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    // PENJELASAN UNTUK SIDANG:
-    // showDatePicker() adalah fungsi bawaan Flutter untuk menampilkan kalender popup.
-    // 'await' digunakan karena kita harus menunggu pengguna memilih tanggal 
     // sebelum memproses data tanggal tersebut.
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -202,9 +198,6 @@ class _ProfitAdminState extends State<ProfitAdmin> {
                             ),
                             onPressed: () async {
                               try {
-                                // PENJELASAN UNTUK SIDANG:
-                                // Kita memanggil fungsi generateFinancialReport dari PdfService.
-                                // Data-data seperti tanggal, revenue, profit, dikirimkan ke PDF generator.
                                 final pdfBytes = await PdfService.generateFinancialReport(
                                   selectedDate: dateForApi,
                                   revenue: data['total_revenue']?.toString() ?? 'Rp 0',
@@ -525,10 +518,6 @@ class _ProfitAdminState extends State<ProfitAdmin> {
   }
 }
 
-// PENJELASAN UNTUK SIDANG:
-// CustomPainter memungkinkan kita untuk "menggambar" bebas di atas layar, 
-// seperti menggambar grafik garis lengkung (bezier curve) ini.
-// Sangat berguna untuk membuat UI yang tidak disediakan oleh widget bawaan.
 class _ChartPainter extends CustomPainter {
   final List<double> points;
   _ChartPainter(this.points);

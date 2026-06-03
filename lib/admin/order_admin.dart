@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'dart:async'; // WAJIB ADA: Untuk fungsi Timer Live Update
+import 'dart:async';
 import '/service/api_service.dart';
 
 class OrderManagement extends StatefulWidget {
@@ -11,21 +11,16 @@ class OrderManagement extends StatefulWidget {
 }
 
 class _OrderManagementState extends State<OrderManagement> {
-  int _currentTab = 0; // 0 = Incoming, 1 = Processing, 2 = Completed
+  int _currentTab = 0;
   bool _isLoading = true;
   List<dynamic> _allOrders = [];
 
   Timer? _timer;
 
   @override
-  // PENJELASAN UNTUK SIDANG:
-  // initState() adalah fungsi pertama yang dijalankan saat halaman ini dibuka.
-  // Ibarat saat kita bangun tidur, ini hal pertama yang dilakukan sebelum aktivitas lain.
-  // Di sini kita langsung mengambil data pesanan (_fetchOrders).
   void initState() {
     super.initState();
     _fetchOrders();
-    // Refresh otomatis setiap 3 detik di belakang layar tanpa merusak UI
     _timer = Timer.periodic(const Duration(seconds: 3), (Timer t) {
       if (mounted) {
         _fetchOrders();
@@ -53,12 +48,7 @@ class _OrderManagementState extends State<OrderManagement> {
   }
 
   @override
-  // PENJELASAN UNTUK SIDANG:
-  // dispose() dijalankan saat kita keluar/pindah dari halaman ini.
-  // Kita harus mematikan (cancel) hal-hal yang berjalan di latar belakang (seperti Timer),
-  // agar tidak membebani memori HP (mencegah memory leak).
   void dispose() {
-    // Matikan timer saat pindah halaman agar tidak terjadi memory leak (error)
     _timer?.cancel();
     super.dispose();
   }
@@ -127,7 +117,6 @@ class _OrderManagementState extends State<OrderManagement> {
               onPressed: () async {
                 Navigator.pop(dialogContext); // Tutup pop-up
 
-                // Mengirim perintah ke database untuk mengubah status menjadi CANCELLED/REJECTED
                 bool success = await ApiService.updateOrderStatus(
                   id,
                   'CANCELLED',
@@ -183,7 +172,7 @@ class _OrderManagementState extends State<OrderManagement> {
         ),
         child: FutureBuilder<Map<String, dynamic>?>(
           future:
-              ApiService.getAdminProfil(), // Memanggil data profil admin[cite: 14]
+              ApiService.getAdminProfil(),
           builder: (context, snapshot) {
             final String adminName = snapshot.data?['name'] ?? 'Admin';
 

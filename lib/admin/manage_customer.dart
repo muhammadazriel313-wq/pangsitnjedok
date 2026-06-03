@@ -9,20 +9,18 @@ class ManageCustomers extends StatefulWidget {
 }
 
 class _ManageCustomersState extends State<ManageCustomers> {
-  // 1. Fungsi Navigasi Standar (Tanpa Smooth Transition)
   void _navigateTo(String route) {
     Navigator.pushReplacementNamed(context, route);
   }
 
   // 2. Fungsi Logika Hapus Pelanggan
   void _deleteCustomer(String id, String name) async {
-    // Memanggil ApiService yang sudah kita buat sebelumnya
     bool success = await ApiService.deleteCustomer(id);
     
     if (!mounted) return;
 
     if (success) {
-      setState(() {}); // Memicu FutureBuilder untuk refresh data otomatis
+      setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Customer $name has been deleted'),
@@ -57,7 +55,7 @@ class _ManageCustomersState extends State<ManageCustomers> {
         ),
       ),
       body: FutureBuilder<List<dynamic>>(
-        future: ApiService.getCustomers(), // Mengambil data dari tabel customer
+        future: ApiService.getCustomers(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: Color(0xFFFF9442)));
@@ -115,7 +113,6 @@ class _ManageCustomersState extends State<ManageCustomers> {
     );
   }
 
-  // 3. Widget Card Pelanggan (Ikon Hapus di Kanan)
   Widget _customerItemCard(String id, String name, String phone) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -146,7 +143,6 @@ class _ManageCustomersState extends State<ManageCustomers> {
            IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
             onPressed: () {
-              // Menampilkan Pop-up Kotak Sederhana di Tengah
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
@@ -177,7 +173,6 @@ class _ManageCustomersState extends State<ManageCustomers> {
     );
   }
 
-  // 4. Widget Bottom Navigation Bar (Statis/Manual)
   Widget _buildBottomNav() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),

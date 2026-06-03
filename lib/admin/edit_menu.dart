@@ -25,7 +25,6 @@ class _EditMenuState extends State<EditMenu> {
   @override
   void initState() {
     super.initState();
-    // Gunakan safe-operator fallback agar terhindar dari error null[cite: 16]
     _nameController = TextEditingController(
       text: widget.item['title']?.toString() ?? '',
     );
@@ -41,7 +40,6 @@ class _EditMenuState extends State<EditMenu> {
       text: widget.item['description']?.toString() ?? '',
     );
 
-    // Mendeteksi apakah kategori sebelumnya Food/Makanan agar tombol aktifnya benar[cite: 16]
     String cat = widget.item['category']?.toString().toLowerCase().trim() ?? '';
     _isFoodCategory = (cat == 'makanan' || cat == 'food');
   }
@@ -68,7 +66,6 @@ class _EditMenuState extends State<EditMenu> {
     );
 
     // PERUBAHAN KRUSIAL DI SINI:
-    // Pastikan kategori yang dikirim konsisten formatnya (huruf kecil) agar tidak "hilang" di filter[cite: 16]
     Map<String, String> dataToUpdate = {
       'id': widget.item['id']?.toString() ?? '0',
       'title': _nameController.text.trim(),
@@ -78,7 +75,6 @@ class _EditMenuState extends State<EditMenu> {
       'description': _descriptionController.text.trim(),
     };
 
-    // Panggil API UPDATE beserta file gambarnya[cite: 16]
     bool success = await ApiService.updateMenu(
       dataToUpdate,
       imageBytes: _imageBytes,
@@ -119,7 +115,6 @@ class _EditMenuState extends State<EditMenu> {
 
   @override
   Widget build(BuildContext context) {
-    // --- PENENTUAN GAMBAR LAMA SECARA AMAN ---
     String imgStr = widget.item['img']?.toString() ?? 'placeholder.png';
     Widget oldImageWidget;
 
@@ -217,7 +212,6 @@ class _EditMenuState extends State<EditMenu> {
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            // Tampilkan foto dari galeri JIKA ADA, kalau tidak tampilkan foto DB
                             _imageBytes != null
                                 ? Image.memory(
                                     _imageBytes!,

@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 import '/service/api_service.dart'; 
 
-// ============================================================
-// KETERANGAN BELAJAR UNTUK SIDANG (KONSEP WIDGET & STATE):
-// StatefulWidget: Digunakan jika tampilan halaman bisa "berubah"
-// (misal karena ada animasi, tombol yang bisa diklik untuk ubah data grafik, dll).
-// Berbeda dengan StatelessWidget yang tampilannya statis / tetap.
-// ============================================================
 class DashboardAdmin extends StatefulWidget {
   const DashboardAdmin({super.key});
 
@@ -17,7 +11,6 @@ class DashboardAdmin extends StatefulWidget {
 class _DashboardAdminState extends State<DashboardAdmin> {
   // --- VARIABEL STATE ---
   // Variabel yang menyimpan keadaan (state). 
-  // Jika ini diubah menggunakan setState(), maka layar akan di-render ulang (refresh).
   bool _isHourly = true;
 
   @override
@@ -34,13 +27,8 @@ class _DashboardAdminState extends State<DashboardAdmin> {
       border: Border(bottom: BorderSide(width: 1, color: Color(0xFFFFCE99))),
     ),
     child: FutureBuilder<Map<String, dynamic>>(
-      // PENJELASAN UNTUK SIDANG:
-      // FutureBuilder adalah widget khusus untuk menangani proses asynchronous (seperti ambil data API).
-      // 'future:' memanggil fungsi getDashboardData() di ApiService.
       future: ApiService.getDashboardData(), 
       builder: (context, snapshot) {
-        // 'snapshot' berisi status dan data dari proses API.
-        // Tanda tanya (?) artinya variabel bisa null jika belum ada data.
         final String adminName = snapshot.data?['name'] ?? 'Admin';
 
         return Row(
@@ -87,7 +75,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
 }
 
 
-    // --- WIDGET STATISTIK CHART DENGAN DATA DUMMY AESTHETIC ---
+    // --- WIDGET STATISTIK CHART ---
     Widget buildChartCard(Map<String, dynamic> apiData) {
       // Mengambil data real dari API
       Map<String, dynamic> weeklyStats = apiData['weekly_stats'] ?? {
@@ -98,7 +86,6 @@ class _DashboardAdminState extends State<DashboardAdmin> {
         'W1': 0.1, 'W2': 0.1, 'W3': 0.1, 'W4': 0.1,
       };
 
-      // Memilih data yang ditampilkan berdasarkan tombol switch
       final chartData = _isHourly ? weeklyStats : monthlyStats;
 
       return Container(
@@ -125,9 +112,6 @@ class _DashboardAdminState extends State<DashboardAdmin> {
             Row(
               children: [
                 GestureDetector(
-                  // PENJELASAN UNTUK SIDANG:
-                  // setState() memberitahu Flutter bahwa variabel `_isHourly` berubah,
-                  // sehingga Flutter akan menggambar ulang (rebuild) bagian UI grafik saja.
                   onTap: () => setState(() => _isHourly = true),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -165,7 +149,6 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: chartData.entries.map((entry) {
-                  // Menggunakan data dummy yang sudah berupa angka desimal yang aman
                   final double barValue = (entry.value as num).toDouble();
                   
                   return Expanded(
@@ -186,7 +169,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
           buildHeader(),
           Expanded(
             child: FutureBuilder<Map<String, dynamic>>(
-              future: ApiService.getDashboardData(), // Sekarang juga mengambil data statistik
+              future: ApiService.getDashboardData(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator(color: Color(0xFFFF9644)));
@@ -206,7 +189,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                     const SizedBox(height: 16),
                     _buildStatCard(title: "Low Stock Items", value: lowStock, badgeLabel: "WARNING", subtitle: "Menus with < 10 stock", icon: Icons.warning_amber_rounded),
                     const SizedBox(height: 32),
-                    buildChartCard(data), // Mengirim data snapshot ke diagram
+                    buildChartCard(data),
                     const SizedBox(height: 32),
                     _buildActionCard(title: "Active Menu Items", subtitle: "Keep your selection fresh\nand updated.", actionText: "MANAGE MENU →", color: const Color(0xFFF7E5DB), icon: Icons.restaurant_menu, onTap: () => Navigator.pushReplacementNamed(context, '/menu')),
                     const SizedBox(height: 16),
@@ -228,7 +211,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(flex: 3, child: buildChartCard(data)), // Mengirim data snapshot ke diagram
+                        Expanded(flex: 3, child: buildChartCard(data)),
                         const SizedBox(width: 16),
                         Expanded(
                           flex: 2,
@@ -277,7 +260,6 @@ class _DashboardAdminState extends State<DashboardAdmin> {
     );
   }
 
-  // --- KOMPONEN REUSABLE (TETAP SAMA) ---
   Widget _buildStatCard({required String title, required String value, required String badgeLabel, String? subtitle, IconData? icon}) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -322,7 +304,6 @@ class _DashboardAdminState extends State<DashboardAdmin> {
   return Column(
     mainAxisAlignment: MainAxisAlignment.end,
     children: [
-      // Flexible membantu batang menyesuaikan ruang yang tersedia
       Flexible(
         child: TweenAnimationBuilder<double>(
           tween: Tween<double>(begin: 0, end: percentage),
@@ -330,10 +311,9 @@ class _DashboardAdminState extends State<DashboardAdmin> {
           curve: Curves.easeOutCubic,
           builder: (context, value, child) {
             return FractionallySizedBox(
-              // Gunakan clamp agar minimal ada sedikit batang yang terlihat (5%)
               heightFactor: value.clamp(0.05, 1.0), 
               child: Container(
-                width: 25, // Tentukan lebar batang yang pasti
+                width: 25,
                 decoration: const BoxDecoration(
                   color: Color(0xFFFF9644), 
                   borderRadius: BorderRadius.only(
